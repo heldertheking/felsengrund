@@ -1,0 +1,105 @@
+---
+interface Props {
+  src: string
+  title: string
+}
+
+const { src, title } = Astro.props
+---
+
+<div class="rounded-2xl border border-kf-edge bg-kf-surface-sunken p-5" data-podcast-player>
+  <audio class="hidden" preload="metadata" controlslist="nodownload" src={src} data-player-audio></audio>
+
+  <div class="flex items-center gap-4">
+    <button
+      type="button"
+      class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-kf-accent text-white transition hover:opacity-90"
+      aria-label="Abspielen"
+      data-player-toggle
+    >
+      <svg data-icon-play viewBox="0 0 24 24" fill="currentColor" class="ml-0.5 h-5 w-5" aria-hidden="true">
+        <path d="M8 5v14l11-7z"></path>
+      </svg>
+      <svg data-icon-pause viewBox="0 0 24 24" fill="currentColor" class="hidden h-5 w-5" aria-hidden="true">
+        <path d="M6 5h4v14H6zM14 5h4v14h-4z"></path>
+      </svg>
+    </button>
+
+    <div class="min-w-0 flex-1">
+      <input
+        type="range"
+        min="0"
+        max="100"
+        value="0"
+        step="0.1"
+        class="w-full accent-kf-accent"
+        aria-label={`Wiedergabeposition – ${title}`}
+        data-player-seek
+      />
+      <div class="mt-1 flex justify-between text-xs tabular-nums text-kf-ink-muted">
+        <span data-player-current>0:00</span>
+        <span data-player-duration>0:00</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function formatTime(seconds: number): string {
+    if (!Number.isFinite(seconds)) return '0:00'
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-podcast-player]').forEach((player) => {
+    const audio = player.querySelector<HTMLAudioElement>('[data-player-audio]')
+    const toggle = player.querySelector<HTMLButtonElement>('[data-player-toggle]')
+    const iconPlay = player.querySelector<SVGElement>('[data-icon-play]')
+    const iconPause = player.querySelector<SVGElement>('[data-icon-pause]')
+    const seek = player.querySelector<HTMLInputElement>('[data-player-seek]')
+    const current = player.querySelector<HTMLElement>('[data-player-current]')
+    const duration = player.querySelector<HTMLElement>('[data-player-duration]')
+    if (!audio || !toggle || !iconPlay || !iconPause || !seek || !current || !duration) return
+
+    let seeking = false
+
+    toggle.addEventListener('click', () => {
+      if (audio.paused) audio.play()
+      else audio.pause()
+    })
+
+    audio.addEventListener('play', () => {
+      iconPlay.classList.add('hidden')
+      iconPause.classList.remove('hidden')
+      toggle.setAttribute('aria-label', 'Pausieren')
+    })
+
+    audio.addEventListener('pause', () => {
+      iconPlay.classList.remove('hidden')
+      iconPause.classList.add('hidden')
+      toggle.setAttribute('aria-label', 'Abspielen')
+    })
+
+    audio.addEventListener('loadedmetadata', () => {
+      seek.max = String(audio.duration)
+      duration.textContent = formatTime(audio.duration)
+    })
+
+    audio.addEventListener('timeupdate', () => {
+      if (seeking) return
+      seek.value = String(audio.currentTime)
+      current.textContent = formatTime(audio.currentTime)
+    })
+
+    seek.addEventListener('input', () => {
+      seeking = true
+      current.textContent = formatTime(Number(seek.value))
+    })
+
+    seek.addEventListener('change', () => {
+      audio.currentTime = Number(seek.value)
+      seeking = false
+    })
+  })
+</script>

@@ -1,0 +1,94 @@
+---
+// Admin entry point: password form when unauthenticated, dashboard when authenticated. The
+// actual password check happens in /api/admin/login.ts; this page only reads the session cookie
+// to decide what to render.
+import { env } from 'cloudflare:workers'
+import { verifySession } from '../../lib/admin-auth'
+import AdminLayout from '../../layouts/AdminLayout.astro'
+
+export const prerender = false
+
+const authenticated = await verifySession(Astro.request.headers.get('cookie'), env.ADMIN_UPLOAD_PASSWORD ?? '')
+---
+
+<AdminLayout title="Admin – Kirche Felsengrund" showNav={authenticated}>
+  {authenticated ? (
+    <div>
+      <h1 class="font-display text-xl font-bold text-kf-ink">Willkommen</h1>
+      <p class="mt-2 text-sm text-kf-ink-muted">Wähle einen Bereich zum Verwalten.</p>
+      <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <a
+          href="/admin/offers"
+          class="rounded-xl border border-kf-edge p-5 transition hover:border-kf-accent hover:shadow-md"
+        >
+          <p class="font-display font-semibold text-kf-ink">Angebote verwalten</p>
+          <p class="mt-1 text-sm text-kf-ink-muted">Angebote erstellen, bearbeiten und löschen.</p>
+        </a>
+        <a
+          href="/admin/podcast"
+          class="rounded-xl border border-kf-edge p-5 transition hover:border-kf-accent hover:shadow-md"
+        >
+          <p class="font-display font-semibold text-kf-ink">Podcast-Episoden verwalten</p>
+          <p class="mt-1 text-sm text-kf-ink-muted">Episoden erstellen, bearbeiten und löschen.</p>
+        </a>
+      </div>
+    </div>
+  ) : (
+    <div>
+      <h1 class="font-display text-xl font-bold text-kf-ink">Admin-Anmeldung</h1>
+      <p class="mt-2 text-sm text-kf-ink-muted">Bitte melde dich mit dem Admin-Passwort an.</p>
+
+      <form id="login-form" class="mt-6 flex flex-col gap-4">
+        <div>
+          <label for="password" class="text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">
+            Passwort
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            class="mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="rounded-lg bg-kf-accent px-5 py-2.5 font-display text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+        >
+          Anmelden
+        </button>
+      </form>
+
+      <p id="status" class="mt-4 text-sm" role="status"></p>
+    </div>
+  )}
+</AdminLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#login-form')
+  const passwordInput = document.querySelector<HTMLInputElement>('#password')
+  const status = document.querySelector<HTMLElement>('#status')
+  const submitButton = form?.querySelector<HTMLButtonElement>('button[type="submit"]')
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    if (!status || !passwordInput?.value) return
+
+    status.textContent = 'Wird geprüft …'
+    if (submitButton) submitButton.disabled = true
+
+    const body = new FormData()
+    body.set('password', passwordInput.value)
+
+    try {
+      const response = await fetch('/api/admin/login', { method: 'POST', body, credentials: 'same-origin' })
+      if (!response.ok) throw new Error('Falsches Passwort.')
+      location.reload()
+    } catch (err) {
+      status.textContent = err instanceof Error ? err.message : 'Da ist etwas schiefgelaufen.'
+      if (submitButton) submitButton.disabled = false
+    }
+  })
+</script>

@@ -1,0 +1,16 @@
+---
+import { env } from 'cloudflare:workers'
+import { verifySession } from '../../../lib/admin-auth'
+import AdminLayout from '../../../layouts/AdminLayout.astro'
+import OfferForm from '../../../components/admin/OfferForm.astro'
+
+export const prerender = false
+
+const authenticated = await verifySession(Astro.request.headers.get('cookie'), env.ADMIN_UPLOAD_PASSWORD ?? '')
+if (!authenticated) return Astro.redirect('/admin')
+---
+
+<AdminLayout title="Neues Angebot – Admin" wide>
+  <h1 class="font-display text-xl font-bold text-kf-ink">Neues Angebot</h1>
+  <OfferForm offer={null} />
+</AdminLayout>

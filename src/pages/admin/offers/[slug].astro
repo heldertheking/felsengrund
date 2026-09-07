@@ -1,0 +1,20 @@
+---
+import { env } from 'cloudflare:workers'
+import { verifySession } from '../../../lib/admin-auth'
+import { getOffer } from '../../../lib/admin-content'
+import AdminLayout from '../../../layouts/AdminLayout.astro'
+import OfferForm from '../../../components/admin/OfferForm.astro'
+
+export const prerender = false
+
+const authenticated = await verifySession(Astro.request.headers.get('cookie'), env.ADMIN_UPLOAD_PASSWORD ?? '')
+if (!authenticated) return Astro.redirect('/admin')
+
+const offer = await getOffer(env.STORAGE, Astro.params.slug!)
+if (!offer) return Astro.rewrite('/404')
+---
+
+<AdminLayout title={`${offer.data.title} bearbeiten – Admin`} wide>
+  <h1 class="font-display text-xl font-bold text-kf-ink">Angebot bearbeiten</h1>
+  <OfferForm offer={offer} />
+</AdminLayout>

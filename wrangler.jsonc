@@ -1,15 +1,8 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "felsengrund",
-  "compatibility_date": "2026-06-12",
-  "main": "src/worker/index.ts",
-  "preview_urls": true,
-  "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS",
-    "html_handling": "drop-trailing-slash",
-    "not_found_handling": "single-page-application"
-  },
+  "compatibility_date": "2026-09-07",
+  "compatibility_flags": ["nodejs_compat"],
   "r2_buckets": [
     {
       "binding": "STORAGE",
@@ -17,13 +10,9 @@
     }
   ],
   "vars": {
-    "ENVIRONMENT": "production"
-  },
-  "env": {
-    "preview": {
-      "vars": {
-        "ENVIRONMENT": "preview"
-      }
-    }
+    // Update once the real n8n workflow exists. Not secret by itself (auth is the
+    // N8N_WEBHOOK_SECRET header, see src/lib/notify.ts / .dev.vars.example) but replace the
+    // placeholder host before relying on it.
+    "N8N_WEBHOOK_URL": "https://REPLACE-ME.n8n.cloud/webhook/felsengrund-forms"
   }
 }

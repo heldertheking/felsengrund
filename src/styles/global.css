@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  /* Brand palette, reverse-engineered from the live site's compiled theme CSS. */
+  --color-kf-accent: #a31366;
+  --color-kf-accent-soft: #fda1d5;
+  --color-kf-ink: #22181e;
+  --color-kf-ink-muted: #5c4f57;
+  --color-kf-surface: #ffffff;
+  --color-kf-surface-sunken: #fbf3f8;
+  --color-kf-edge: #ecdce6;
+
+  --font-sans: "Open Sans", system-ui, sans-serif;
+  --font-display: "Raleway", system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-kf-surface);
+  color: var(--color-kf-ink);
+}

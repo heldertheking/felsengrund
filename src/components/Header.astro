@@ -1,0 +1,255 @@
+---
+// The "Angebote" dropdown/mobile groups used to be a hardcoded list here, but that went stale
+// whenever an admin added/renamed/removed an offer through /admin/offers. Header.astro is
+// rendered on every page, including ones that are still statically prerendered at build time —
+// so fetching R2 content in this frontmatter would only ever reflect content as of the last
+// deploy for those pages. Instead the groups are fetched client-side from /api/offer-nav.json
+// (see below) and rendered into the placeholders below once JS runs.
+const primaryLinks = [
+  { label: 'Über uns', href: '/uber-uns' },
+  { label: 'Agenda', href: '/agenda' },
+]
+
+const secondaryLinks = [
+  { label: 'Podcast', href: '/podcast' },
+  { label: 'Kontakt & Spenden', href: '/kontakt' },
+]
+---
+
+<header class="relative sticky top-0 z-50 border-b border-kf-edge bg-kf-surface/90 backdrop-blur">
+  <!--
+    Discreet admin entry point: click 5x within ~2s to reveal a link to /admin. A plain invisible
+    button (not the logo) so it never interferes with normal navigation, and not part of the tab
+    order / not exposed to assistive tech, since it's deliberately not meant to be discoverable.
+  -->
+  <button
+    type="button"
+    class="absolute right-0 top-0 h-20 w-12"
+    tabindex="-1"
+    aria-hidden="true"
+    data-admin-trigger
+  ></button>
+
+  <div
+    class="invisible absolute right-4 top-full z-50 mt-1 w-48 rounded-xl border border-kf-edge bg-kf-surface p-2 opacity-0 shadow-lg transition"
+    data-admin-panel
+  >
+    <a href="/admin" class="block rounded-md px-3 py-2 text-sm text-kf-ink hover:bg-kf-surface-sunken">
+      Admin öffnen
+    </a>
+  </div>
+
+  <div class="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <a href="/" class="flex items-center gap-2 shrink-0">
+      <img
+        src="/icons/logo.svg"
+        alt="Kirche Felsengrund"
+        class="h-14 w-auto"
+      />
+    </a>
+
+    <nav class="hidden lg:flex lg:items-center lg:gap-1" aria-label="Hauptnavigation">
+      <a href="/" class="nav-link">Home</a>
+      {primaryLinks.map((link) => (
+        <a href={link.href} class="nav-link">{link.label}</a>
+      ))}
+
+      <div class="group relative">
+        <button
+          type="button"
+          class="nav-link flex items-center gap-1"
+          aria-haspopup="true"
+          aria-expanded="false"
+          data-dropdown-trigger
+        >
+          Angebote
+          <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+        </button>
+
+        <div
+          class="invisible absolute left-1/2 top-full w-[38rem] -translate-x-1/2 pt-3 opacity-0 transition duration-150 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
+          data-dropdown-panel
+        >
+          <div
+            class="grid grid-cols-3 gap-x-6 gap-y-4 rounded-xl border border-kf-edge bg-kf-surface p-6 shadow-lg"
+            data-offer-groups
+          ></div>
+        </div>
+      </div>
+
+      {secondaryLinks.map((link) => (
+        <a href={link.href} class="nav-link">{link.label}</a>
+      ))}
+    </nav>
+
+    <button
+      type="button"
+      class="lg:hidden"
+      aria-label="Menü öffnen"
+      aria-expanded="false"
+      data-mobile-trigger
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" class="h-7 w-7" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"></path>
+      </svg>
+    </button>
+  </div>
+
+  <div class="hidden border-t border-kf-edge px-4 pb-4 lg:hidden" data-mobile-panel>
+    <nav class="flex flex-col gap-1 pt-3" aria-label="Mobile Navigation">
+      <a href="/" class="mobile-nav-link">Home</a>
+      {primaryLinks.map((link) => (
+        <a href={link.href} class="mobile-nav-link">{link.label}</a>
+      ))}
+
+      <div data-mobile-offer-groups></div>
+
+      <div class="pt-2">
+        {secondaryLinks.map((link) => (
+          <a href={link.href} class="mobile-nav-link">{link.label}</a>
+        ))}
+      </div>
+    </nav>
+  </div>
+</header>
+
+<style>
+  @reference "../styles/global.css";
+
+  .nav-link {
+    @apply rounded-md px-3 py-2 font-display text-sm font-medium text-kf-ink transition-colors hover:text-kf-accent;
+  }
+  .mobile-nav-link {
+    @apply rounded-md px-3 py-2 font-display text-sm font-medium text-kf-ink hover:bg-kf-surface-sunken;
+  }
+</style>
+
+<script>
+  const trigger = document.querySelector('[data-mobile-trigger]')
+  const panel = document.querySelector('[data-mobile-panel]')
+
+  trigger?.addEventListener('click', () => {
+    const isOpen = panel?.classList.toggle('hidden') === false
+    trigger.setAttribute('aria-expanded', String(isOpen))
+    trigger.setAttribute('aria-label', isOpen ? 'Menü schliessen' : 'Menü öffnen')
+  })
+
+  const dropdownTrigger = document.querySelector('[data-dropdown-trigger]')
+  const dropdownGroup = dropdownTrigger?.closest('.group')
+  dropdownGroup?.addEventListener('focusin', () => dropdownTrigger?.setAttribute('aria-expanded', 'true'))
+  dropdownGroup?.addEventListener('focusout', (event) => {
+    if (event instanceof FocusEvent && !event.relatedTarget) {
+      dropdownTrigger?.setAttribute('aria-expanded', 'false')
+    }
+  })
+  dropdownGroup?.addEventListener('mouseenter', () => dropdownTrigger?.setAttribute('aria-expanded', 'true'))
+  dropdownGroup?.addEventListener('mouseleave', () => dropdownTrigger?.setAttribute('aria-expanded', 'false'))
+
+  // The "Angebote" groups reflect live R2 content, so they're fetched client-side rather than
+  // baked into the page at build time (see Header.astro frontmatter comment for why). Loaded
+  // independently of whether the host page is static or SSR; the dropdown trigger and "Angebote"
+  // label are already visible, only the group contents populate once this resolves.
+  interface OfferNavGroup {
+    label: string
+    links: { label: string; href: string }[]
+  }
+
+  const desktopOfferGroups = document.querySelector<HTMLElement>('[data-offer-groups]')
+  const mobileOfferGroups = document.querySelector<HTMLElement>('[data-mobile-offer-groups]')
+
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+
+  fetch('/api/offer-nav.json')
+    .then((response) => {
+      if (!response.ok) throw new Error(`offer-nav.json responded with ${response.status}`)
+      return response.json() as Promise<OfferNavGroup[]>
+    })
+    .then((groups) => {
+      if (desktopOfferGroups) {
+        desktopOfferGroups.innerHTML = groups
+          .map(
+            (group) => `
+              <div>
+                <p class="font-display text-sm font-semibold text-kf-accent">${escapeHtml(group.label)}</p>
+                <ul class="mt-2 space-y-1.5">
+                  ${group.links
+                    .map(
+                      (link) => `
+                        <li>
+                          <a href="${escapeHtml(link.href)}" class="text-sm text-kf-ink-muted hover:text-kf-accent">
+                            ${escapeHtml(link.label)}
+                          </a>
+                        </li>
+                      `,
+                    )
+                    .join('')}
+                </ul>
+              </div>
+            `,
+          )
+          .join('')
+      }
+
+      if (mobileOfferGroups) {
+        mobileOfferGroups.innerHTML = groups
+          .map(
+            (group) => `
+              <div class="pt-2">
+                <p class="px-3 font-display text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">
+                  ${escapeHtml(group.label)}
+                </p>
+                ${group.links
+                  .map(
+                    (link) =>
+                      `<a href="${escapeHtml(link.href)}" class="mobile-nav-link">${escapeHtml(link.label)}</a>`,
+                  )
+                  .join('')}
+              </div>
+            `,
+          )
+          .join('')
+      }
+    })
+    .catch((error) => {
+      console.error('Failed to load offer nav', error)
+    })
+
+  const adminTrigger = document.querySelector<HTMLButtonElement>('[data-admin-trigger]')
+  const adminPanel = document.querySelector<HTMLElement>('[data-admin-panel]')
+  let adminClickCount = 0
+  let adminResetTimer: ReturnType<typeof setTimeout> | undefined
+
+  adminTrigger?.addEventListener('click', () => {
+    adminClickCount += 1
+    clearTimeout(adminResetTimer)
+    adminResetTimer = setTimeout(() => (adminClickCount = 0), 2000)
+
+    if (adminClickCount >= 5) {
+      adminClickCount = 0
+      adminPanel?.classList.remove('invisible', 'opacity-0')
+    }
+  })
+
+  document.addEventListener('click', (event) => {
+    if (!adminPanel || adminPanel.classList.contains('invisible')) return
+    if (
+      event.target instanceof Node &&
+      !adminPanel.contains(event.target) &&
+      event.target !== adminTrigger
+    ) {
+      adminPanel.classList.add('invisible', 'opacity-0')
+    }
+  })
+</script>

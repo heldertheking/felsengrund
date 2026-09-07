@@ -1,0 +1,45 @@
+---
+import { env } from 'cloudflare:workers'
+import { getPodcastEpisode, renderMarkdoc } from '../../lib/admin-content'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import PodcastPlayer from '../../components/podcast/PodcastPlayer.astro'
+
+export const prerender = false
+
+const { slug } = Astro.params
+const episode = slug ? await getPodcastEpisode(env.STORAGE, slug) : null
+
+if (!episode) {
+  return Astro.rewrite('/404')
+}
+---
+
+<BaseLayout title={`${episode.data.title} – Podcast – Kirche Felsengrund`}>
+  <article class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+   <div class="mx-auto max-w-3xl">
+    {episode.data.coverImage && (
+      <img
+        src={episode.data.coverImage}
+        alt={episode.data.title}
+        class="mb-6 aspect-video w-full rounded-xl object-cover"
+      />
+    )}
+    <p class="font-display text-sm font-semibold uppercase tracking-wide text-kf-accent">
+      Podcast{episode.data.episodeNumber ? ` · Folge ${episode.data.episodeNumber}` : ''}
+    </p>
+    <h1 class="mt-2 font-display text-4xl font-bold text-kf-ink">{episode.data.title}</h1>
+    <p class="mt-2 text-sm text-kf-ink-muted">
+      {new Date(episode.data.publishDate).toLocaleDateString('de-CH')}
+      {episode.data.duration && <> · {episode.data.duration}</>}
+    </p>
+
+    <div class="mt-6">
+      <PodcastPlayer src={episode.data.audioUrl} title={episode.data.title} />
+    </div>
+
+    <div class="prose prose-neutral mt-10 max-w-none">
+      <Fragment set:html={renderMarkdoc(episode.body)} />
+    </div>
+   </div>
+  </article>
+</BaseLayout>

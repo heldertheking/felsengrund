@@ -1,0 +1,300 @@
+---
+// Shared create/edit form for offers, used by /admin/offers/new and /admin/offers/[slug].
+// Submits via fetch to /api/admin/offers (session cookie auth) and, when editing, exposes a
+// delete button that calls DELETE /api/admin/offers/<slug>.
+import type { Offer, OfferData } from '../../lib/admin-content'
+
+interface Props {
+  offer?: Offer | null
+}
+
+const { offer = null } = Astro.props
+const isEdit = offer !== null
+
+const categories: { value: OfferData['category']; label: string }[] = [
+  { value: 'gottesdienst', label: 'Gottesdienst' },
+  { value: 'kinder-jugend', label: 'Kinder & Jugend' },
+  { value: 'gemeinschaft', label: 'Gemeinschaft' },
+  { value: 'senioren', label: 'Senioren' },
+  { value: 'hilfe-service', label: 'Hilfe & Service' },
+]
+
+const organizers = offer?.data.organizers ?? []
+
+const inputClass =
+  'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent'
+const labelClass = 'text-xs font-semibold uppercase tracking-wide text-kf-ink-muted'
+---
+
+<form
+  id="offer-form"
+  class="mt-6 flex flex-col gap-5"
+  enctype="multipart/form-data"
+  data-mode={isEdit ? 'edit' : 'new'}
+  data-slug={offer?.slug ?? ''}
+>
+  {isEdit && <input type="hidden" name="slug" value={offer.slug} />}
+
+  <div>
+    <label for="title" class={labelClass}>Titel</label>
+    <input type="text" id="title" name="title" required value={offer?.data.title ?? ''} class={inputClass} />
+    {isEdit ? (
+      <p class="mt-1 text-xs text-kf-ink-muted">
+        Slug: <code>{offer.slug}</code>
+      </p>
+    ) : (
+      <p class="mt-1 text-xs text-kf-ink-muted">
+        Slug: <code id="slug-preview">–</code>
+      </p>
+    )}
+  </div>
+
+  <div>
+    <label for="intro" class={labelClass}>Intro</label>
+    <textarea id="intro" name="intro" rows="2" class={inputClass}>{offer?.data.intro ?? ''}</textarea>
+  </div>
+
+  <div>
+    <label for="category" class={labelClass}>Kategorie</label>
+    <select id="category" name="category" required class={inputClass}>
+      {categories.map((category) => (
+        <option value={category.value} selected={category.value === offer?.data.category}>
+          {category.label}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  <div>
+    <label for="targetAudience" class={labelClass}>Zielgruppe</label>
+    <input
+      type="text"
+      id="targetAudience"
+      name="targetAudience"
+      value={offer?.data.targetAudience ?? ''}
+      class={inputClass}
+    />
+  </div>
+
+  <div>
+    <label for="schedule" class={labelClass}>Zeiten</label>
+    <input type="text" id="schedule" name="schedule" value={offer?.data.schedule ?? ''} class={inputClass} />
+  </div>
+
+  <div>
+    <label for="location" class={labelClass}>Ort</label>
+    <input type="text" id="location" name="location" value={offer?.data.location ?? ''} class={inputClass} />
+  </div>
+
+  <div>
+    <label for="mapsLink" class={labelClass}>Google-Maps-Link</label>
+    <input type="url" id="mapsLink" name="mapsLink" value={offer?.data.mapsLink ?? ''} class={inputClass} />
+  </div>
+
+  <div>
+    <label for="registration" class={labelClass}>Anmeldung</label>
+    <input
+      type="text"
+      id="registration"
+      name="registration"
+      value={offer?.data.registration ?? ''}
+      class={inputClass}
+    />
+  </div>
+
+  <div>
+    <span class={labelClass}>Ansprechpersonen</span>
+    <div id="organizers-list" class="mt-2 flex flex-col gap-2">
+      {organizers.map((organizer) => (
+        <div
+          class="grid grid-cols-1 gap-2 rounded-lg border border-kf-edge p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-center"
+          data-organizer-row
+        >
+          <input type="text" placeholder="Name" data-field="name" value={organizer.name} class={inputClass} />
+          <input type="text" placeholder="Rolle" data-field="role" value={organizer.role ?? ''} class={inputClass} />
+          <input
+            type="text"
+            placeholder="Kontakt"
+            data-field="contact"
+            value={organizer.contact ?? ''}
+            class={inputClass}
+          />
+          <button
+            type="button"
+            data-remove-organizer
+            class="justify-self-start rounded-lg border border-kf-edge px-3 py-2 text-xs font-semibold text-kf-ink-muted transition hover:border-red-600 hover:text-red-600 sm:justify-self-center"
+          >
+            Entfernen
+          </button>
+        </div>
+      ))}
+    </div>
+    <button
+      type="button"
+      id="add-organizer"
+      class="mt-2 rounded-lg border border-kf-edge px-3 py-1.5 text-xs font-semibold text-kf-ink transition hover:border-kf-accent hover:text-kf-accent"
+    >
+      Ansprechperson hinzufügen
+    </button>
+
+    <template id="organizer-template">
+      <div
+        class="grid grid-cols-1 gap-2 rounded-lg border border-kf-edge p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-center"
+        data-organizer-row
+      >
+        <input type="text" placeholder="Name" data-field="name" class={inputClass} />
+        <input type="text" placeholder="Rolle" data-field="role" class={inputClass} />
+        <input type="text" placeholder="Kontakt" data-field="contact" class={inputClass} />
+        <button
+          type="button"
+          data-remove-organizer
+          class="justify-self-start rounded-lg border border-kf-edge px-3 py-2 text-xs font-semibold text-kf-ink-muted transition hover:border-red-600 hover:text-red-600 sm:justify-self-center"
+        >
+          Entfernen
+        </button>
+      </div>
+    </template>
+  </div>
+
+  <input type="hidden" name="organizers" id="organizers-json" />
+
+  <div>
+    <label for="cardImage" class={labelClass}>Kartenbild</label>
+    {offer?.data.cardImage && (
+      <img src={offer.data.cardImage} alt="" class="mt-2 h-24 w-auto rounded-lg border border-kf-edge object-cover" />
+    )}
+    <input
+      type="file"
+      id="cardImage"
+      name="cardImage"
+      accept="image/*"
+      class="mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink file:mr-3 file:rounded-md file:border-0 file:bg-kf-accent file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
+    />
+  </div>
+
+  <div>
+    <label for="body" class={labelClass}>Inhalt (Markdoc)</label>
+    <textarea id="body" name="body" rows="14" class={`${inputClass} font-mono`}>{offer?.body ?? ''}</textarea>
+  </div>
+
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <button
+      type="submit"
+      class="rounded-lg bg-kf-accent px-5 py-2.5 font-display text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+    >
+      Speichern
+    </button>
+    {isEdit && (
+      <button
+        type="button"
+        id="delete-button"
+        class="rounded-lg border border-red-600 px-5 py-2.5 font-display text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+      >
+        Löschen
+      </button>
+    )}
+  </div>
+
+  <p id="status" class="text-sm" role="status"></p>
+</form>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#offer-form')
+  const status = document.querySelector<HTMLElement>('#status')
+  const submitButton = form?.querySelector<HTMLButtonElement>('button[type="submit"]')
+  const deleteButton = document.querySelector<HTMLButtonElement>('#delete-button')
+  const slugPreview = document.querySelector<HTMLElement>('#slug-preview')
+  const titleInput = document.querySelector<HTMLInputElement>('#title')
+  const organizersList = document.querySelector<HTMLElement>('#organizers-list')
+  const addOrganizerButton = document.querySelector<HTMLButtonElement>('#add-organizer')
+  const organizerTemplate = document.querySelector<HTMLTemplateElement>('#organizer-template')
+  const organizersJsonInput = document.querySelector<HTMLInputElement>('#organizers-json')
+
+  // Mirrors slugify() in src/lib/admin-content.ts for a live preview only — the server is
+  // authoritative about the real slug.
+  const UMLAUTS: Record<string, string> = { ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss' }
+
+  function previewSlugify(input: string): string {
+    return input
+      .toLowerCase()
+      .replace(/[äöüß]/g, (char) => UMLAUTS[char] ?? char)
+      .normalize('NFKD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+  }
+
+  if (slugPreview && titleInput) {
+    const update = () => {
+      slugPreview.textContent = previewSlugify(titleInput.value) || '–'
+    }
+    titleInput.addEventListener('input', update)
+    update()
+  }
+
+  addOrganizerButton?.addEventListener('click', () => {
+    if (!organizerTemplate || !organizersList) return
+    organizersList.appendChild(organizerTemplate.content.cloneNode(true))
+  })
+
+  organizersList?.addEventListener('click', (event) => {
+    if (event.target instanceof HTMLElement && event.target.matches('[data-remove-organizer]')) {
+      event.target.closest('[data-organizer-row]')?.remove()
+    }
+  })
+
+  function collectOrganizers(): { name: string; role?: string; contact?: string }[] {
+    const rows = organizersList?.querySelectorAll<HTMLElement>('[data-organizer-row]') ?? []
+    const organizers: { name: string; role?: string; contact?: string }[] = []
+    rows.forEach((row) => {
+      const name = row.querySelector<HTMLInputElement>('[data-field="name"]')?.value.trim() ?? ''
+      const role = row.querySelector<HTMLInputElement>('[data-field="role"]')?.value.trim() ?? ''
+      const contact = row.querySelector<HTMLInputElement>('[data-field="contact"]')?.value.trim() ?? ''
+      if (!name) return
+      const entry: { name: string; role?: string; contact?: string } = { name }
+      if (role) entry.role = role
+      if (contact) entry.contact = contact
+      organizers.push(entry)
+    })
+    return organizers
+  }
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    if (!status || !form) return
+
+    if (organizersJsonInput) organizersJsonInput.value = JSON.stringify(collectOrganizers())
+
+    status.textContent = 'Wird gespeichert …'
+    if (submitButton) submitButton.disabled = true
+
+    try {
+      const body = new FormData(form)
+      const response = await fetch('/api/admin/offers', { method: 'POST', body, credentials: 'same-origin' })
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(data?.error ?? `Fehler ${response.status}`)
+      }
+      location.href = '/admin/offers'
+    } catch (err) {
+      status.textContent = err instanceof Error ? err.message : 'Da ist etwas schiefgelaufen.'
+      if (submitButton) submitButton.disabled = false
+    }
+  })
+
+  deleteButton?.addEventListener('click', async () => {
+    const slug = form?.dataset.slug
+    if (!slug) return
+    if (!confirm('Dieses Angebot wirklich löschen?')) return
+
+    deleteButton.disabled = true
+    try {
+      const response = await fetch(`/api/admin/offers/${slug}`, { method: 'DELETE', credentials: 'same-origin' })
+      if (!response.ok) throw new Error(`Fehler ${response.status}`)
+      location.href = '/admin/offers'
+    } catch (err) {
+      if (status) status.textContent = err instanceof Error ? err.message : 'Löschen fehlgeschlagen.'
+      deleteButton.disabled = false
+    }
+  })
+</script>
