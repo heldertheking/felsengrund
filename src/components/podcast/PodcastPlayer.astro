@@ -8,7 +8,7 @@ const { src, title } = Astro.props
 ---
 
 <div class="rounded-2xl border border-kf-edge bg-kf-surface-sunken p-5" data-podcast-player>
-  <audio class="hidden" preload="metadata" src={src} data-player-audio></audio>
+  <audio class="hidden" preload="metadata" controlslist="nodownload" src={src} data-player-audio></audio>
 
   <div class="flex items-center gap-4">
     <button
@@ -41,17 +41,6 @@ const { src, title } = Astro.props
         <span data-player-duration>0:00</span>
       </div>
     </div>
-
-    <a
-      href={src}
-      download
-      class="shrink-0 text-kf-ink-muted transition hover:text-kf-accent"
-      aria-label="Audio herunterladen"
-    >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" class="h-5 w-5" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 19.5h16" />
-      </svg>
-    </a>
   </div>
 </div>
 
