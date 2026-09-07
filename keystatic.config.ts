@@ -7,8 +7,8 @@ const gallery = block({
     images: fields.array(
       fields.image({
         label: 'Bild',
-        directory: 'src/assets/gallery',
-        publicPath: '/src/assets/gallery/',
+        directory: 'public/images/gallery',
+        publicPath: '/images/gallery/',
       }),
       {
         label: 'Bilder',
@@ -18,11 +18,21 @@ const gallery = block({
   },
 })
 
+// Local checkouts (and anywhere else that doesn't explicitly opt in) edit content directly on
+// disk. Set KEYSTATIC_STORAGE=github in the deployed environment to switch to GitHub-backed
+// storage instead, so staff can edit content on the live site through GitHub's OAuth login
+// rather than needing a local checkout. That mode requires a Keystatic GitHub App installed on
+// this repo, plus KEYSTATIC_GITHUB_CLIENT_ID / KEYSTATIC_GITHUB_CLIENT_SECRET set wherever the
+// site actually runs (e.g. `wrangler secret put` for a Cloudflare deployment) — see
+// https://keystatic.com/docs (docs site was unreachable when this was written; confirm the exact
+// env var names there before relying on this comment alone).
+const storage =
+  process.env.KEYSTATIC_STORAGE === 'github'
+    ? ({ kind: 'github', repo: 'heldertheking/felsengrund' } as const)
+    : ({ kind: 'local' } as const)
+
 export default config({
-  // NOTE: switch to `{ kind: 'github', repo: 'heldertheking/felsengrund' }` once a
-  // Keystatic GitHub App is installed on the repo — that's what lets staff edit
-  // content on the deployed site instead of only on a local checkout.
-  storage: { kind: 'local' },
+  storage,
   collections: {
     offers: collection({
       label: 'Angebote',
@@ -34,8 +44,8 @@ export default config({
         intro: fields.text({ label: 'Kurzbeschreibung', multiline: true }),
         cardImage: fields.image({
           label: 'Vorschaubild',
-          directory: 'src/assets/offers',
-          publicPath: '/src/assets/offers/',
+          directory: 'public/images/offers',
+          publicPath: '/images/offers/',
         }),
         category: fields.select({
           label: 'Kategorie',
@@ -68,8 +78,8 @@ export default config({
           label: 'Beschreibung',
           options: {
             image: {
-              directory: 'src/assets/offers',
-              publicPath: '/src/assets/offers/',
+              directory: 'public/images/offers',
+              publicPath: '/images/offers/',
             },
           },
           components: { gallery },
@@ -89,15 +99,15 @@ export default config({
         duration: fields.text({ label: 'Dauer (z. B. "32:10")' }),
         coverImage: fields.image({
           label: 'Cover',
-          directory: 'src/assets/podcast',
-          publicPath: '/src/assets/podcast/',
+          directory: 'public/images/podcast',
+          publicPath: '/images/podcast/',
         }),
         shownotes: fields.markdoc({
           label: 'Shownotes',
           options: {
             image: {
-              directory: 'src/assets/podcast',
-              publicPath: '/src/assets/podcast/',
+              directory: 'public/images/podcast',
+              publicPath: '/images/podcast/',
             },
           },
         }),

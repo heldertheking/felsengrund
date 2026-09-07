@@ -110,9 +110,19 @@ import BaseLayout from '../layouts/BaseLayout.astro'
               <dd class="text-kf-ink-muted">CH79 0070 0114 6002 0178 2</dd>
             </div>
           </dl>
-          <!-- TODO: die Live-Seite zeigt zusätzlich einen Schweizer QR-Zahlteil (QR-Rechnung)
-               als Grafik. Diese Grafik liegt uns nicht vor und muss vom Team nachgeliefert
-               werden, bevor sie hier ergänzt werden kann. -->
+          <div class="mt-4 flex items-center gap-4 rounded-xl border border-kf-edge bg-kf-surface p-5">
+            <img
+              src="/images/qr-zahlteil-spende.png"
+              alt="Swiss QR-Code für Spenden an Freie Missionsgemeinde Oetwil am See"
+              width="110"
+              height="113"
+              class="h-auto w-28 shrink-0"
+            />
+            <p class="text-sm text-kf-ink-muted">
+              Mit der Banking-App oder TWINT deines Kontos einscannen, um direkt mit den
+              hinterlegten Spendendaten zu bezahlen.
+            </p>
+          </div>
         </div>
       </div>
     </div>
