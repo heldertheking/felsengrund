@@ -1,15 +1,9 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "felsengrund",
+  "name": "felsengrund-api",
   "compatibility_date": "2026-06-12",
-  "main": "src/worker/index.ts",
+  "main": "src/index.ts",
   "preview_urls": true,
-  "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS",
-    "html_handling": "drop-trailing-slash",
-    "not_found_handling": "single-page-application"
-  },
   "r2_buckets": [
     {
       "binding": "STORAGE",
@@ -17,12 +11,14 @@
     }
   ],
   "vars": {
-    "ENVIRONMENT": "production"
+    "ENVIRONMENT": "production",
+    "PUBLIC_CDN_DOMAIN": "https://cdn.kirche-felsengrund.ch"
   },
   "env": {
     "preview": {
       "vars": {
-        "ENVIRONMENT": "preview"
+        "ENVIRONMENT": "preview",
+        "PUBLIC_CDN_DOMAIN": "https://cdn-preview.kirche-felsengrund.ch"
       }
     }
   }
