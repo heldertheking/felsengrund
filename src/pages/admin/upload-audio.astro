@@ -1,0 +1,141 @@
+---
+// Deliberately NOT a Cloudflare Worker route — this site's hosting isn't settled on Cloudflare,
+// so this stays a plain static page (no BaseLayout either: an internal tool, not a public page,
+// so it skips the site header/nav/footer entirely). It hands the file (and a shared password) to
+// an n8n webhook, which is responsible for validating the password and uploading to R2 itself
+// (n8n holds the R2 S3-compatible API credentials — this codebase never sees them). n8n's
+// workflow contract:
+//   - receives multipart/form-data with fields `password` and `file`
+//   - rejects with a non-2xx status if the password doesn't match
+//   - on success, uploads `file` to R2 and responds with JSON: { "url": "https://cdn.../podcast/..." }
+// Set PUBLIC_AUDIO_UPLOAD_WEBHOOK_URL to that webhook's URL once it exists.
+import '../../styles/global.css'
+---
+
+<!doctype html>
+<html lang="de-CH">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Audio-Upload – Kirche Felsengrund</title>
+  </head>
+  <body class="flex min-h-screen items-center justify-center bg-kf-surface-sunken px-4 font-sans">
+    <div class="w-full max-w-md rounded-2xl border border-kf-edge bg-kf-surface p-8 shadow-md">
+      <h1 class="font-display text-xl font-bold text-kf-ink">Podcast-Audio hochladen</h1>
+      <p class="mt-2 text-sm text-kf-ink-muted">
+        Lädt eine Audiodatei hoch und gibt dir die fertige CDN-URL zurück — die trägst du
+        anschliessend manuell ins <code>audioUrl</code>-Feld der Episode in Keystatic ein.
+      </p>
+
+      <form id="upload-form" class="mt-6 flex flex-col gap-4">
+        <div>
+          <label for="password" class="text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">
+            Passwort
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            class="mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
+          />
+        </div>
+
+        <input
+          type="file"
+          id="file"
+          name="file"
+          accept="audio/*"
+          required
+          class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink file:mr-3 file:rounded-md file:border-0 file:bg-kf-accent file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
+        />
+
+        <button
+          type="submit"
+          class="rounded-lg bg-kf-accent px-5 py-2.5 font-display text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+        >
+          Hochladen
+        </button>
+      </form>
+
+      <div id="result" class="mt-4 hidden">
+        <label for="result-url" class="text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">
+          CDN-URL
+        </label>
+        <div class="mt-1 flex gap-2">
+          <input
+            id="result-url"
+            type="text"
+            readonly
+            class="flex-1 rounded-lg border border-kf-edge bg-kf-surface-sunken px-3 py-2 text-sm text-kf-ink"
+          />
+          <button
+            type="button"
+            id="copy-button"
+            class="shrink-0 rounded-lg border border-kf-edge px-3 py-2 text-sm font-semibold text-kf-ink transition hover:border-kf-accent hover:text-kf-accent"
+          >
+            Kopieren
+          </button>
+        </div>
+      </div>
+
+      <p id="status" class="mt-4 text-sm" role="status"></p>
+    </div>
+  </body>
+</html>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#upload-form')
+  const passwordInput = document.querySelector<HTMLInputElement>('#password')
+  const fileInput = document.querySelector<HTMLInputElement>('#file')
+  const status = document.querySelector<HTMLElement>('#status')
+  const result = document.querySelector<HTMLElement>('#result')
+  const resultUrl = document.querySelector<HTMLInputElement>('#result-url')
+  const copyButton = document.querySelector<HTMLButtonElement>('#copy-button')
+  const submitButton = form?.querySelector<HTMLButtonElement>('button[type="submit"]')
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    if (!status || !fileInput?.files?.[0] || !passwordInput?.value) return
+
+    const webhookUrl = import.meta.env.PUBLIC_AUDIO_UPLOAD_WEBHOOK_URL
+    if (!webhookUrl) {
+      status.textContent = 'Der Audio-Upload ist noch nicht angebunden (PUBLIC_AUDIO_UPLOAD_WEBHOOK_URL fehlt).'
+      return
+    }
+
+    result?.classList.add('hidden')
+    status.textContent = 'Wird hochgeladen …'
+    if (submitButton) submitButton.disabled = true
+
+    const body = new FormData()
+    body.set('password', passwordInput.value)
+    body.set('file', fileInput.files[0])
+
+    try {
+      const response = await fetch(webhookUrl, { method: 'POST', body })
+      if (!response.ok) throw new Error(response.status === 401 ? 'Falsches Passwort.' : `Fehler ${response.status}`)
+
+      const data = (await response.json()) as { url?: string }
+      if (!data.url) throw new Error('Keine URL in der Antwort erhalten.')
+
+      if (resultUrl) resultUrl.value = data.url
+      result?.classList.remove('hidden')
+      status.textContent = 'Fertig!'
+      form.reset()
+    } catch (err) {
+      status.textContent = err instanceof Error ? err.message : 'Da ist etwas schiefgelaufen.'
+    } finally {
+      if (submitButton) submitButton.disabled = false
+    }
+  })
+
+  copyButton?.addEventListener('click', async () => {
+    if (!resultUrl?.value) return
+    await navigator.clipboard.writeText(resultUrl.value)
+    copyButton.textContent = 'Kopiert!'
+    setTimeout(() => (copyButton.textContent = 'Kopieren'), 1500)
+  })
+</script>
