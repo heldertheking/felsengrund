@@ -1,29 +1,45 @@
 import { env } from 'cloudflare:workers'
 
 /**
- * Emails a form submission to the church's admin address via Cloudflare Email Service.
- * Requires the sending domain (EMAIL_FROM_ADDRESS) to be onboarded first:
- *   npx wrangler email sending enable <domain>
- * Until that's done, this throws E_SENDER_NOT_VERIFIED.
+ * Relays a form submission to the church's n8n instance, which is responsible for actually
+ * notifying someone (email, Slack, whatever they configure) — this codebase never sends email
+ * directly. The browser never talks to n8n or sees its URL/secret; only this server-side call does.
+ *
+ * Authentication: an HMAC-SHA256 signature of the raw JSON body, computed with N8N_WEBHOOK_SECRET,
+ * sent as `X-Webhook-Signature`. n8n's workflow must recompute the same HMAC over the raw body and
+ * compare (constant-time) before trusting the payload — this proves the request came from this
+ * Worker (which holds the secret) without ever exposing that secret to a client.
  */
-export async function sendNotification(subject: string, fields: Record<string, string | undefined>) {
-  const lines = Object.entries(fields)
-    .filter(([, value]) => value)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join('\n')
+export async function sendNotification(formType: string, fields: Record<string, string | undefined>) {
+  if (!env.N8N_WEBHOOK_SECRET) {
+    throw new Error('N8N_WEBHOOK_SECRET is not configured.')
+  }
 
-  await env.EMAIL.send({
-    to: env.EMAIL_TO_ADDRESS,
-    from: { email: env.EMAIL_FROM_ADDRESS, name: 'Kirche Felsengrund Website' },
-    subject,
-    text: lines,
-    html: `<pre style="font-family: monospace; white-space: pre-wrap;">${escapeHtml(lines)}</pre>`,
+  const body = JSON.stringify({ formType, fields })
+  const signature = await hmacSha256Hex(env.N8N_WEBHOOK_SECRET, body)
+
+  const response = await fetch(env.N8N_WEBHOOK_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Webhook-Signature': signature,
+    },
+    body,
   })
+
+  if (!response.ok) {
+    throw new Error(`n8n webhook responded with ${response.status}`)
+  }
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+async function hmacSha256Hex(secret: string, message: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  )
+  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message))
+  return [...new Uint8Array(signature)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
 }

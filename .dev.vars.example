@@ -1,3 +1,9 @@
 # Copy this file to .dev.vars for local development (gitignored, never commit real secrets).
-# In production, set the real value with: wrangler secret put ADMIN_UPLOAD_PASSWORD
+# In production, set real values with: wrangler secret put <NAME>
 ADMIN_UPLOAD_PASSWORD=changeme
+N8N_WEBHOOK_SECRET=changeme
+
+# N8N_WEBHOOK_URL itself is NOT a secret (see wrangler.jsonc `vars`) — only the secret above
+# authenticates the request. Configure n8n's Webhook node to recompute the HMAC-SHA256 of the
+# raw request body using this same secret and compare it (constant-time) against the
+# X-Webhook-Signature header before trusting the payload.

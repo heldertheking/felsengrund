@@ -3,17 +3,6 @@
   "name": "felsengrund",
   "compatibility_date": "2026-09-07",
   "compatibility_flags": ["nodejs_compat"],
-  // One-time setup still needed before emails actually send:
-  //   npx wrangler email sending enable <the real production domain>
-  // That command hands you SPF/DKIM DNS records to add wherever the domain's DNS actually lives
-  // (it does not require the zone to be on Cloudflare). Until that's done, env.EMAIL.send() will
-  // fail with E_SENDER_NOT_VERIFIED. Update EMAIL_FROM_ADDRESS below to match that domain.
-  // NOTE: deliberately NOT using `"remote": true` here — it forces every `astro build` /
-  // `astro dev` to open a live authenticated connection to Cloudflare (needs CLOUDFLARE_API_TOKEN),
-  // which breaks builds in any environment that isn't already `wrangler login`-ed. Local dev gets a
-  // simulated binding instead; real sending can only be verified once actually deployed (or by
-  // running `wrangler login` locally and adding `--remote` to a manual `wrangler dev` invocation).
-  "send_email": [{ "name": "EMAIL" }],
   "r2_buckets": [
     {
       "binding": "STORAGE",
@@ -22,7 +11,9 @@
   ],
   "vars": {
     "PUBLIC_CDN_DOMAIN": "https://felsengrund-cdn.heldertheking.com",
-    "EMAIL_FROM_ADDRESS": "formulare@felsengrund.heldertheking.com",
-    "EMAIL_TO_ADDRESS": "oliver.lutz@kirche-felsengrund.ch"
+    // Update once the real n8n workflow exists. Not secret by itself (auth is the
+    // N8N_WEBHOOK_SECRET header, see src/lib/notify.ts / .dev.vars.example) but replace the
+    // placeholder host before relying on it.
+    "N8N_WEBHOOK_URL": "https://REPLACE-ME.n8n.cloud/webhook/felsengrund-forms"
   }
 }

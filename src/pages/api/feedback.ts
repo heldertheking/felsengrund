@@ -10,10 +10,10 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ error: 'Fehlende Angaben.' }, { status: 400 })
   }
 
-  await sendNotification('Parkplatz-Feedback', {
-    Nachricht: body.message,
-    Name: body.name,
-    'E-Mail': body.email,
+  await sendNotification('feedback', {
+    message: body.message,
+    name: body.name,
+    email: body.email,
   })
 
   return Response.json({ ok: true })

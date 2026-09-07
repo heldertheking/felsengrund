@@ -12,13 +12,13 @@ export const POST: APIRoute = async ({ request }) => {
 
   const publish = body.publishOnWall === true || body.publishOnWall === 'yes'
 
-  await sendNotification(`Gebetsanliegen: ${body.topic}`, {
-    Thema: String(body.topic),
-    Name: String(body.displayName),
-    Anliegen: String(body.description),
-    'E-Mail': body.email ? String(body.email) : undefined,
-    'Beten bis': body.prayUntil ? String(body.prayUntil) : undefined,
-    'Auf Gebetswand veröffentlichen': publish ? 'Ja' : 'Nein',
+  await sendNotification('prayer-request', {
+    topic: String(body.topic),
+    displayName: String(body.displayName),
+    description: String(body.description),
+    email: body.email ? String(body.email) : undefined,
+    prayUntil: body.prayUntil ? String(body.prayUntil) : undefined,
+    publishOnWall: publish ? 'yes' : 'no',
   })
 
   return Response.json({ ok: true })

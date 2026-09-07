@@ -10,11 +10,11 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ error: 'Fehlende Angaben.' }, { status: 400 })
   }
 
-  await sendNotification(`Kontaktformular: ${body.subject}`, {
-    Name: body.name,
-    'E-Mail': body.email,
-    Betreff: body.subject,
-    Nachricht: body.message,
+  await sendNotification('contact', {
+    name: body.name,
+    email: body.email,
+    subject: body.subject,
+    message: body.message,
   })
 
   return Response.json({ ok: true })
