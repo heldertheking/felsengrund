@@ -1,0 +1,5 @@
+## Copy this file to .dev.vars (gitignored) for local `wrangler dev`.
+## For deployed environments, set these with `wrangler secret put <NAME>` instead.
+
+ADMIN_PASSWORD=changeme
+AUTH_SECRET=change-this-to-a-long-random-string

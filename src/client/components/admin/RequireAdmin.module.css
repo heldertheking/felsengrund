@@ -1,0 +1,50 @@
+.shell {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--kf-border-color);
+
+    font-family: var(--kf-nav-font);
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.nav a {
+    text-decoration: none;
+    color: var(--kf-text-interactive);
+    font-weight: 600;
+}
+
+.nav a:hover {
+    color: var(--kf-text-interactive-hover);
+}
+
+.activeLink {
+    color: var(--kf-brand-accent) !important;
+}
+
+.logoutButton {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--kf-border-color);
+    border-radius: var(--kf-radius-md);
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    font-family: var(--kf-font-sans);
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.content {
+    text-align: left;
+}

@@ -17,12 +17,14 @@
     }
   ],
   "vars": {
-    "ENVIRONMENT": "production"
+    "ENVIRONMENT": "production",
+    "PUBLIC_CDN_DOMAIN": "https://cdn.kirche-felsengrund.ch"
   },
   "env": {
     "preview": {
       "vars": {
-        "ENVIRONMENT": "preview"
+        "ENVIRONMENT": "preview",
+        "PUBLIC_CDN_DOMAIN": "https://cdn-preview.kirche-felsengrund.ch"
       }
     }
   }

@@ -1,0 +1,72 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgb(0 0 0 / 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: min(320px, 90vw);
+    padding: 1.5rem;
+
+    background: var(--kf-bg-surface);
+    border-radius: var(--kf-radius-md);
+    box-shadow: var(--kf-shadow-md);
+
+    font-family: var(--kf-font-sans);
+    color: var(--kf-text-main);
+}
+
+.modal h2 {
+    margin: 0;
+    font-family: var(--kf-font-display);
+    font-size: 1.1rem;
+}
+
+.modal input {
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--kf-border-color);
+    border-radius: var(--kf-radius-md);
+    font-size: 1rem;
+}
+
+.error {
+    margin: 0;
+    color: #b91c1c;
+    font-size: 0.85rem;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.actions button {
+    padding: 0.4rem 0.9rem;
+    border: none;
+    border-radius: var(--kf-radius-md);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.actions button[type='submit'] {
+    background: var(--kf-brand-accent);
+    color: var(--kf-clr-white);
+}
+
+.actions button[type='submit']:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.actions button[type='button'] {
+    background: transparent;
+    color: var(--kf-text-interactive);
+}

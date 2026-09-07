@@ -1,37 +1,23 @@
 import styles from './Header.module.css'
 import {Link} from "react-router-dom";
-import {useEffect, useState} from "react";
-
-import bannerImg from '../../../assets/banner.webp'
+import LogoSvg from '../../../assets/icons/logo_full_single_transparent.svg'
 import {Dropdown} from "../../ui/Dropdown/Dropdown.tsx";
+import {useAdminAuth} from "../../../contexts/AdminAuthContext.tsx";
+import {useSecretClickTrigger} from "../../admin/useSecretClickTrigger.ts";
 
 export function Header() {
-    const [isBannerHidden, setIsBannerHidden] = useState(false)
-
-    useEffect(() => {
-        const updateBannerVisibility = () => {
-            setIsBannerHidden(window.scrollY > 24)
-        }
-
-        updateBannerVisibility()
-        window.addEventListener('scroll', updateBannerVisibility, {passive: true})
-
-        return () => window.removeEventListener('scroll', updateBannerVisibility)
-    }, [])
+    const {openLoginModal} = useAdminAuth()
+    const handleLogoClick = useSecretClickTrigger(openLoginModal)
 
     return (
         <header className={styles.header}>
-            <div
-                className={`${styles.banner} ${isBannerHidden ? styles.bannerHidden : ''}`}
-                aria-label="Banner image container"
-                aria-hidden={isBannerHidden}
-            >
-                <img src={bannerImg} alt="Banner" className={styles.image_banner}/>
-            </div>
+            <Link to="/" className={styles.logo} onClick={handleLogoClick}>
+                <img src={LogoSvg} alt="Logo" aria-label="Logo"/>
+            </Link>
             <nav aria-label="Main navigation" className={styles.navigation} role="navigation">
                 <ul className={styles.navList}>
                     <li><Link to="/">Home</Link></li>
-                    <li><Link to="/ueber-uns">Über uns</Link></li>
+                    <li><Link to="/uber-uns">Über uns</Link></li>
                     <li><Link to="/agenda">Agenda</Link></li>
                     <li>
                         <Dropdown title="Angebote" openOn="hover" position="bottom" titleHref="/angebote">
@@ -40,16 +26,17 @@ export function Header() {
                                     <span>Gottesdienst</span>
                                     <li><Link to="/gottesdienst">Gottesdienst</Link></li>
                                     <li><Link to="https://dinnerchurch.ch/">Dinner Church</Link></li>
+                                    <li><Link to="/angebote/podcast">Podcast</Link></li>
                                 </section>
                                 <section>
-                                    <span>Jugend & Kinder</span>
+                                    <span>Kinder & Jugend</span>
                                     <li><Link to="/angebote/kids-treff">Kids-Treff</Link></li>
                                     <li><Link to="/angebote/jungschar">Jungschar</Link></li>
                                     <li><Link to="/angebote/highlight">Highlight</Link></li>
                                 </section>
                                 <section>
                                     <span>Gemeinschaft</span>
-                                    <li><Link to="/angebote/smallgroups">Smallgroups</Link></li>
+                                    <li><Link to="/angebote/smallgroups">Smallgroups/Hauskreise</Link></li>
                                     <li><Link to="/angebote/bibel-unterricht">Bibel Unterricht</Link></li>
                                 </section>
                                 <section>

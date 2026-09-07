@@ -1,0 +1,51 @@
+.page {
+    max-width: 900px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    background: var(--kf-bg-surface);
+    border-radius: var(--kf-radius-md);
+    box-shadow: var(--kf-shadow-sm);
+}
+
+.message {
+    margin: 0 0 0.35rem;
+    white-space: pre-wrap;
+}
+
+.meta {
+    font-size: 0.8rem;
+    color: var(--kf-text-main);
+    opacity: 0.7;
+}
+
+.item button {
+    flex-shrink: 0;
+    background: transparent;
+    border: 1px solid var(--kf-border-color);
+    border-radius: var(--kf-radius-md);
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+}

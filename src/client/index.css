@@ -12,9 +12,12 @@
     --kf-clr-gray-800: #111827;
     --kf-clr-gray-900: #0f172a;
 
-    --kf-clr-blue-500: #4363a8;
-    --kf-clr-blue-600: #2b54a8;
-    --kf-clr-blue-700: #1749ac;
+    /* Real brand palette, taken from the live site's theme CSS: deep magenta accent
+       (matches the logo's pink cross), a soft pink for gentle backgrounds/badges. */
+    --kf-clr-pink-100: #fda1d5;
+    --kf-clr-pink-500: #a31366;
+    --kf-clr-pink-600: #841051;
+    --kf-clr-pink-700: #630c3d;
 
     /* Fonts */
     --kf-font-sans: "Open Sans", Arial, Helvetica, sans-serif;
@@ -35,12 +38,14 @@
 
     /* Interactive Colors */
     --kf-text-interactive: var(--kf-clr-gray-800);
-    --kf-text-interactive-hover: var(--kf-clr-blue-600);
-    --kf-text-interactive-active: var(--kf-clr-blue-700);
-    --kf-brand-accent: var(--kf-clr-blue-500);
+    --kf-text-interactive-hover: var(--kf-clr-pink-600);
+    --kf-text-interactive-active: var(--kf-clr-pink-700);
+    --kf-brand-accent: var(--kf-clr-pink-500);
+    --kf-brand-accent-soft: var(--kf-clr-pink-100);
 
     /* Container Semantics */
     --kf-bg-surface: var(--kf-clr-white);
+    --kf-bg-tint: #fdf3f8;
     --kf-border-color: var(--kf-clr-gray-50);
 
     /* ================== */
@@ -64,8 +69,8 @@
     --kf-dropdown-border-radius: var(--kf-radius-md);
     --kf-dropdown-box-shadow: var(--kf-shadow-md);
     --kf-dropdown-padding: 0.7rem;
-    --kf-dropdown-gap-section: 0.5rem;
-    --kf-dropdown-gap-link: 0.65rem;
+    --kf-dropdown-gap-section: 0.3rem;
+    --kf-dropdown-gap-link: 0.3rem;
 
     --kf-dropdown-title-font-size: 0.8rem;
     --kf-dropdown-title-letter-spacing: 2px;

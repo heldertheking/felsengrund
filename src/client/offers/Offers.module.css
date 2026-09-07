@@ -1,0 +1,374 @@
+/* Public offer list */
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1rem;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: var(--kf-text-main);
+    background: var(--kf-bg-surface);
+    border-radius: var(--kf-radius-md);
+    box-shadow: var(--kf-shadow-sm);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: var(--kf-shadow-md);
+}
+
+.cardImage {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.cardBody {
+    padding: 0.9rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.cardTitle {
+    margin: 0;
+    font-family: var(--kf-font-display);
+    font-size: 1.05rem;
+}
+
+.cardIntro {
+    margin: 0;
+    color: var(--kf-text-main);
+    opacity: 0.85;
+}
+
+.cardTime {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--kf-brand-accent);
+    font-weight: 600;
+}
+
+/* Public offer detail */
+
+.detail {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.detailImage {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: var(--kf-radius-md);
+}
+
+.detailMeta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 0.75rem;
+    margin: 1rem 0;
+}
+
+.detailMeta dt {
+    font-weight: 700;
+    color: var(--kf-brand-accent);
+}
+
+.detailMeta dd {
+    margin: 0;
+}
+
+.detailBody {
+    line-height: 1.6;
+}
+
+.organizerList {
+    list-style: none;
+    padding: 0;
+}
+
+/* Admin dashboard */
+
+.adminPage {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.adminHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.adminHeaderActions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.newOfferButton {
+    background: var(--kf-brand-accent);
+    color: var(--kf-clr-white);
+    padding: 0.5rem 1rem;
+    border-radius: var(--kf-radius-md);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.adminList {
+    list-style: none;
+    padding: 0;
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.adminListItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--kf-bg-surface);
+    border-radius: var(--kf-radius-md);
+    box-shadow: var(--kf-shadow-sm);
+}
+
+.adminListActions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Offer editor (form-based) */
+
+.editorPage {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.editorError {
+    color: #b91c1c;
+}
+
+.readOnlyHint {
+    margin: 0;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    align-items: start;
+}
+
+.formColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.fieldGroup {
+    border: 1px solid var(--kf-border-color);
+    border-radius: var(--kf-radius-md);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.fieldGroup legend {
+    padding: 0 0.4rem;
+    font-family: var(--kf-font-display);
+    font-weight: 700;
+    color: var(--kf-brand-accent);
+}
+
+.fieldRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.fieldLabel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.fieldLabel input,
+.fieldLabel textarea {
+    font-weight: 400;
+    font-size: 0.9rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--kf-border-color);
+    border-radius: var(--kf-radius-md);
+    font-family: inherit;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Image upload field */
+
+.imageField {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.imagePreview {
+    width: 100%;
+    max-height: 160px;
+    object-fit: cover;
+    border-radius: var(--kf-radius-md);
+    border: 1px solid var(--kf-border-color);
+}
+
+.imageFieldActions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.imageFieldActions button {
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--kf-border-color);
+    border-radius: var(--kf-radius-md);
+    background: var(--kf-bg-surface);
+    cursor: pointer;
+}
+
+.galleryField {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.galleryGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 0.5rem;
+}
+
+.galleryItem {
+    position: relative;
+}
+
+.galleryItem img {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--kf-radius-md);
+    border: 1px solid var(--kf-border-color);
+}
+
+.galleryItem button {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    line-height: 1;
+    border: none;
+    border-radius: 50%;
+    background: rgb(0 0 0 / 0.6);
+    color: var(--kf-clr-white);
+    cursor: pointer;
+}
+
+/* Organizer rows */
+
+.organizerFields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.organizerRow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) auto;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.organizerRow input {
+    padding: 0.4rem 0.55rem;
+    border: 1px solid var(--kf-border-color);
+    border-radius: var(--kf-radius-md);
+    font-size: 0.85rem;
+}
+
+.organizerRow button {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--kf-border-color);
+    border-radius: var(--kf-radius-md);
+    background: var(--kf-bg-surface);
+    cursor: pointer;
+}
+
+/* Description markdown editor (used inside the form) */
+
+.descriptionEditor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    height: 320px;
+}
+
+.editorTextarea {
+    width: 100%;
+    height: 100%;
+    resize: none;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    padding: 1rem;
+    border: 1px solid var(--kf-border-color);
+    border-radius: var(--kf-radius-md);
+}
+
+.editorPreview {
+    overflow-y: auto;
+    padding: 1rem;
+    border: 1px solid var(--kf-border-color);
+    border-radius: var(--kf-radius-md);
+    background: var(--kf-bg-surface);
+}
+
+@media (max-width: 900px) {
+    .formGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .organizerRow {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .descriptionEditor {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .editorTextarea {
+        height: 220px;
+    }
+}
