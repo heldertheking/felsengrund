@@ -1,0 +1,14 @@
+---
+interface Props {
+  id: string
+}
+
+const { id } = Astro.props
+---
+
+<p
+  id={id}
+  role="status"
+  aria-live="polite"
+  class="min-h-5 text-sm text-kf-ink-muted data-[state=success]:text-emerald-700 data-[state=error]:text-red-700"
+></p>
