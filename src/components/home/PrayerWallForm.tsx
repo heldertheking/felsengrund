@@ -68,7 +68,7 @@ export default function PrayerWallForm() {
           required
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none"
+          className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
         />
       </div>
 
@@ -83,7 +83,7 @@ export default function PrayerWallForm() {
           placeholder="z. B. dein Vorname oder anonym"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none"
+          className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
         />
       </div>
 
@@ -97,7 +97,7 @@ export default function PrayerWallForm() {
           rows={4}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none"
+          className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
         />
       </div>
 
@@ -111,7 +111,7 @@ export default function PrayerWallForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none"
+            className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
           />
         </div>
 
@@ -124,7 +124,7 @@ export default function PrayerWallForm() {
             type="date"
             value={prayUntil}
             onChange={(e) => setPrayUntil(e.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none"
+            className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
           />
         </div>
       </div>

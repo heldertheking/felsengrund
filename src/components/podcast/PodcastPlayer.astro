@@ -17,10 +17,10 @@ const { src, title } = Astro.props
       aria-label="Abspielen"
       data-player-toggle
     >
-      <svg data-icon-play viewBox="0 0 24 24" fill="currentColor" class="ml-0.5 h-5 w-5">
+      <svg data-icon-play viewBox="0 0 24 24" fill="currentColor" class="ml-0.5 h-5 w-5" aria-hidden="true">
         <path d="M8 5v14l11-7z"></path>
       </svg>
-      <svg data-icon-pause viewBox="0 0 24 24" fill="currentColor" class="hidden h-5 w-5">
+      <svg data-icon-pause viewBox="0 0 24 24" fill="currentColor" class="hidden h-5 w-5" aria-hidden="true">
         <path d="M6 5h4v14H6zM14 5h4v14h-4z"></path>
       </svg>
     </button>
@@ -48,7 +48,7 @@ const { src, title } = Astro.props
       class="shrink-0 text-kf-ink-muted transition hover:text-kf-accent"
       aria-label="Audio herunterladen"
     >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" class="h-5 w-5">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" class="h-5 w-5" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 19.5h16" />
       </svg>
     </a>

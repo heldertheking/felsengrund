@@ -11,10 +11,16 @@ import '../../styles/global.css'
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <title>Audio-Upload – Kirche Felsengrund</title>
   </head>
   <body class="flex min-h-screen items-center justify-center bg-kf-surface-sunken px-4 font-sans">
-    <div class="w-full max-w-md rounded-2xl border border-kf-edge bg-kf-surface p-8 shadow-md">
+    <main class="w-full max-w-md rounded-2xl border border-kf-edge bg-kf-surface p-8 shadow-md">
       <h1 class="font-display text-xl font-bold text-kf-ink">Podcast-Audio hochladen</h1>
       <p class="mt-2 text-sm text-kf-ink-muted">
         Lädt eine Audiodatei hoch und gibt dir die fertige CDN-URL zurück — die trägst du
@@ -36,14 +42,19 @@ import '../../styles/global.css'
           />
         </div>
 
-        <input
-          type="file"
-          id="file"
-          name="file"
-          accept="audio/*"
-          required
-          class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink file:mr-3 file:rounded-md file:border-0 file:bg-kf-accent file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
-        />
+        <div>
+          <label for="file" class="text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">
+            Audiodatei
+          </label>
+          <input
+            type="file"
+            id="file"
+            name="file"
+            accept="audio/*"
+            required
+            class="mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink file:mr-3 file:rounded-md file:border-0 file:bg-kf-accent file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
+          />
+        </div>
 
         <button
           type="submit"
@@ -75,7 +86,7 @@ import '../../styles/global.css'
       </div>
 
       <p id="status" class="mt-4 text-sm" role="status"></p>
-    </div>
+    </main>
   </body>
 </html>
 
