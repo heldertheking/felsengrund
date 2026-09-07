@@ -1,7 +1,5 @@
 import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
-import markdoc from '@astrojs/markdoc'
-import keystatic from '@keystatic/astro'
 import tailwindcss from '@tailwindcss/vite'
 import cloudflare from '@astrojs/cloudflare'
 
@@ -12,7 +10,7 @@ export default defineConfig({
   // that don't exist in wrangler.jsonc, which was the source of dev-server runtime errors.
   adapter: cloudflare({ imageService: 'passthrough' }),
   session: false,
-  integrations: [react(), markdoc(), keystatic()],
+  integrations: [react()],
   vite: {
     plugins: [tailwindcss()],
   },

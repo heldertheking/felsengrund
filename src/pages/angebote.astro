@@ -1,8 +1,11 @@
 ---
-import { getCollection } from 'astro:content'
+import { env } from 'cloudflare:workers'
+import { listOffers } from '../lib/admin-content'
 import BaseLayout from '../layouts/BaseLayout.astro'
 
-const offers = await getCollection('offers')
+export const prerender = false
+
+const offers = await listOffers(env.STORAGE)
 
 const categoryOrder = ['gottesdienst', 'kinder-jugend', 'gemeinschaft', 'senioren', 'hilfe-service'] as const
 const categoryLabels: Record<string, string> = {
@@ -21,20 +24,42 @@ const categoryLabels: Record<string, string> = {
 
     {categoryOrder.map((category) => {
       const items = offers.filter((offer) => offer.data.category === category)
-      if (items.length === 0) return null
+      // "Ich brauche Hilfe" is a standalone static page, not an R2 offer, but it belongs
+      // alongside the real hilfe-service offers here — so this category always renders,
+      // even if there happen to be zero matching R2 offers.
+      const isHilfeService = category === 'hilfe-service'
+      if (items.length === 0 && !isHilfeService) return null
       return (
         <div class="mt-12">
           <h2 class="font-display text-xl font-semibold text-kf-accent">{categoryLabels[category]}</h2>
           <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((offer) => (
               <a
-                href={`/${offer.id}`}
+                href={`/${offer.slug}`}
                 class="rounded-xl border border-kf-edge bg-kf-surface p-5 transition hover:border-kf-accent hover:shadow-md"
               >
+                {offer.data.cardImage && (
+                  <img
+                    src={offer.data.cardImage}
+                    alt={offer.data.title}
+                    class="mb-3 aspect-video w-full rounded-lg object-cover"
+                  />
+                )}
                 <p class="font-display font-semibold text-kf-ink">{offer.data.title}</p>
                 {offer.data.intro && <p class="mt-1.5 text-sm text-kf-ink-muted">{offer.data.intro}</p>}
               </a>
             ))}
+            {isHilfeService && (
+              <a
+                href="/ich-brauche-hilfe"
+                class="rounded-xl border border-kf-edge bg-kf-surface p-5 transition hover:border-kf-accent hover:shadow-md"
+              >
+                <p class="font-display font-semibold text-kf-ink">Ich brauche Hilfe</p>
+                <p class="mt-1.5 text-sm text-kf-ink-muted">
+                  Gebet und vertrauliche Lebensberatung – wir sind für dich da, wenn du Unterstützung brauchst.
+                </p>
+              </a>
+            )}
           </div>
         </div>
       )

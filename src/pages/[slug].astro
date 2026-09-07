@@ -1,17 +1,16 @@
 ---
-import { getCollection, render } from 'astro:content'
+import { env } from 'cloudflare:workers'
+import { getOffer, renderMarkdoc } from '../lib/admin-content'
 import BaseLayout from '../layouts/BaseLayout.astro'
 
-export async function getStaticPaths() {
-  const offers = await getCollection('offers')
-  return offers.map((offer) => ({
-    params: { slug: offer.id },
-    props: { offer },
-  }))
-}
+export const prerender = false
 
-const { offer } = Astro.props
-const { Content } = await render(offer)
+const { slug } = Astro.params
+const offer = slug ? await getOffer(env.STORAGE, slug) : null
+
+if (!offer) {
+  return Astro.rewrite('/404')
+}
 
 const categoryLabels: Record<string, string> = {
   gottesdienst: 'Gottesdienst',
@@ -25,6 +24,13 @@ const categoryLabels: Record<string, string> = {
 <BaseLayout title={`${offer.data.title} – Kirche Felsengrund`} description={offer.data.intro}>
   <article class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
    <div class="mx-auto max-w-3xl">
+    {offer.data.cardImage && (
+      <img
+        src={offer.data.cardImage}
+        alt={offer.data.title}
+        class="mb-6 aspect-video w-full rounded-xl object-cover"
+      />
+    )}
     <p class="font-display text-sm font-semibold uppercase tracking-wide text-kf-accent">
       {categoryLabels[offer.data.category]}
     </p>
@@ -65,7 +71,7 @@ const categoryLabels: Record<string, string> = {
     </dl>
 
     <div class="prose prose-neutral mt-10 max-w-none">
-      <Content />
+      <Fragment set:html={renderMarkdoc(offer.body)} />
     </div>
 
     {offer.data.organizers && offer.data.organizers.length > 0 && (

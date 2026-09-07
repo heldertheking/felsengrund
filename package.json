@@ -11,17 +11,15 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.0",
-    "@astrojs/markdoc": "^2.0.9",
     "@astrojs/react": "^6.0.5",
-    "@tailwindcss/typography": "^0.5.20",
-    "@keystatic/astro": "^6.0.0",
-    "@keystatic/core": "^0.6.9",
     "@markdoc/markdoc": "^0.5.9",
+    "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.1",
     "framer-motion": "^11.11.17",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

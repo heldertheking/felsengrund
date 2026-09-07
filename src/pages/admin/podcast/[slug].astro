@@ -1,0 +1,20 @@
+---
+import { env } from 'cloudflare:workers'
+import { verifySession } from '../../../lib/admin-auth'
+import { getPodcastEpisode } from '../../../lib/admin-content'
+import AdminLayout from '../../../layouts/AdminLayout.astro'
+import PodcastForm from '../../../components/admin/PodcastForm.astro'
+
+export const prerender = false
+
+const authenticated = await verifySession(Astro.request.headers.get('cookie'), env.ADMIN_UPLOAD_PASSWORD ?? '')
+if (!authenticated) return Astro.redirect('/admin')
+
+const episode = await getPodcastEpisode(env.STORAGE, Astro.params.slug!)
+if (!episode) return Astro.rewrite('/404')
+---
+
+<AdminLayout title={`${episode.data.title} bearbeiten – Admin`} wide>
+  <h1 class="font-display text-xl font-bold text-kf-ink">Episode bearbeiten</h1>
+  <PodcastForm episode={episode} />
+</AdminLayout>

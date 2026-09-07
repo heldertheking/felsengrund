@@ -10,7 +10,6 @@
     }
   ],
   "vars": {
-    "PUBLIC_CDN_DOMAIN": "https://felsengrund-cdn.heldertheking.com",
     // Update once the real n8n workflow exists. Not secret by itself (auth is the
     // N8N_WEBHOOK_SECRET header, see src/lib/notify.ts / .dev.vars.example) but replace the
     // placeholder host before relying on it.

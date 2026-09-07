@@ -1,0 +1,64 @@
+---
+// Shared shell for every /admin page. Mirrors upload-audio.astro's head boilerplate (fonts,
+// noindex, viewport) since this is internal tooling, not a public page — no BaseLayout, no
+// site header/nav/footer.
+import '../styles/global.css'
+
+interface Props {
+  title: string
+  wide?: boolean
+  showNav?: boolean
+}
+
+const { title, wide = false, showNav = true } = Astro.props
+---
+
+<!doctype html>
+<html lang="de-CH">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+  </head>
+  <body class="flex min-h-screen items-start justify-center bg-kf-surface-sunken px-4 py-10 font-sans">
+    <main
+      class:list={[
+        'w-full rounded-2xl border border-kf-edge bg-kf-surface p-8 shadow-md',
+        wide ? 'max-w-4xl' : 'max-w-md',
+      ]}
+    >
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <a href="/admin" class="font-display text-lg font-bold text-kf-ink">Kirche Felsengrund – Admin</a>
+        {showNav && (
+          <nav class="flex items-center gap-4 text-sm">
+            <a href="/admin/offers" class="text-kf-ink-muted transition hover:text-kf-accent">Angebote</a>
+            <a href="/admin/podcast" class="text-kf-ink-muted transition hover:text-kf-accent">Podcast</a>
+            <button
+              type="button"
+              data-logout
+              class="rounded-lg border border-kf-edge px-3 py-1.5 text-sm font-semibold text-kf-ink transition hover:border-kf-accent hover:text-kf-accent"
+            >
+              Abmelden
+            </button>
+          </nav>
+        )}
+      </div>
+      <hr class="my-6 border-kf-edge" />
+      <slot />
+    </main>
+  </body>
+</html>
+
+<script>
+  document.querySelector<HTMLButtonElement>('[data-logout]')?.addEventListener('click', async () => {
+    await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' })
+    location.href = '/admin'
+  })
+</script>

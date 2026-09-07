@@ -1,14 +1,15 @@
 ---
-import { getCollection } from 'astro:content'
+import { env } from 'cloudflare:workers'
+import { listOffers } from '../../lib/admin-content'
 
 // Same category ordering as /angebote and the header dropdown, so the teaser
 // surfaces offers in a sensible priority order rather than collection-insertion
-// order. The `offers` collection is populated by a parallel workstream and may
+// order. The offers store is populated by a parallel workstream and may
 // only be partially filled in at any given time — this renders gracefully
 // whether there are 0, a few, or many entries.
 const categoryOrder = ['gottesdienst', 'kinder-jugend', 'gemeinschaft', 'senioren', 'hilfe-service'] as const
 
-const allOffers = await getCollection('offers')
+const allOffers = await listOffers(env.STORAGE)
 const featured = allOffers
   .slice()
   .sort((a, b) => categoryOrder.indexOf(a.data.category) - categoryOrder.indexOf(b.data.category))
@@ -30,9 +31,16 @@ const featured = allOffers
     <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {featured.map((offer) => (
         <a
-          href={`/${offer.id}`}
+          href={`/${offer.slug}`}
           class="rounded-xl border border-kf-edge bg-kf-surface p-5 transition hover:border-kf-accent hover:shadow-md"
         >
+          {offer.data.cardImage && (
+            <img
+              src={offer.data.cardImage}
+              alt={offer.data.title}
+              class="mb-3 aspect-video w-full rounded-lg object-cover"
+            />
+          )}
           <p class="font-display font-semibold text-kf-ink">{offer.data.title}</p>
           {offer.data.intro && <p class="mt-1.5 text-sm text-kf-ink-muted">{offer.data.intro}</p>}
         </a>

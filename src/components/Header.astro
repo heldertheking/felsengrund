@@ -1,46 +1,10 @@
 ---
-// Grouped by category (the live WordPress site's "Angebote" dropdown is actually a flat,
-// unsorted list of ~10 links — see WORDPRESS_SITE_ANALYSIS.md — this grouping is a deliberate
-// rework for the rebuild, not a reflection of the old site's markup).
-const offerGroups = [
-  {
-    label: 'Gottesdienst',
-    links: [
-      { label: 'Gottesdienst', href: '/gottesdienst' },
-      { label: 'Dinner Church', href: '/dinner-church' },
-    ],
-  },
-  {
-    label: 'Kinder & Jugend',
-    links: [
-      { label: 'Kids-Treff', href: '/kids-treff' },
-      { label: 'Jungschar', href: '/jungschar' },
-      { label: 'Highlight', href: '/highlight' },
-    ],
-  },
-  {
-    label: 'Gemeinschaft',
-    links: [
-      { label: 'Smallgroups', href: '/smallgroups' },
-      { label: 'Biblischer Unterricht', href: '/biblischer-unterricht' },
-    ],
-  },
-  {
-    label: 'Senioren',
-    links: [
-      { label: 'Senioren', href: '/senioren' },
-      { label: 'Seniorenessen 60+', href: '/seniorenessen-60' },
-    ],
-  },
-  {
-    label: 'Hilfe & Service',
-    links: [
-      { label: 'Lebensmittelabgabe', href: '/lebensmittelabgabe' },
-      { label: 'Ich brauche Hilfe', href: '/ich-brauche-hilfe' },
-    ],
-  },
-]
-
+// The "Angebote" dropdown/mobile groups used to be a hardcoded list here, but that went stale
+// whenever an admin added/renamed/removed an offer through /admin/offers. Header.astro is
+// rendered on every page, including ones that are still statically prerendered at build time —
+// so fetching R2 content in this frontmatter would only ever reflect content as of the last
+// deploy for those pages. Instead the groups are fetched client-side from /api/offer-nav.json
+// (see below) and rendered into the placeholders below once JS runs.
 const primaryLinks = [
   { label: 'Über uns', href: '/uber-uns' },
   { label: 'Agenda', href: '/agenda' },
@@ -54,10 +18,9 @@ const secondaryLinks = [
 
 <header class="relative sticky top-0 z-50 border-b border-kf-edge bg-kf-surface/90 backdrop-blur">
   <!--
-    Discreet admin entry point: click 5x within ~2s to reveal links to /keystatic and
-    /admin/upload-audio. A plain invisible button (not the logo) so it never interferes with
-    normal navigation, and not part of the tab order / not exposed to assistive tech, since it's
-    deliberately not meant to be discoverable.
+    Discreet admin entry point: click 5x within ~2s to reveal a link to /admin. A plain invisible
+    button (not the logo) so it never interferes with normal navigation, and not part of the tab
+    order / not exposed to assistive tech, since it's deliberately not meant to be discoverable.
   -->
   <button
     type="button"
@@ -71,11 +34,8 @@ const secondaryLinks = [
     class="invisible absolute right-4 top-full z-50 mt-1 w-48 rounded-xl border border-kf-edge bg-kf-surface p-2 opacity-0 shadow-lg transition"
     data-admin-panel
   >
-    <a href="/keystatic" class="block rounded-md px-3 py-2 text-sm text-kf-ink hover:bg-kf-surface-sunken">
-      Keystatic öffnen
-    </a>
-    <a href="/admin/upload-audio" class="block rounded-md px-3 py-2 text-sm text-kf-ink hover:bg-kf-surface-sunken">
-      Audio hochladen
+    <a href="/admin" class="block rounded-md px-3 py-2 text-sm text-kf-ink hover:bg-kf-surface-sunken">
+      Admin öffnen
     </a>
   </div>
 
@@ -116,22 +76,10 @@ const secondaryLinks = [
           class="invisible absolute left-1/2 top-full w-[38rem] -translate-x-1/2 pt-3 opacity-0 transition duration-150 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
           data-dropdown-panel
         >
-          <div class="grid grid-cols-3 gap-x-6 gap-y-4 rounded-xl border border-kf-edge bg-kf-surface p-6 shadow-lg">
-            {offerGroups.map((group) => (
-              <div>
-                <p class="font-display text-sm font-semibold text-kf-accent">{group.label}</p>
-                <ul class="mt-2 space-y-1.5">
-                  {group.links.map((link) => (
-                    <li>
-                      <a href={link.href} class="text-sm text-kf-ink-muted hover:text-kf-accent">
-                        {link.label}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          <div
+            class="grid grid-cols-3 gap-x-6 gap-y-4 rounded-xl border border-kf-edge bg-kf-surface p-6 shadow-lg"
+            data-offer-groups
+          ></div>
         </div>
       </div>
 
@@ -160,16 +108,7 @@ const secondaryLinks = [
         <a href={link.href} class="mobile-nav-link">{link.label}</a>
       ))}
 
-      {offerGroups.map((group) => (
-        <div class="pt-2">
-          <p class="px-3 font-display text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">
-            {group.label}
-          </p>
-          {group.links.map((link) => (
-            <a href={link.href} class="mobile-nav-link">{link.label}</a>
-          ))}
-        </div>
-      ))}
+      <div data-mobile-offer-groups></div>
 
       <div class="pt-2">
         {secondaryLinks.map((link) => (
@@ -211,6 +150,81 @@ const secondaryLinks = [
   })
   dropdownGroup?.addEventListener('mouseenter', () => dropdownTrigger?.setAttribute('aria-expanded', 'true'))
   dropdownGroup?.addEventListener('mouseleave', () => dropdownTrigger?.setAttribute('aria-expanded', 'false'))
+
+  // The "Angebote" groups reflect live R2 content, so they're fetched client-side rather than
+  // baked into the page at build time (see Header.astro frontmatter comment for why). Loaded
+  // independently of whether the host page is static or SSR; the dropdown trigger and "Angebote"
+  // label are already visible, only the group contents populate once this resolves.
+  interface OfferNavGroup {
+    label: string
+    links: { label: string; href: string }[]
+  }
+
+  const desktopOfferGroups = document.querySelector<HTMLElement>('[data-offer-groups]')
+  const mobileOfferGroups = document.querySelector<HTMLElement>('[data-mobile-offer-groups]')
+
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+
+  fetch('/api/offer-nav.json')
+    .then((response) => {
+      if (!response.ok) throw new Error(`offer-nav.json responded with ${response.status}`)
+      return response.json() as Promise<OfferNavGroup[]>
+    })
+    .then((groups) => {
+      if (desktopOfferGroups) {
+        desktopOfferGroups.innerHTML = groups
+          .map(
+            (group) => `
+              <div>
+                <p class="font-display text-sm font-semibold text-kf-accent">${escapeHtml(group.label)}</p>
+                <ul class="mt-2 space-y-1.5">
+                  ${group.links
+                    .map(
+                      (link) => `
+                        <li>
+                          <a href="${escapeHtml(link.href)}" class="text-sm text-kf-ink-muted hover:text-kf-accent">
+                            ${escapeHtml(link.label)}
+                          </a>
+                        </li>
+                      `,
+                    )
+                    .join('')}
+                </ul>
+              </div>
+            `,
+          )
+          .join('')
+      }
+
+      if (mobileOfferGroups) {
+        mobileOfferGroups.innerHTML = groups
+          .map(
+            (group) => `
+              <div class="pt-2">
+                <p class="px-3 font-display text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">
+                  ${escapeHtml(group.label)}
+                </p>
+                ${group.links
+                  .map(
+                    (link) =>
+                      `<a href="${escapeHtml(link.href)}" class="mobile-nav-link">${escapeHtml(link.label)}</a>`,
+                  )
+                  .join('')}
+              </div>
+            `,
+          )
+          .join('')
+      }
+    })
+    .catch((error) => {
+      console.error('Failed to load offer nav', error)
+    })
 
   const adminTrigger = document.querySelector<HTMLButtonElement>('[data-admin-trigger]')
   const adminPanel = document.querySelector<HTMLElement>('[data-admin-panel]')

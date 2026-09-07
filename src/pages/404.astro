@@ -1,5 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
+
+// Rewritten to at runtime from offer/podcast SSR routes when a slug isn't found
+// (Astro.rewrite('/404')), which requires this route to be on-demand rather than
+// prerendered.
+export const prerender = false
 ---
 
 <BaseLayout title="Seite nicht gefunden – Kirche Felsengrund">
