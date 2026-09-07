@@ -130,9 +130,6 @@ import BaseLayout from '../layouts/BaseLayout.astro'
 </BaseLayout>
 
 <script>
-  // No backend exists yet for form submissions — this posts to an n8n webhook relay that
-  // still needs to be built and wired up via PUBLIC_CONTACT_WEBHOOK_URL. See task brief /
-  // CLAUDE.md for the intended architecture.
   const form = document.querySelector<HTMLFormElement>('#contact-form')
   const status = document.querySelector<HTMLParagraphElement>('#contact-form-status')
 
@@ -140,17 +137,11 @@ import BaseLayout from '../layouts/BaseLayout.astro'
     event.preventDefault()
     if (!status) return
 
-    const webhookUrl = import.meta.env.PUBLIC_CONTACT_WEBHOOK_URL
-    if (!webhookUrl) {
-      status.textContent = 'Das Kontaktformular ist noch nicht angebunden. Bitte schreib uns direkt per E-Mail.'
-      return
-    }
-
     const data = Object.fromEntries(new FormData(form).entries())
     status.textContent = 'Wird gesendet…'
 
     try {
-      const response = await fetch(webhookUrl, {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

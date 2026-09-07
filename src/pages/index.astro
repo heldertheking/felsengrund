@@ -85,10 +85,6 @@ import FeedbackForm from '../components/home/FeedbackForm'
       erscheinen soll, oder ob nur unser Gebetsteam vertraulich davon erfährt.
     </p>
 
-    <!--
-      No backend yet: this form POSTs to import.meta.env.PUBLIC_PRAYER_WALL_WEBHOOK_URL,
-      which needs to be set to a real n8n webhook URL once the relay is built.
-    -->
     <div class="mt-8">
       <PrayerWallForm client:visible />
     </div>
@@ -106,10 +102,6 @@ import FeedbackForm from '../components/home/FeedbackForm'
         Feedbacks parkieren kannst. Wir freuen uns über deine Rückmeldung.
       </p>
 
-      <!--
-        No backend yet: this form POSTs to import.meta.env.PUBLIC_FEEDBACK_WEBHOOK_URL,
-        which needs to be set to a real n8n webhook URL once the relay is built.
-      -->
       <div class="mt-8">
         <FeedbackForm client:visible />
       </div>

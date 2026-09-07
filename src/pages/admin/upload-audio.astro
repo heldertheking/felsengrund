@@ -1,14 +1,7 @@
 ---
-// Deliberately NOT a Cloudflare Worker route — this site's hosting isn't settled on Cloudflare,
-// so this stays a plain static page (no BaseLayout either: an internal tool, not a public page,
-// so it skips the site header/nav/footer entirely). It hands the file (and a shared password) to
-// an n8n webhook, which is responsible for validating the password and uploading to R2 itself
-// (n8n holds the R2 S3-compatible API credentials — this codebase never sees them). n8n's
-// workflow contract:
-//   - receives multipart/form-data with fields `password` and `file`
-//   - rejects with a non-2xx status if the password doesn't match
-//   - on success, uploads `file` to R2 and responds with JSON: { "url": "https://cdn.../podcast/..." }
-// Set PUBLIC_AUDIO_UPLOAD_WEBHOOK_URL to that webhook's URL once it exists.
+// Internal tool, not a public page — no BaseLayout, skips the site header/nav/footer entirely.
+// This page itself stays static; the actual auth check and R2 upload happen server-side in
+// /api/upload-audio.ts (checks the password against the ADMIN_UPLOAD_PASSWORD secret).
 import '../../styles/global.css'
 ---
 
@@ -100,12 +93,6 @@ import '../../styles/global.css'
     event.preventDefault()
     if (!status || !fileInput?.files?.[0] || !passwordInput?.value) return
 
-    const webhookUrl = import.meta.env.PUBLIC_AUDIO_UPLOAD_WEBHOOK_URL
-    if (!webhookUrl) {
-      status.textContent = 'Der Audio-Upload ist noch nicht angebunden (PUBLIC_AUDIO_UPLOAD_WEBHOOK_URL fehlt).'
-      return
-    }
-
     result?.classList.add('hidden')
     status.textContent = 'Wird hochgeladen …'
     if (submitButton) submitButton.disabled = true
@@ -115,7 +102,7 @@ import '../../styles/global.css'
     body.set('file', fileInput.files[0])
 
     try {
-      const response = await fetch(webhookUrl, { method: 'POST', body })
+      const response = await fetch('/api/upload-audio', { method: 'POST', body })
       if (!response.ok) throw new Error(response.status === 401 ? 'Falsches Passwort.' : `Fehler ${response.status}`)
 
       const data = (await response.json()) as { url?: string }

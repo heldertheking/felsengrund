@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import eslintPluginAstro from 'eslint-plugin-astro'
 
 export default tseslint.config(
-  { ignores: ['dist', '.astro'] },
+  { ignores: ['dist', '.astro', 'worker-configuration.d.ts'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

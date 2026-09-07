@@ -5,10 +5,8 @@ type Status = 'idle' | 'submitting' | 'success' | 'error'
 
 /**
  * "Jetzt für mich beten" prayer request form (feeds the "Gebetswand" on the
- * live site). There is no backend for this yet — submissions are POSTed to an
- * n8n webhook relay that still needs to be built and configured via
- * PUBLIC_PRAYER_WALL_WEBHOOK_URL (see the HTML comment above this section in
- * index.astro). The UI itself is complete and production-shaped.
+ * live site). POSTs to /api/prayer-request, the same endpoint used by the
+ * dedicated /jetzt-fuer-mich-beten page.
  */
 export default function PrayerWallForm() {
   const [topic, setTopic] = useState('')
@@ -23,13 +21,8 @@ export default function PrayerWallForm() {
     event.preventDefault()
     setStatus('submitting')
 
-    const webhookUrl = import.meta.env.PUBLIC_PRAYER_WALL_WEBHOOK_URL as string | undefined
-
     try {
-      if (!webhookUrl) {
-        throw new Error('Prayer wall webhook is not configured yet')
-      }
-      const response = await fetch(webhookUrl, {
+      const response = await fetch('/api/prayer-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

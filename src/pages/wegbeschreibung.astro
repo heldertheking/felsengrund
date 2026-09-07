@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const address = 'Felsengrund 1, 8618 Oetwil am See'
+const mapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`
+---
+
+<!--
+  WORDPRESS_SITE_ANALYSIS.md notes that the live /wegbeschreibung/ page's fetch only returned
+  cookie-consent chrome — no actual address/map/parking copy came through the crawl. Rather than
+  invent turn-by-turn directions or parking instructions that were never verified, this page keeps
+  to what IS confirmed elsewhere in the analysis (the church address, also used on /kontakt/) plus
+  a plain link to Google Maps directions.
+
+  TODO: confirm with church staff whether there are specific parking or access instructions
+  (e.g. a dedicated visitor car park, step-free entrance, bus stop) that should be added here —
+  none could be recovered from the source crawl.
+-->
+<BaseLayout
+  title="Wegbeschreibung – Kirche Felsengrund"
+  description="So findest du zur Kirche Felsengrund in Oetwil am See."
+>
+  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+   <div class="mx-auto max-w-2xl">
+    <h1 class="font-display text-4xl font-bold text-kf-ink sm:text-5xl">Wegbeschreibung</h1>
+    <p class="mt-4 text-lg text-kf-ink-muted">
+      So findest du zu uns – wir freuen uns auf deinen Besuch.
+    </p>
+
+    <div class="mt-10 rounded-xl border border-kf-edge bg-kf-surface-sunken p-6 sm:p-8">
+      <h2 class="font-display text-lg font-semibold text-kf-ink">Adresse</h2>
+      <p class="mt-2 text-kf-ink-muted">
+        Kirche Felsengrund<br />
+        Felsengrund 1<br />
+        8618 Oetwil am See
+      </p>
+
+      <a
+        href={mapsDirectionsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="mt-6 inline-flex items-center gap-1 font-display text-sm font-semibold text-kf-accent hover:underline"
+      >
+        Route berechnen →
+      </a>
+    </div>
+
+    <p class="mt-8 text-sm text-kf-ink-muted">
+      Fragen zur Anreise oder zu Parkmöglichkeiten? Melde dich einfach direkt über unsere{' '}
+      <a href="/kontakt" class="text-kf-accent hover:underline">Kontaktseite</a>.
+    </p>
+   </div>
+  </section>
+</BaseLayout>

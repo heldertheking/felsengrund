@@ -117,8 +117,7 @@ import FormStatus from '../components/hilfe/FormStatus.astro'
     if (submitButton instanceof HTMLButtonElement) submitButton.disabled = true
 
     try {
-      // TODO: PUBLIC_PRAYER_REQUEST_WEBHOOK_URL needs to be wired to the real n8n webhook relay once it exists.
-      const response = await fetch(import.meta.env.PUBLIC_PRAYER_REQUEST_WEBHOOK_URL, {
+      const response = await fetch('/api/prayer-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

@@ -4,10 +4,7 @@ import type { FormEvent } from 'react'
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
 /**
- * "Parkplatz" sermon feedback form. Like the prayer wall, there is no backend
- * yet — this POSTs to an n8n webhook relay still to be built and configured
- * via PUBLIC_FEEDBACK_WEBHOOK_URL (see the HTML comment above this section in
- * index.astro). The UI itself is complete and production-shaped.
+ * "Parkplatz" sermon feedback form. POSTs to /api/feedback.
  */
 export default function FeedbackForm() {
   const [message, setMessage] = useState('')
@@ -19,13 +16,8 @@ export default function FeedbackForm() {
     event.preventDefault()
     setStatus('submitting')
 
-    const webhookUrl = import.meta.env.PUBLIC_FEEDBACK_WEBHOOK_URL as string | undefined
-
     try {
-      if (!webhookUrl) {
-        throw new Error('Feedback webhook is not configured yet')
-      }
-      const response = await fetch(webhookUrl, {
+      const response = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
