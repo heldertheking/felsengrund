@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const offers = await getCollection('offers')
+
+const categoryOrder = ['gottesdienst', 'kinder-jugend', 'gemeinschaft', 'senioren', 'hilfe-service'] as const
+const categoryLabels: Record<string, string> = {
+  gottesdienst: 'Gottesdienst',
+  'kinder-jugend': 'Kinder & Jugend',
+  gemeinschaft: 'Gemeinschaft',
+  senioren: 'Senioren',
+  'hilfe-service': 'Hilfe & Service',
+}
+---
+
+<BaseLayout title="Angebote – Kirche Felsengrund" description="Alle Angebote von Kirche Felsengrund im Überblick.">
+  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <h1 class="font-display text-4xl font-bold text-kf-ink">Angebote</h1>
+    <p class="mt-4 text-lg text-kf-ink-muted">Alle unsere Programme auf einen Blick.</p>
+
+    {categoryOrder.map((category) => {
+      const items = offers.filter((offer) => offer.data.category === category)
+      if (items.length === 0) return null
+      return (
+        <div class="mt-12">
+          <h2 class="font-display text-xl font-semibold text-kf-accent">{categoryLabels[category]}</h2>
+          <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((offer) => (
+              <a
+                href={`/${offer.id}`}
+                class="rounded-xl border border-kf-edge bg-kf-surface p-5 transition hover:border-kf-accent hover:shadow-md"
+              >
+                <p class="font-display font-semibold text-kf-ink">{offer.data.title}</p>
+                {offer.data.intro && <p class="mt-1.5 text-sm text-kf-ink-muted">{offer.data.intro}</p>}
+              </a>
+            ))}
+          </div>
+        </div>
+      )
+    })}
+  </section>
+</BaseLayout>

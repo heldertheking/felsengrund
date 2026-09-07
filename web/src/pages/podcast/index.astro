@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+
+const episodes = (await getCollection('podcast')).sort(
+  (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf(),
+)
+---
+
+<BaseLayout title="Podcast – Kirche Felsengrund" description="Predigten von Kirche Felsengrund zum Nachhören.">
+  <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+    <h1 class="font-display text-4xl font-bold text-kf-ink">Podcast</h1>
+    <p class="mt-4 text-lg text-kf-ink-muted">Unsere Predigten zum Nachhören.</p>
+
+    <ol class="mt-10 divide-y divide-kf-edge border-y border-kf-edge">
+      {episodes.map((episode) => (
+        <li class="py-5">
+          <a href={`/podcast/${episode.id}`} class="group flex items-center justify-between gap-4">
+            <div>
+              <p class="font-display font-semibold text-kf-ink group-hover:text-kf-accent">
+                {episode.data.title}
+              </p>
+              <p class="mt-1 text-sm text-kf-ink-muted">
+                {episode.data.publishDate.toLocaleDateString('de-CH')}
+                {episode.data.duration && <> · {episode.data.duration}</>}
+              </p>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+</BaseLayout>
