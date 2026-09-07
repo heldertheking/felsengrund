@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/* Light mode styles */
+:root {
+    /* ==================== */
+    /* The Palette & Scales */
+    /* ==================== */
+
+    /* Brand & Neutrals */
+    --kf-clr-white: #ffffff;
+    --kf-clr-gray-50: #d9dadc;
+    --kf-clr-gray-800: #111827;
+    --kf-clr-gray-900: #0f172a;
+
+    --kf-clr-blue-500: #4363a8;
+    --kf-clr-blue-600: #2b54a8;
+    --kf-clr-blue-700: #1749ac;
+
+    /* Fonts */
+    --kf-font-sans: "Open Sans", Arial, Helvetica, sans-serif;
+    --kf-font-display: "Raleway", Arial, Helvetica, sans-serif;
+
+    /* Shadow & Radius */
+    --kf-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --kf-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --kf-radius-md: 0.5rem;
+
+    /* ====================== */
+    /* Theme dependent Tokens */
+    /* ====================== */
+
+    /* Core Layout */
+    --kf-bg-main: var(--kf-clr-white);
+    --kf-text-main: #2f2f30;
+
+    /* Interactive Colors */
+    --kf-text-interactive: var(--kf-clr-gray-800);
+    --kf-text-interactive-hover: var(--kf-clr-blue-600);
+    --kf-text-interactive-active: var(--kf-clr-blue-700);
+    --kf-brand-accent: var(--kf-clr-blue-500);
+
+    /* Container Semantics */
+    --kf-bg-surface: var(--kf-clr-white);
+    --kf-border-color: var(--kf-clr-gray-50);
+
+    /* ================== */
+    /* Layout & Structure */
+    /* ================== */
+
+    /* Base Typography */
+    --kf-font-size-base: 0.8125rem; /* Equivalent to 13px but accessible */
+    --kf-line-height-base: 1.5;
+
+    /* Nav Component */
+    --kf-nav-font: var(--kf-font-display);
+    --kf-nav-font-size: 0.9rem;
+    --kf-nav-letter-spacing: 3px;
+    ---kf-nav-gap: 3rem;
+
+    /* Dropdown Component */
+    --kf-dropdown-bg: var(--kf-bg-surface);
+    --kf-dropdown-border-color: var(--kf-brand-accent);
+    --kf-dropdown-border-width: 2px;
+    --kf-dropdown-border-radius: var(--kf-radius-md);
+    --kf-dropdown-box-shadow: var(--kf-shadow-md);
+    --kf-dropdown-padding: 0.7rem;
+    --kf-dropdown-gap-section: 0.5rem;
+    --kf-dropdown-gap-link: 0.65rem;
+
+    --kf-dropdown-title-font-size: 0.8rem;
+    --kf-dropdown-title-letter-spacing: 2px;
+
+    --kf-dropdown-text-font-size: 0.9rem;
+    --kf-dropdown-text-letter-spacing: 1px;
+}
+
+:root {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+    /*:root {*/
+    /*    !* Swap the background and text meanings *!*/
+    /*    --kf-bg-main: var(--kf-clr-gray-900);*/
+    /*    --kf-bg-surface: var(--kf-clr-gray-800);*/
+    /*    --kf-text-main: var(--kf-clr-gray-50);*/
+    /*    --kf-text-interactive: var(--kf-clr-gray-50);*/
+    /*    !* Brighter blues for dark mode contrast *!*/
+    /*    --kf-text-interactive-hover: #63b3ed;*/
+    /*    --kf-brand-accent: #4299e1;*/
+    /*    !*TODO: Extend dark mode styles*!*/
+    /*}*/
+}
+
+
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+
+    background-color: var(--kf-bg-main);
+    color: var(--kf-text-main);
+
+    font-family: var(--kf-font-sans);
+    font-size: var(--kf-font-size-base);
+    line-height: var(--kf-line-height-base);
+
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+#root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+}
