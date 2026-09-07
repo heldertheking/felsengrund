@@ -10,7 +10,7 @@ import FeedbackForm from '../components/home/FeedbackForm'
   <!-- 1. Hero -->
   <section class="relative overflow-hidden bg-kf-ink">
     <img
-      src="/images/banner.webp"
+      src="/images/hero-banner.webp"
       alt="Felsen und Wanderer – Sinnbild für den Namen Felsengrund"
       class="absolute inset-0 h-full w-full object-cover"
     />
@@ -76,7 +76,8 @@ import FeedbackForm from '../components/home/FeedbackForm'
   </div>
 
   <!-- 4. Gebetswand -->
-  <section id="gebetswand" class="mx-auto max-w-4xl px-4 py-16 sm:px-6">
+  <section id="gebetswand" class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+   <div class="mx-auto max-w-2xl">
     <h2 class="font-display text-3xl font-bold text-kf-ink">Gebetswand</h2>
     <p class="mt-4 text-lg text-kf-ink-muted">
       Hast du ein Anliegen, für das wir gemeinsam beten dürfen? Trag es hier ein – wir nehmen es mit
@@ -91,11 +92,13 @@ import FeedbackForm from '../components/home/FeedbackForm'
     <div class="mt-8">
       <PrayerWallForm client:visible />
     </div>
+   </div>
   </section>
 
   <!-- 5. Parkplatz -->
   <section id="parkplatz" class="bg-kf-surface-sunken">
-    <div class="mx-auto max-w-4xl px-4 py-16 sm:px-6">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+     <div class="mx-auto max-w-2xl">
       <h2 class="font-display text-3xl font-bold text-kf-ink">Parkplatz</h2>
       <p class="mt-4 text-lg text-kf-ink-muted">
         Hast du eine Frage zur letzten Predigt, oder ein Anliegen oder Feedback, das du gerne
@@ -110,6 +113,7 @@ import FeedbackForm from '../components/home/FeedbackForm'
       <div class="mt-8">
         <FeedbackForm client:visible />
       </div>
+     </div>
     </div>
   </section>
 

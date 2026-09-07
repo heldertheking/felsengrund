@@ -23,7 +23,8 @@ const categoryLabels: Record<string, string> = {
 ---
 
 <BaseLayout title={`${offer.data.title} – Kirche Felsengrund`} description={offer.data.intro}>
-  <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+  <article class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+   <div class="mx-auto max-w-3xl">
     <p class="font-display text-sm font-semibold uppercase tracking-wide text-kf-accent">
       {categoryLabels[offer.data.category]}
     </p>
@@ -81,5 +82,6 @@ const categoryLabels: Record<string, string> = {
         </ul>
       </div>
     )}
+   </div>
   </article>
 </BaseLayout>

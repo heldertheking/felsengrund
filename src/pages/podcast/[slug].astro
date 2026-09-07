@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content'
 import BaseLayout from '../../layouts/BaseLayout.astro'
+import PodcastPlayer from '../../components/podcast/PodcastPlayer.astro'
 
 export async function getStaticPaths() {
   const episodes = await getCollection('podcast')
@@ -15,7 +16,8 @@ const { Content } = await render(episode)
 ---
 
 <BaseLayout title={`${episode.data.title} – Podcast – Kirche Felsengrund`}>
-  <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+  <article class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+   <div class="mx-auto max-w-3xl">
     <p class="font-display text-sm font-semibold uppercase tracking-wide text-kf-accent">
       Podcast{episode.data.episodeNumber ? ` · Folge ${episode.data.episodeNumber}` : ''}
     </p>
@@ -25,12 +27,13 @@ const { Content } = await render(episode)
       {episode.data.duration && <> · {episode.data.duration}</>}
     </p>
 
-    <audio controls class="mt-6 w-full" src={episode.data.audioUrl}>
-      <a href={episode.data.audioUrl}>Audio herunterladen</a>
-    </audio>
+    <div class="mt-6">
+      <PodcastPlayer src={episode.data.audioUrl} title={episode.data.title} />
+    </div>
 
     <div class="prose prose-neutral mt-10 max-w-none">
       <Content />
     </div>
+   </div>
   </article>
 </BaseLayout>
