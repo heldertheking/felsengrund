@@ -52,7 +52,33 @@ const secondaryLinks = [
 ]
 ---
 
-<header class="sticky top-0 z-50 border-b border-kf-edge bg-kf-surface/90 backdrop-blur">
+<header class="relative sticky top-0 z-50 border-b border-kf-edge bg-kf-surface/90 backdrop-blur">
+  <!--
+    Discreet admin entry point: click 5x within ~2s to reveal links to /keystatic and
+    /admin/upload-audio. A plain invisible button (not the logo) so it never interferes with
+    normal navigation, and not part of the tab order / not exposed to assistive tech, since it's
+    deliberately not meant to be discoverable.
+  -->
+  <button
+    type="button"
+    class="absolute right-0 top-0 h-20 w-12"
+    tabindex="-1"
+    aria-hidden="true"
+    data-admin-trigger
+  ></button>
+
+  <div
+    class="invisible absolute right-4 top-full z-50 mt-1 w-48 rounded-xl border border-kf-edge bg-kf-surface p-2 opacity-0 shadow-lg transition"
+    data-admin-panel
+  >
+    <a href="/keystatic" class="block rounded-md px-3 py-2 text-sm text-kf-ink hover:bg-kf-surface-sunken">
+      Keystatic öffnen
+    </a>
+    <a href="/admin/upload-audio" class="block rounded-md px-3 py-2 text-sm text-kf-ink hover:bg-kf-surface-sunken">
+      Audio hochladen
+    </a>
+  </div>
+
   <div class="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6">
     <a href="/" class="flex items-center gap-2 shrink-0">
       <img
@@ -172,5 +198,44 @@ const secondaryLinks = [
   trigger?.addEventListener('click', () => {
     const isOpen = panel?.classList.toggle('hidden') === false
     trigger.setAttribute('aria-expanded', String(isOpen))
+    trigger.setAttribute('aria-label', isOpen ? 'Menü schliessen' : 'Menü öffnen')
+  })
+
+  const dropdownTrigger = document.querySelector('[data-dropdown-trigger]')
+  const dropdownGroup = dropdownTrigger?.closest('.group')
+  dropdownGroup?.addEventListener('focusin', () => dropdownTrigger?.setAttribute('aria-expanded', 'true'))
+  dropdownGroup?.addEventListener('focusout', (event) => {
+    if (event instanceof FocusEvent && !event.relatedTarget) {
+      dropdownTrigger?.setAttribute('aria-expanded', 'false')
+    }
+  })
+  dropdownGroup?.addEventListener('mouseenter', () => dropdownTrigger?.setAttribute('aria-expanded', 'true'))
+  dropdownGroup?.addEventListener('mouseleave', () => dropdownTrigger?.setAttribute('aria-expanded', 'false'))
+
+  const adminTrigger = document.querySelector<HTMLButtonElement>('[data-admin-trigger]')
+  const adminPanel = document.querySelector<HTMLElement>('[data-admin-panel]')
+  let adminClickCount = 0
+  let adminResetTimer: ReturnType<typeof setTimeout> | undefined
+
+  adminTrigger?.addEventListener('click', () => {
+    adminClickCount += 1
+    clearTimeout(adminResetTimer)
+    adminResetTimer = setTimeout(() => (adminClickCount = 0), 2000)
+
+    if (adminClickCount >= 5) {
+      adminClickCount = 0
+      adminPanel?.classList.remove('invisible', 'opacity-0')
+    }
+  })
+
+  document.addEventListener('click', (event) => {
+    if (!adminPanel || adminPanel.classList.contains('invisible')) return
+    if (
+      event.target instanceof Node &&
+      !adminPanel.contains(event.target) &&
+      event.target !== adminTrigger
+    ) {
+      adminPanel.classList.add('invisible', 'opacity-0')
+    }
   })
 </script>

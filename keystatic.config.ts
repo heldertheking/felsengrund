@@ -27,7 +27,7 @@ const gallery = block({
 // https://keystatic.com/docs (docs site was unreachable when this was written; confirm the exact
 // env var names there before relying on this comment alone).
 const storage =
-  process.env.KEYSTATIC_STORAGE === 'github'
+  import.meta.env.KEYSTATIC_STORAGE === 'github'
     ? ({ kind: 'github', repo: 'heldertheking/felsengrund' } as const)
     : ({ kind: 'local' } as const)
 
