@@ -133,8 +133,8 @@ export default function PrayerWallForm() {
         <legend className="text-sm font-medium text-kf-ink">
           Darf dein Anliegen (anonym) auf der öffentlichen Gebetswand veröffentlicht werden?
         </legend>
-        <div className="mt-2 flex gap-6">
-          <label className="flex items-center gap-2 text-sm text-kf-ink-muted">
+        <div className="mt-2 flex flex-wrap gap-6">
+          <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-kf-ink-muted">
             <input
               type="radio"
               name="pw-publish"
@@ -144,7 +144,7 @@ export default function PrayerWallForm() {
             />
             Ja
           </label>
-          <label className="flex items-center gap-2 text-sm text-kf-ink-muted">
+          <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-kf-ink-muted">
             <input
               type="radio"
               name="pw-publish"
@@ -170,7 +170,7 @@ export default function PrayerWallForm() {
       <button
         type="submit"
         disabled={status === 'submitting'}
-        className="rounded-lg bg-kf-accent px-5 py-2.5 font-display text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+        className="rounded-lg bg-kf-accent px-5 py-3 font-display text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
       >
         {status === 'submitting' ? 'Wird gesendet…' : 'Gebetsanliegen senden'}
       </button>

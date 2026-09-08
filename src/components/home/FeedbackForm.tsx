@@ -98,7 +98,7 @@ export default function FeedbackForm() {
       <button
         type="submit"
         disabled={status === 'submitting'}
-        className="rounded-lg bg-kf-accent px-5 py-2.5 font-display text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+        className="rounded-lg bg-kf-accent px-5 py-3 font-display text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
       >
         {status === 'submitting' ? 'Wird gesendet…' : 'Feedback senden'}
       </button>

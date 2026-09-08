@@ -27,9 +27,9 @@ const episodes = (await listPodcastEpisodes(env.STORAGE)).sort(
                 class="h-14 w-14 shrink-0 rounded-lg object-cover"
               />
             )}
-            <div class="flex flex-1 items-center justify-between gap-4">
-              <div>
-                <p class="font-display font-semibold text-kf-ink group-hover:text-kf-accent">
+            <div class="flex min-w-0 flex-1 items-center justify-between gap-4">
+              <div class="min-w-0">
+                <p class="break-words font-display font-semibold text-kf-ink group-hover:text-kf-accent">
                   {episode.data.title}
                 </p>
                 <p class="mt-1 text-sm text-kf-ink-muted">

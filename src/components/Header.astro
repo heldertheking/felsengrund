@@ -1,10 +1,11 @@
 ---
-// The "Angebote" dropdown/mobile groups used to be a hardcoded list here, but that went stale
-// whenever an admin added/renamed/removed an offer through /admin/offers. Header.astro is
-// rendered on every page, including ones that are still statically prerendered at build time —
-// so fetching R2 content in this frontmatter would only ever reflect content as of the last
-// deploy for those pages. Instead the groups are fetched client-side from /api/offer-nav.json
-// (see below) and rendered into the placeholders below once JS runs.
+// The "Angebote" dropdown groups used to be a hardcoded list here, but that went stale whenever
+// an admin added/renamed/removed an offer through /admin/offers. Header.astro is rendered on
+// every page, including ones that are still statically prerendered at build time — so fetching
+// R2 content in this frontmatter would only ever reflect content as of the last deploy for those
+// pages. Instead the groups are fetched client-side from /api/offer-nav.json (see below) and
+// rendered into the desktop dropdown once JS runs. The mobile menu skips this entirely and just
+// links to /angebote (see the mobile <nav> below).
 const primaryLinks = [
   { label: 'Über uns', href: '/uber-uns' },
   { label: 'Agenda', href: '/agenda' },
@@ -24,14 +25,14 @@ const secondaryLinks = [
   -->
   <button
     type="button"
-    class="absolute right-0 top-0 h-20 w-12"
+    class="hidden lg:block absolute right-0 top-0 h-20 w-12"
     tabindex="-1"
     aria-hidden="true"
     data-admin-trigger
   ></button>
 
   <div
-    class="invisible absolute right-4 top-full z-50 mt-1 w-48 rounded-xl border border-kf-edge bg-kf-surface p-2 opacity-0 shadow-lg transition"
+    class="hidden lg:block invisible absolute right-4 top-full z-50 mt-1 w-48 rounded-xl border border-kf-edge bg-kf-surface p-2 opacity-0 shadow-lg transition"
     data-admin-panel
   >
     <a href="/admin" class="block rounded-md px-3 py-2 text-sm text-kf-ink hover:bg-kf-surface-sunken">
@@ -90,32 +91,46 @@ const secondaryLinks = [
 
     <button
       type="button"
-      class="lg:hidden"
+      class="-mr-2 p-2 lg:hidden"
       aria-label="Menü öffnen"
       aria-expanded="false"
       data-mobile-trigger
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" class="h-7 w-7" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"></path>
+        <path class="mobile-trigger-bar mobile-trigger-bar-top" stroke-linecap="round" d="M3.75 6.75h16.5"></path>
+        <path class="mobile-trigger-bar mobile-trigger-bar-middle" stroke-linecap="round" d="M3.75 12h16.5"></path>
+        <path class="mobile-trigger-bar mobile-trigger-bar-bottom" stroke-linecap="round" d="M3.75 17.25h16.5"></path>
       </svg>
     </button>
   </div>
 
-  <div class="hidden border-t border-kf-edge px-4 pb-4 lg:hidden" data-mobile-panel>
-    <nav class="flex flex-col gap-1 pt-3" aria-label="Mobile Navigation">
-      <a href="/" class="mobile-nav-link">Home</a>
-      {primaryLinks.map((link) => (
-        <a href={link.href} class="mobile-nav-link">{link.label}</a>
-      ))}
+  <div
+    class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out lg:hidden"
+    data-mobile-panel
+  >
+    <div class="min-h-0 overflow-hidden">
+      <nav
+        class="flex translate-y-[-0.5rem] flex-col divide-y divide-kf-edge/60 border-t border-kf-edge px-4 pb-2 pt-3 opacity-0 transition-[transform,opacity] duration-300 ease-out"
+        aria-label="Mobile Navigation"
+        data-mobile-nav
+      >
+        <a href="/" class="mobile-nav-link">Home</a>
+        {primaryLinks.map((link) => (
+          <a href={link.href} class="mobile-nav-link">{link.label}</a>
+        ))}
 
-      <div data-mobile-offer-groups></div>
+        <!--
+          Unlike the desktop dropdown, the mobile menu deliberately only links to the "Angebote"
+          overview page instead of expanding every individual offer inline — with a growing,
+          admin-managed offer list that would make the mobile menu unreasonably long and messy.
+        -->
+        <a href="/angebote" class="mobile-nav-link">Angebote</a>
 
-      <div class="pt-2">
         {secondaryLinks.map((link) => (
           <a href={link.href} class="mobile-nav-link">{link.label}</a>
         ))}
-      </div>
-    </nav>
+      </nav>
+    </div>
   </div>
 </header>
 
@@ -126,19 +141,42 @@ const secondaryLinks = [
     @apply rounded-md px-3 py-2 font-display text-sm font-medium text-kf-ink transition-colors hover:text-kf-accent;
   }
   .mobile-nav-link {
-    @apply rounded-md px-3 py-2 font-display text-sm font-medium text-kf-ink hover:bg-kf-surface-sunken;
+    @apply rounded-md px-3 py-3 font-display text-sm font-medium text-kf-ink hover:bg-kf-surface-sunken;
+  }
+
+  .mobile-trigger-bar {
+    transform-origin: center;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
+  [data-mobile-trigger][aria-expanded='true'] .mobile-trigger-bar-top {
+    transform: translateY(5.25px) rotate(45deg);
+  }
+  [data-mobile-trigger][aria-expanded='true'] .mobile-trigger-bar-middle {
+    opacity: 0;
+  }
+  [data-mobile-trigger][aria-expanded='true'] .mobile-trigger-bar-bottom {
+    transform: translateY(-5.25px) rotate(-45deg);
   }
 </style>
 
 <script>
-  const trigger = document.querySelector('[data-mobile-trigger]')
-  const panel = document.querySelector('[data-mobile-panel]')
+  const trigger = document.querySelector<HTMLButtonElement>('[data-mobile-trigger]')
+  const panel = document.querySelector<HTMLElement>('[data-mobile-panel]')
+  const mobileNav = document.querySelector<HTMLElement>('[data-mobile-nav]')
+  let mobileMenuOpen = false
 
-  trigger?.addEventListener('click', () => {
-    const isOpen = panel?.classList.toggle('hidden') === false
-    trigger.setAttribute('aria-expanded', String(isOpen))
-    trigger.setAttribute('aria-label', isOpen ? 'Menü schliessen' : 'Menü öffnen')
-  })
+  const setMobileMenuOpen = (isOpen: boolean) => {
+    mobileMenuOpen = isOpen
+    panel?.classList.toggle('grid-rows-[1fr]', isOpen)
+    panel?.classList.toggle('grid-rows-[0fr]', !isOpen)
+    mobileNav?.classList.toggle('opacity-0', !isOpen)
+    mobileNav?.classList.toggle('translate-y-[-0.5rem]', !isOpen)
+    if (mobileNav) mobileNav.inert = !isOpen
+    trigger?.setAttribute('aria-expanded', String(isOpen))
+    trigger?.setAttribute('aria-label', isOpen ? 'Menü schliessen' : 'Menü öffnen')
+  }
+
+  trigger?.addEventListener('click', () => setMobileMenuOpen(!mobileMenuOpen))
 
   const dropdownTrigger = document.querySelector('[data-dropdown-trigger]')
   const dropdownGroup = dropdownTrigger?.closest('.group')
@@ -161,7 +199,6 @@ const secondaryLinks = [
   }
 
   const desktopOfferGroups = document.querySelector<HTMLElement>('[data-offer-groups]')
-  const mobileOfferGroups = document.querySelector<HTMLElement>('[data-mobile-offer-groups]')
 
   const escapeHtml = (value: string) =>
     value
@@ -196,26 +233,6 @@ const secondaryLinks = [
                     )
                     .join('')}
                 </ul>
-              </div>
-            `,
-          )
-          .join('')
-      }
-
-      if (mobileOfferGroups) {
-        mobileOfferGroups.innerHTML = groups
-          .map(
-            (group) => `
-              <div class="pt-2">
-                <p class="px-3 font-display text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">
-                  ${escapeHtml(group.label)}
-                </p>
-                ${group.links
-                  .map(
-                    (link) =>
-                      `<a href="${escapeHtml(link.href)}" class="mobile-nav-link">${escapeHtml(link.label)}</a>`,
-                  )
-                  .join('')}
               </div>
             `,
           )
