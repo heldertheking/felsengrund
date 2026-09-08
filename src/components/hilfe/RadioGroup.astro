@@ -25,7 +25,7 @@ const { legend, name, options, required = false } = Astro.props
   </legend>
   <div class="flex flex-wrap gap-4">
     {options.map((option) => (
-      <label class="flex items-center gap-2 text-sm text-kf-ink-muted">
+      <label class="flex min-h-11 items-center gap-2 py-2 text-sm text-kf-ink-muted">
         <input
           type="radio"
           name={name}
