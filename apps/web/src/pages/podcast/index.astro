@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import PodcastList from '../../components/PodcastList'
+---
+
+<BaseLayout title="Podcast – Kirche Felsengrund" description="Predigten von Kirche Felsengrund zum Nachhören.">
+  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+   <div class="mx-auto max-w-3xl">
+    <h1 class="font-display text-4xl font-bold text-kf-ink">Podcast</h1>
+    <p class="mt-4 text-lg text-kf-ink-muted">Unsere Predigten zum Nachhören.</p>
+
+    <PodcastList client:load />
+   </div>
+  </section>
+</BaseLayout>

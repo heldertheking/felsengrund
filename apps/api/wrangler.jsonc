@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "felsengrund-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "r2_buckets": [
+    {
+      "binding": "STORAGE",
+      "bucket_name": "felsengrund-storage"
+    }
+  ],
+  "vars": {
+    // Update once the real n8n workflow exists. Not secret by itself (auth is the
+    // N8N_WEBHOOK_SECRET header, see packages/shared/src/notify.ts / .dev.vars.example) but
+    // replace the placeholder host before relying on it.
+    "N8N_WEBHOOK_URL": "https://REPLACE-ME.n8n.cloud/webhook/felsengrund-forms",
+
+    // This Worker's own public origin. Used to rewrite relative /media/<key> paths (as stored
+    // by admin-content.ts) into absolute URLs before they're returned to the frontend, since
+    // frontend and API are now different origins. Replace with the real workers.dev URL after
+    // first deploy (or a custom domain later).
+    "PUBLIC_WORKER_ORIGIN": "https://REPLACE-ME.workers.dev",
+
+    // Comma-separated list of frontend origins allowed to call this API (see
+    // src/middleware/cors.ts). Add the webkeeper.ch production/staging origins once known.
+    "ALLOWED_ORIGINS": "http://localhost:4321"
+  }
+}

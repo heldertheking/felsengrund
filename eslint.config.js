@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import eslintPluginAstro from 'eslint-plugin-astro'
 
 export default tseslint.config(
-  { ignores: ['dist', '.astro', 'worker-configuration.d.ts'] },
+  { ignores: ['**/dist', '**/.astro', '**/worker-configuration.d.ts', '**/.wrangler'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -25,7 +25,7 @@ export default tseslint.config(
   },
   ...eslintPluginAstro.configs['flat/recommended'],
   {
-    files: ['src/env.d.ts'],
+    files: ['**/src/env.d.ts'],
     rules: {
       '@typescript-eslint/triple-slash-reference': 'off',
     },

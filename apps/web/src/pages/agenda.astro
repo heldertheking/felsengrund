@@ -1,0 +1,101 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+// Build-time toggle (this page is statically prerendered, so the env var must be set wherever
+// the site is BUILT, not just deployed — a GitHub Actions build-time env var, not a runtime
+// secret). Set GOOGLE_CALENDAR_EMBED_URL to the `src` URL from Google Calendar's own
+// "Settings > Integrate calendar > Embed code" (just the src, not the whole <iframe> snippet).
+// Unset, this falls back to the static recurring-schedule list below.
+const calendarEmbedUrl = import.meta.env.GOOGLE_CALENDAR_EMBED_URL as string | undefined
+
+interface ScheduleEntry {
+  title: string
+  cadence: string
+  note?: string
+}
+
+const schedule: ScheduleEntry[] = [
+  {
+    title: 'Gottesdienst',
+    cadence: 'Sonntags, 09:45 – ca. 11:15 Uhr',
+  },
+  {
+    title: 'Dinner Church',
+    cadence: 'Monatlich, 18:00 Uhr',
+    note: 'Details und Anmeldung auf dinnerchurch.ch',
+  },
+  {
+    title: 'Kids-Treff',
+    cadence: 'Sonntagvormittags',
+  },
+  {
+    title: 'Jungschar',
+    cadence: 'Jeden zweiten Samstagnachmittag',
+    note: 'Für Kinder der 1.–8. Klasse. Treffpunkt "der Storch" vor dem Schulhaus Blattenacher.',
+  },
+  {
+    title: 'Highlight',
+    cadence: 'Jeden zweiten Freitagabend',
+    note: 'Für Teenager.',
+  },
+  {
+    title: 'Smallgroups / Hauskreise',
+    cadence: 'Kein fester öffentlicher Termin — bitte direkt anfragen',
+  },
+  {
+    title: 'Biblischer Unterricht',
+    cadence: 'Kein fester öffentlicher Termin — bitte direkt anfragen',
+    note: 'Offen für alle Jugendlichen, unabhängig von der Kirchenzugehörigkeit.',
+  },
+  {
+    title: 'Senioren',
+    cadence: 'Zweimal monatlich',
+    note: 'Bibellesen und Gemeinschaft.',
+  },
+  {
+    title: 'Seniorenessen 60+',
+    cadence: 'Monatlich, dienstags',
+    note: 'Anmeldung im Voraus erforderlich.',
+  },
+  {
+    title: 'Lebensmittelabgabe',
+    cadence: 'Wöchentlich, montags, 16:30–17:15 Uhr',
+  },
+]
+---
+
+<BaseLayout
+  title="Agenda – Kirche Felsengrund"
+  description="Wiederkehrende Termine und Angebote der Kirche Felsengrund im Überblick."
+>
+  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <h1 class="font-display text-4xl font-bold text-kf-ink sm:text-5xl">Agenda</h1>
+    <p class="mt-4 max-w-2xl text-lg text-kf-ink-muted">
+      Eine Übersicht unserer regelmässigen Termine. Für saisonale Veranstaltungen und Ausnahmen
+      empfehlen wir, direkt bei uns nachzufragen.
+    </p>
+
+    {calendarEmbedUrl ? (
+      <div class="mt-10 overflow-hidden rounded-2xl border border-kf-edge shadow-md">
+        <iframe
+          src={calendarEmbedUrl}
+          loading="lazy"
+          title="Kirche Felsengrund – Kalender"
+          class="h-[420px] w-full border-0 sm:h-[650px]"
+        ></iframe>
+      </div>
+    ) : (
+      <ul class="mt-10 space-y-4">
+        {schedule.map((entry) => (
+          <li class="rounded-xl border border-kf-edge bg-kf-surface p-5">
+            <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+              <p class="font-display font-semibold text-kf-ink">{entry.title}</p>
+              <p class="text-sm font-medium text-kf-accent">{entry.cadence}</p>
+            </div>
+            {entry.note && <p class="mt-2 text-sm text-kf-ink-muted">{entry.note}</p>}
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+</BaseLayout>

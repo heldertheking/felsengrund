@@ -1,0 +1,13 @@
+RewriteEngine On
+
+# Real files/directories (the actual angebote/index.html list page, static assets, etc.)
+# are served as-is. Only unmatched slug-shaped paths fall through to a shared shell that
+# fetches the matching content client-side from the API — offer/podcast slugs and admin
+# sub-routes are created after the site is built (via the admin panel), so they can't be
+# enumerated as real static files at build time.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule ^angebote/([a-z0-9-]+)/?$ /angebote/detail/index.html [L]
+RewriteRule ^podcast/([a-z0-9-]+)/?$ /podcast/detail/index.html [L]
+RewriteRule ^admin(/.*)?$ /admin/index.html [L]
