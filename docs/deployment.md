@@ -1,127 +1,121 @@
 # Deployment
 
-This site deploys to Cloudflare Workers via the `@astrojs/cloudflare` adapter. Content
-(offers, podcast episodes, and their media) lives in a Cloudflare R2 bucket rather than in
-the repo, so there is a one-time bucket/domain setup in addition to the usual
-build-and-deploy steps.
+The site is split into two independently deployed halves:
 
-## Prerequisites
+- **`apps/api`** — a plain Cloudflare Worker (Hono, no Astro) that is a pure JSON API: form
+  relay, offers/podcast content, media streaming, and the admin CMS's backend. Content
+  (offers, podcast episodes, and their media) lives in a Cloudflare R2 bucket rather than in
+  the repo.
+- **`apps/web`** — a fully static Astro site (public pages + the `/admin` CMS UI) that calls
+  `apps/api` over `fetch()` from the browser. It has no server runtime of its own and is
+  deployed to webkeeper.ch (a Plesk-managed host) rather than Cloudflare.
 
-- A Cloudflare account.
-- [Wrangler](https://developers.cloudflare.com/workers/wrangler/) installed (it's already a
-  project dependency, so `npx wrangler ...` / `npm run`-based invocations work without a
-  separate global install).
-- Authenticate Wrangler against the target Cloudflare account: `wrangler login`.
+## `apps/api` — Cloudflare Worker
 
-## The R2 bucket
+### Prerequisites
 
-`wrangler.jsonc` declares one R2 binding:
+- A Cloudflare account, with Wrangler authenticated: `wrangler login`.
 
-```jsonc
-"r2_buckets": [
-  { "binding": "STORAGE", "bucket_name": "felsengrund-storage" }
-]
-```
+### The R2 bucket
 
-This bucket must exist in the Cloudflare account you're deploying to before the site will
-work. If it doesn't exist yet, create it once with:
+`apps/api/wrangler.jsonc` declares one R2 binding (`STORAGE` → `felsengrund-storage`), which
+must exist before the API will work:
 
 ```sh
 wrangler r2 bucket create felsengrund-storage
 ```
 
-### What's stored in it
+See [`docs/architecture.md`](./architecture.md) for the full content model and key layout
+(`offers/<slug>.mdoc`, `podcast/<slug>.mdoc`, plus their media under `images/`). A plain R2
+binding is only reachable from within the Worker — `apps/api`'s `GET /media/*` route is the
+only thing that ever serves those bytes over HTTP, streaming straight off the binding with
+`Range` support for podcast audio scrubbing.
 
-The bucket holds all offer/podcast content and media (see
-[`docs/architecture.md`](./architecture.md) for the full content model). The key layout,
-as implemented in `src/lib/admin-content.ts`:
-
-- `offers/<slug>.mdoc` — an offer's YAML frontmatter + Markdoc body
-- `podcast/<slug>.mdoc` — a podcast episode's YAML frontmatter + Markdoc body
-- `podcast/<slug>.<ext>` — that episode's audio file (extension taken from the uploaded file)
-- `images/offers/<slug>.<ext>` — an offer's card image
-- `images/podcast/<slug>.<ext>` — an episode's cover image
-
-### Public access to the bucket
-
-The public site (offer pages, podcast pages, `<img>`/`<audio>` tags) links to bucket
-objects using a same-origin `/media/<key>` path — e.g. `/media/images/offers/<slug>.jpg` —
-served by `src/pages/media/[...key].ts`. That route reads the object straight off the
-`STORAGE` binding (the same one every other admin/content code path uses) and streams it
-back, with `Range` request support for podcast audio scrubbing.
-
-A plain R2 bucket binding is only reachable from within the Worker; it is **not** itself
-served over HTTP. Rather than exposing the bucket to the public internet (R2 public bucket
-access or a custom domain attached to the bucket), the Worker itself is the only thing that
-ever reads from it, so **there is no separate Cloudflare dashboard setup step for media at
-all** — no R2 public access toggle, no custom domain to attach. This also means uploads
-made through `/admin` while running `npm run dev` are immediately servable locally, since
-`STORAGE` resolves to the same local on-disk R2 simulation in both directions (write via the
-admin API, read via `/media/*`) — unlike a real public CDN domain, which never sees local
-`wrangler dev` state.
-
-## Secrets
-
-Two secrets must be set before the site works correctly. They are deliberately declared as
-secrets (`interface Env` in `src/env.d.ts`) rather than plaintext `vars` in
-`wrangler.jsonc`, so they aren't committed to the repo. Set each with:
+### Secrets
 
 ```sh
 wrangler secret put ADMIN_UPLOAD_PASSWORD
 wrangler secret put N8N_WEBHOOK_SECRET
 ```
 
-- **`ADMIN_UPLOAD_PASSWORD`** — the single password that gates the entire `/admin` content
-  panel (offers, podcast episodes, and their uploads). Despite the name, it is not scoped
-  to audio upload only. See [`docs/architecture.md`](./architecture.md) for how the admin
-  session built on this password works.
-- **`N8N_WEBHOOK_SECRET`** — the HMAC-SHA256 signing key used to authenticate outgoing
-  webhook calls to n8n when the site's forms (contact, counseling, feedback, prayer
-  request) are submitted. The Worker signs the raw JSON body and sends it as an
-  `X-Webhook-Signature` header; the n8n workflow must recompute the same HMAC over the raw
-  body and compare it (constant-time) before trusting the payload. See `src/lib/notify.ts`.
+- **`ADMIN_UPLOAD_PASSWORD`** — gates `/admin/login`, which returns a signed bearer token on
+  success (see [`docs/architecture.md`](./architecture.md) for the token-based admin auth
+  model — there is no cookie anymore, since the admin UI is served from a different origin
+  than the API).
+- **`N8N_WEBHOOK_SECRET`** — HMAC-SHA256 key used to authenticate outgoing webhook calls to
+  n8n on form submission (`packages/shared/src/notify.ts`).
 
-For local development, copy `.dev.vars.example` to `.dev.vars` and fill in real values
-there instead — `.dev.vars` is gitignored and read automatically by `astro dev` /
-`wrangler dev`.
+For local development, copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars`.
 
-## Plain vars
+### Plain vars
 
-`wrangler.jsonc` already commits one non-secret var:
+`apps/api/wrangler.jsonc` also declares:
 
-```jsonc
-"vars": {
-  "N8N_WEBHOOK_URL": "https://REPLACE-ME.n8n.cloud/webhook/felsengrund-forms"
-}
-```
+- **`N8N_WEBHOOK_URL`** — the target n8n webhook. Replace the committed placeholder
+  (`REPLACE-ME.n8n.cloud`) with the real workflow URL before forms will deliver anywhere.
+- **`PUBLIC_WORKER_ORIGIN`** — this Worker's own public URL (e.g. its `*.workers.dev`
+  address, or a custom domain if one is attached later). Used to rewrite relative
+  `/media/<key>` references in API responses into absolute URLs the cross-origin frontend
+  can load directly.
+- **`ALLOWED_ORIGINS`** — comma-separated list of origins allowed to call this API
+  (CORS). Must include whatever origin `apps/web` is actually served from (webkeeper.ch's
+  domain in production, `http://localhost:4321` for local dev).
 
-- **`N8N_WEBHOOK_URL`** — the target n8n webhook. The committed value is a placeholder
-  (`REPLACE-ME.n8n.cloud`); the comment already in `wrangler.jsonc` calls this out
-  explicitly. It is not secret by itself (the `N8N_WEBHOOK_SECRET` signature is what
-  authenticates the request), but **it must be replaced with the real n8n workflow's
-  webhook URL before the site's forms will actually deliver anywhere**.
+### Build & deploy
 
-## Build & deploy
+Manual: `npm run build:api` (workspace script) or `cd apps/api && wrangler deploy`.
+
+**Recommended for ongoing deploys**: connect this repo to Cloudflare **Workers Builds**
+(Cloudflare dashboard → Workers & Pages → this Worker → Settings → Builds) with:
+- Root directory: `apps/api`
+- Build command: `npm install` (Wrangler bundles the Worker directly on deploy — no separate
+  compile step needed)
+- Deploy command: `npx wrangler deploy`
+
+This auto-deploys on every push to the configured branch, with no `CLOUDFLARE_API_TOKEN`
+needing to live in GitHub.
+
+## `apps/web` — static site on webkeeper.ch
+
+### Env
+
+`apps/web/.env` (copy from `.env.example`) needs `PUBLIC_API_BASE_URL` set to the deployed
+`apps/api` Worker's URL. This is a public, non-secret value — Astro inlines it into the
+client bundle at build time.
+
+### Build
 
 ```sh
-npm run build   # runs `astro check && astro build`
-wrangler deploy
+npm run build:web   # -> apps/web/dist/
 ```
 
-`npm run build` type-checks the project and produces the Worker build output. `@astrojs/cloudflare`
-computes the Worker entrypoint and static-assets configuration for you at build time on top
-of the bindings/vars already declared in `wrangler.jsonc` — you don't need to hand-add
-`main`/`assets` fields yourself, just the project-specific bindings, vars, and secrets
-described above (already in place).
+This is a plain static build — no Cloudflare tooling involved. `apps/web/dist/` is the
+entire deployable artifact: upload/sync it as-is to webkeeper.ch's document root.
 
-There is no separate `deploy` script in `package.json`; run `wrangler deploy` directly
-after building.
+### Auto-deploy via GitHub Actions + Plesk Git
 
-## Custom domain
+`.github/workflows/deploy-web.yml` builds `apps/web` on every push to `master` and
+force-pushes the built `dist/` contents to a dedicated `deploy/webkeeper` branch (via
+`peaceiris/actions-gh-pages`), so that branch's root **is** the static site — ready for a
+host with no Node runtime of its own.
 
-Attaching a real custom domain (as opposed to the default `*.workers.dev` URL) to this
-Worker is a manual step in the Cloudflare dashboard (Workers & Pages → this Worker →
-Domains & Routes, or similar — check the current dashboard, since exact navigation isn't
-guaranteed to stay the same). Since media is now served through the Worker itself
-(`/media/*`, see above) rather than a separate R2 public domain, this is the only
-domain-related setup step left — there's nothing extra to configure for the bucket.
+Before this works:
+1. In the GitHub repo's **Settings → Secrets and variables → Actions → Variables**, add
+   `PUBLIC_API_BASE_URL` set to the production `apps/api` URL.
+2. In Plesk (webkeeper.ch), for the `kirche-felsengrund.ch` subscription, add this GitHub
+   repo as a Git pull source, tracking the `deploy/webkeeper` branch, with the document root
+   set to that repo's checkout root.
+3. Configure auto-deploy: if the installed Plesk Git extension version supports
+   webhook-triggered pulls, paste its webhook URL into the GitHub repo's
+   **Settings → Webhooks** (content type `application/json`, trigger on `push`). If not,
+   fall back to a scheduled Plesk cron task running a Git pull periodically. **Verify which
+   is available on webkeeper.ch's specific Plesk version** — this is the one piece of the
+   pipeline that depends on infrastructure only reachable from the Plesk control panel.
+
+## CORS
+
+`apps/api`'s `ALLOWED_ORIGINS` var must list every origin that's allowed to call it —
+production webkeeper.ch domain, plus any staging subdomain used during testing, plus
+`http://localhost:4321` for local `astro dev`. A mismatch here shows up as CORS errors in the
+browser console, not as a server-side error — check this first if requests from `apps/web`
+start failing after a domain change.

@@ -1,0 +1,331 @@
+import { useEffect, useState, type FormEvent } from 'react'
+import { adminFetch, apiUrl } from '../../lib/api'
+import type { Offer, OfferData, OfferOrganizer } from '../../lib/types'
+
+const CATEGORIES: { value: OfferData['category']; label: string }[] = [
+  { value: 'gottesdienst', label: 'Gottesdienst' },
+  { value: 'kinder-jugend', label: 'Kinder & Jugend' },
+  { value: 'gemeinschaft', label: 'Gemeinschaft' },
+  { value: 'senioren', label: 'Senioren' },
+  { value: 'hilfe-service', label: 'Hilfe & Service' },
+]
+
+const inputClass =
+  'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent'
+const labelClass = 'text-xs font-semibold uppercase tracking-wide text-kf-ink-muted'
+
+interface Props {
+  onUnauthorized: () => void
+}
+
+type Mode = { view: 'list' } | { view: 'form'; offer: Offer | null }
+
+export default function OffersManager({ onUnauthorized }: Props) {
+  const [offers, setOffers] = useState<Offer[] | null>(null)
+  const [mode, setMode] = useState<Mode>({ view: 'list' })
+  const [listError, setListError] = useState<string | null>(null)
+
+  function reload() {
+    fetch(apiUrl('/offers'))
+      .then((r) => r.json() as Promise<Offer[]>)
+      .then(setOffers)
+      .catch(() => setListError('Angebote konnten nicht geladen werden.'))
+  }
+
+  useEffect(() => {
+    reload()
+  }, [])
+
+  if (mode.view === 'form') {
+    return (
+      <OfferForm
+        offer={mode.offer}
+        onDone={() => {
+          setMode({ view: 'list' })
+          reload()
+        }}
+        onUnauthorized={onUnauthorized}
+      />
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-lg font-semibold text-kf-ink">Angebote</h2>
+        <button
+          type="button"
+          onClick={() => setMode({ view: 'form', offer: null })}
+          className="rounded-lg bg-kf-accent px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+        >
+          Neues Angebot
+        </button>
+      </div>
+
+      {listError && <p className="mt-4 text-sm text-red-700">{listError}</p>}
+      {!offers && !listError && <p className="mt-4 text-sm text-kf-ink-muted">Wird geladen …</p>}
+
+      {offers && (
+        <ul className="mt-6 divide-y divide-kf-edge border-y border-kf-edge">
+          {offers.map((offer) => (
+            <li key={offer.slug} className="flex items-center justify-between gap-4 py-3">
+              <div className="min-w-0">
+                <p className="truncate font-medium text-kf-ink">{offer.data.title}</p>
+                <p className="text-xs text-kf-ink-muted">{offer.slug}</p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMode({ view: 'form', offer })}
+                  className="rounded-lg border border-kf-edge px-3 py-1.5 text-xs font-semibold text-kf-ink transition hover:border-kf-accent hover:text-kf-accent"
+                >
+                  Bearbeiten
+                </button>
+                <DeleteButton slug={offer.slug} onDeleted={reload} onUnauthorized={onUnauthorized} />
+              </div>
+            </li>
+          ))}
+          {offers.length === 0 && <li className="py-3 text-sm text-kf-ink-muted">Noch keine Angebote.</li>}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function DeleteButton({
+  slug,
+  onDeleted,
+  onUnauthorized,
+}: {
+  slug: string
+  onDeleted: () => void
+  onUnauthorized: () => void
+}) {
+  const [busy, setBusy] = useState(false)
+
+  async function handleClick() {
+    if (!confirm('Dieses Angebot wirklich löschen?')) return
+    setBusy(true)
+    try {
+      const response = await adminFetch(`/admin/offers/${slug}`, { method: 'DELETE' })
+      if (response.status === 401) return onUnauthorized()
+      if (!response.ok) throw new Error(`Fehler ${response.status}`)
+      onDeleted()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={handleClick}
+      className="rounded-lg border border-red-600 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+    >
+      Löschen
+    </button>
+  )
+}
+
+function OfferForm({
+  offer,
+  onDone,
+  onUnauthorized,
+}: {
+  offer: Offer | null
+  onDone: () => void
+  onUnauthorized: () => void
+}) {
+  const isEdit = offer !== null
+  const [title, setTitle] = useState(offer?.data.title ?? '')
+  const [intro, setIntro] = useState(offer?.data.intro ?? '')
+  const [category, setCategory] = useState<OfferData['category']>(offer?.data.category ?? 'gottesdienst')
+  const [targetAudience, setTargetAudience] = useState(offer?.data.targetAudience ?? '')
+  const [schedule, setSchedule] = useState(offer?.data.schedule ?? '')
+  const [location, setLocation] = useState(offer?.data.location ?? '')
+  const [mapsLink, setMapsLink] = useState(offer?.data.mapsLink ?? '')
+  const [registration, setRegistration] = useState(offer?.data.registration ?? '')
+  const [organizers, setOrganizers] = useState<OfferOrganizer[]>(offer?.data.organizers ?? [])
+  const [cardImage, setCardImage] = useState<File | null>(null)
+  const [body, setBody] = useState(offer?.body ?? '')
+  const [status, setStatus] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  function updateOrganizer(index: number, field: keyof OfferOrganizer, value: string) {
+    setOrganizers((rows) => rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)))
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setStatus('Wird gespeichert …')
+    setSubmitting(true)
+
+    try {
+      const formData = new FormData()
+      if (isEdit) formData.set('slug', offer.slug)
+      formData.set('title', title)
+      formData.set('intro', intro)
+      formData.set('category', category)
+      formData.set('targetAudience', targetAudience)
+      formData.set('schedule', schedule)
+      formData.set('location', location)
+      formData.set('mapsLink', mapsLink)
+      formData.set('registration', registration)
+      formData.set('organizers', JSON.stringify(organizers.filter((o) => o.name.trim())))
+      formData.set('body', body)
+      if (cardImage) formData.set('cardImage', cardImage)
+
+      const response = await adminFetch('/admin/offers', { method: 'POST', body: formData })
+      if (response.status === 401) return onUnauthorized()
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(data?.error ?? `Fehler ${response.status}`)
+      }
+      onDone()
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : 'Da ist etwas schiefgelaufen.')
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-lg font-semibold text-kf-ink">
+          {isEdit ? 'Angebot bearbeiten' : 'Neues Angebot'}
+        </h2>
+        <button type="button" onClick={onDone} className="text-sm text-kf-ink-muted hover:text-kf-accent">
+          Zurück zur Liste
+        </button>
+      </div>
+
+      <div>
+        <label className={labelClass}>Titel</label>
+        <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} />
+        {isEdit && (
+          <p className="mt-1 text-xs text-kf-ink-muted">
+            Slug: <code>{offer.slug}</code>
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label className={labelClass}>Intro</label>
+        <textarea rows={2} value={intro} onChange={(e) => setIntro(e.target.value)} className={inputClass} />
+      </div>
+
+      <div>
+        <label className={labelClass}>Kategorie</label>
+        <select value={category} onChange={(e) => setCategory(e.target.value as OfferData['category'])} className={inputClass}>
+          {CATEGORIES.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className={labelClass}>Zielgruppe</label>
+        <input type="text" value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} className={inputClass} />
+      </div>
+
+      <div>
+        <label className={labelClass}>Zeiten</label>
+        <input type="text" value={schedule} onChange={(e) => setSchedule(e.target.value)} className={inputClass} />
+      </div>
+
+      <div>
+        <label className={labelClass}>Ort</label>
+        <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} className={inputClass} />
+      </div>
+
+      <div>
+        <label className={labelClass}>Google-Maps-Link</label>
+        <input type="url" value={mapsLink} onChange={(e) => setMapsLink(e.target.value)} className={inputClass} />
+      </div>
+
+      <div>
+        <label className={labelClass}>Anmeldung</label>
+        <input type="text" value={registration} onChange={(e) => setRegistration(e.target.value)} className={inputClass} />
+      </div>
+
+      <div>
+        <span className={labelClass}>Ansprechpersonen</span>
+        <div className="mt-2 flex flex-col gap-2">
+          {organizers.map((organizer, index) => (
+            <div key={index} className="grid grid-cols-1 gap-2 rounded-lg border border-kf-edge p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-center">
+              <input
+                type="text"
+                placeholder="Name"
+                value={organizer.name}
+                onChange={(e) => updateOrganizer(index, 'name', e.target.value)}
+                className={inputClass}
+              />
+              <input
+                type="text"
+                placeholder="Rolle"
+                value={organizer.role ?? ''}
+                onChange={(e) => updateOrganizer(index, 'role', e.target.value)}
+                className={inputClass}
+              />
+              <input
+                type="text"
+                placeholder="Kontakt"
+                value={organizer.contact ?? ''}
+                onChange={(e) => updateOrganizer(index, 'contact', e.target.value)}
+                className={inputClass}
+              />
+              <button
+                type="button"
+                onClick={() => setOrganizers((rows) => rows.filter((_, i) => i !== index))}
+                className="justify-self-start rounded-lg border border-kf-edge px-3 py-2 text-xs font-semibold text-kf-ink-muted transition hover:border-red-600 hover:text-red-600 sm:justify-self-center"
+              >
+                Entfernen
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => setOrganizers((rows) => [...rows, { name: '' }])}
+          className="mt-2 rounded-lg border border-kf-edge px-3 py-1.5 text-xs font-semibold text-kf-ink transition hover:border-kf-accent hover:text-kf-accent"
+        >
+          Ansprechperson hinzufügen
+        </button>
+      </div>
+
+      <div>
+        <label className={labelClass}>Kartenbild</label>
+        {offer?.data.cardImage && (
+          <img src={offer.data.cardImage} alt="" className="mt-2 h-24 w-auto rounded-lg border border-kf-edge object-cover" />
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setCardImage(e.target.files?.[0] ?? null)}
+          className="mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink file:mr-3 file:rounded-md file:border-0 file:bg-kf-accent file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
+        />
+      </div>
+
+      <div>
+        <label className={labelClass}>Inhalt (Markdoc)</label>
+        <textarea rows={14} value={body} onChange={(e) => setBody(e.target.value)} className={`${inputClass} font-mono`} />
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="rounded-lg bg-kf-accent px-5 py-2.5 font-display text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+        >
+          Speichern
+        </button>
+        {status && <p className="text-sm text-kf-ink-muted">{status}</p>}
+      </div>
+    </form>
+  )
+}

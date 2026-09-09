@@ -1,7 +1,10 @@
 # Architecture: content & admin
 
 This explains how content editing works after the Keystatic CMS was removed and replaced
-with a custom admin panel backed directly by Cloudflare R2.
+with a custom admin panel backed directly by Cloudflare R2, and how that panel now works
+now that the site is split into a static frontend (`apps/web`, deployed to webkeeper.ch) and
+a pure JSON API (`apps/api`, a Cloudflare Worker) — see [`docs/deployment.md`](./deployment.md)
+for the deploy-level view of that split.
 
 ## Why Keystatic was removed
 
@@ -18,8 +21,9 @@ frontmatter block followed by a Markdoc body, in the same format the original
 Keystatic-managed `.mdoc` files used. There is no `src/content/` collection anymore —
 these documents live as objects in the `STORAGE` R2 bucket, and are read at request time.
 
-All of this logic lives in `src/lib/admin-content.ts`, which is the single module every
-page and API route uses to read/write offers and podcast episodes. Key shapes:
+All of this logic lives in `packages/shared/src/admin-content.ts`, which every route in
+`apps/api` uses to read/write offers and podcast episodes — `apps/web` never touches R2
+directly, it only ever sees the JSON `apps/api` returns. Key shapes:
 
 ```ts
 interface OfferData {
@@ -57,91 +61,99 @@ R2 key layout (see [`docs/deployment.md`](./deployment.md) for the bucket-level 
 - `images/podcast/<slug>.<ext>` — an episode's cover image
 
 `putOfferImage`/`putPodcastImage`/`putPodcastAudio` (also in `admin-content.ts`) write these
-media objects and return the URL stored in `cardImage`/`coverImage`/`audioUrl`: a same-origin
-`/media/<key>` path (e.g. `/media/podcast/<slug>.mp3`), not an absolute URL. That path is
-served by `src/pages/media/[...key].ts`, a Worker route that streams the object straight off
-the `STORAGE` binding — the same binding everything else here already uses, so it resolves
-to local dev state or the real bucket automatically, with no separate public-access/CDN-domain
-configuration needed in either environment. It supports `Range` requests (parses the
-`Range` header, returns `206 Partial Content` with `Content-Range`), which the podcast
-player (`src/components/podcast/PodcastPlayer.astro`) relies on for scrubbing through audio.
+media objects and return the URL stored in `cardImage`/`coverImage`/`audioUrl`: a relative
+`/media/<key>` path (e.g. `/media/podcast/<slug>.mp3`), not an absolute URL. Since `apps/web`
+and `apps/api` are different origins, `apps/api`'s offers/podcast/nav routes rewrite these to
+absolute URLs (`${PUBLIC_WORKER_ORIGIN}/media/<key>`, see `apps/api/src/lib/media-url.ts`)
+before returning JSON, so the frontend never needs its own origin-joining logic — it just
+renders whatever URL it's given. The actual bytes are served by `apps/api/src/routes/media.ts`
+(`GET /media/*`), which streams the object straight off the `STORAGE` binding, with `Range`
+request support (parses the `Range` header, returns `206 Partial Content` with
+`Content-Range`) for podcast audio scrubbing.
 
-## Public pages read R2 at request time
+## Public pages fetch from the API client-side
 
-Public pages are server-rendered (`export const prerender = false`) and call into
-`admin-content.ts` on every request — there is no static build step for content, so an
-edit made in `/admin` is visible on the public site immediately, with no redeploy:
+`apps/web` is a fully static build — there is no per-request server rendering anymore.
+Offers and podcast content are fetched client-side from `apps/api` (SPA-style, an explicit
+trade-off against SEO/prerendering the team accepted for now):
 
-- `src/pages/[slug].astro` — a single offer's detail page (`getOffer`)
-- `src/pages/angebote.astro` — the full offers listing, grouped by category (`listOffers`)
-- `src/components/home/AngeboteTeaser.astro` — the homepage's "Aktuelle Angebote" teaser,
-  the first 4 offers ordered by category (`listOffers`); renders a friendly empty state if
-  the bucket has no offers yet
-- `src/pages/podcast/index.astro` — episode listing, sorted by `publishDate` descending
-  (`listPodcastEpisodes`)
-- `src/pages/podcast/[slug].astro` — a single episode's page, with an audio player
-  (`getPodcastEpisode`)
+- `apps/web/src/components/OfferDetail.tsx` — a single offer's detail page, fetching
+  `GET /offers/:slug` from the API, mounted from the static shell at
+  `apps/web/src/pages/angebote/detail.astro` (any `/angebote/<slug>` request is rewritten to
+  this shell by `apps/web/public/.htaccess`, since the slug isn't known at build time — note
+  the shell file is *not* named with a leading underscore: Astro silently excludes
+  `_`-prefixed files from routing, which would make this page never build at all)
+- `apps/web/src/components/OffersGrid.tsx` — the full offers listing, grouped by category,
+  fetching `GET /offers`, mounted at `apps/web/src/pages/angebote/index.astro`
+- `apps/web/src/components/home/AngeboteTeaser.tsx` — the homepage's "Aktuelle Angebote"
+  teaser (also fetches `GET /offers` — it used to read R2 directly)
+- `apps/web/src/components/PodcastList.tsx` — episode listing, fetching `GET /podcast`,
+  mounted at `apps/web/src/pages/podcast/index.astro`
+- `apps/web/src/components/PodcastDetail.tsx` — a single episode's page with an audio
+  player, fetching `GET /podcast/:slug`, mounted at `apps/web/src/pages/podcast/detail.astro`
+  (same `.htaccess` rewrite pattern as offers)
+
+Because content is fetched at request time from the API (not baked into the static build),
+an edit made in `/admin` is still visible on the public site immediately with no frontend
+redeploy — the client refetches on every page load.
 
 ## The `/admin` panel
 
+The admin CMS is no longer server-rendered — `apps/api` serves no HTML at all. It's a
+client-rendered React app (`apps/web/src/components/admin/AdminApp.tsx`), mounted from one
+static shell page (`apps/web/src/pages/admin/index.astro`), that calls `apps/api`'s
+`/admin/*` routes over `fetch()` with a bearer token. `apps/web/public/.htaccess` rewrites
+every `/admin/*` path to that same shell, since `AdminApp` handles its own internal
+view-switching (login → offers list → offer edit form → podcast list → podcast edit form)
+in React state rather than distinct statically-enumerable Astro pages.
+
 ### Reaching it
 
-The site has no visible admin link. `src/components/Header.astro` renders an invisible,
-`aria-hidden`, non-tabbable button (`[data-admin-trigger]`) absolutely positioned over the
-top-right corner of the header. Clicking it **5 times within 2 seconds** reveals a small
-panel with a link to `/admin` (the click counter resets after 2 seconds of inactivity, or
-once it hits 5). This is a deliberately obscure entry point, not a security boundary — the
-actual gate is the password login at `/admin` itself.
+`apps/web/src/components/Header.astro` still renders the invisible, `aria-hidden`,
+non-tabbable button (`[data-admin-trigger]`) over the header's top-right corner. Clicking it
+**5 times within 2 seconds** reveals a small panel with a link to `/admin` (same-origin,
+since `/admin` now lives in `apps/web` itself). Deliberately obscure, not a security
+boundary — the actual gate is the password login inside `AdminApp`.
 
-### Routes
+### API routes (`apps/api/src/routes/admin.ts`)
 
-Pages (`src/pages/admin/**`, all server-rendered, all require an authenticated session
-except the login form itself):
-
-| Route | Purpose |
-|---|---|
-| `GET /admin` | Password login form when unauthenticated; a dashboard with links to the two sections when authenticated |
-| `GET /admin/offers` | List all offers, with links to edit each and a delete button |
-| `GET /admin/offers/new` | Form to create a new offer |
-| `GET /admin/offers/[slug]` | Form to edit an existing offer |
-| `GET /admin/podcast` | List all podcast episodes, with links to edit each and a delete button |
-| `GET /admin/podcast/new` | Form to create a new podcast episode |
-| `GET /admin/podcast/[slug]` | Form to edit an existing episode |
-
-The offer/podcast create and edit forms are shared components,
-`src/components/admin/OfferForm.astro` and `src/components/admin/PodcastForm.astro`, used
-by both the `new` and `[slug]` pages.
-
-API routes (`src/pages/api/admin/**`), all requiring an authenticated session except login:
+All requiring a valid bearer token except login:
 
 | Route | Method | Purpose |
 |---|---|---|
-| `/api/admin/login` | POST | Checks the submitted password against `ADMIN_UPLOAD_PASSWORD` and sets the session cookie |
-| `/api/admin/logout` | POST | Clears the session cookie |
-| `/api/admin/offers` | POST | Creates or updates an offer (multipart form; handles the optional `cardImage` upload) |
-| `/api/admin/offers/[slug]` | DELETE | Deletes an offer |
-| `/api/admin/podcast` | POST | Creates or updates a podcast episode (multipart form; handles the required `audio` upload and optional `coverImage`) |
-| `/api/admin/podcast/[slug]` | DELETE | Deletes a podcast episode |
+| `/admin/login` | POST | Checks the submitted password against `ADMIN_UPLOAD_PASSWORD`; on success returns `{ token }` |
+| `/admin/logout` | POST | Stateless no-op (kept for symmetry/future revocation) — the frontend just discards its stored token |
+| `/admin/offers` | POST | Creates or updates an offer (multipart form; handles the optional `cardImage` upload) |
+| `/admin/offers/:slug` | DELETE | Deletes an offer |
+| `/admin/podcast` | POST | Creates or updates a podcast episode (multipart form; handles the required `audio` upload and optional `coverImage`) |
+| `/admin/podcast/:slug` | DELETE | Deletes a podcast episode |
 
-`AdminLayout.astro` (`src/layouts/AdminLayout.astro`) is the shared shell for every admin
-page — it's deliberately minimal (no public header/nav/footer, `noindex, nofollow`) since
-it's internal tooling, not a public page.
+`AdminApp.tsx`'s `OffersManager`/`PodcastManager` sub-components (in
+`apps/web/src/components/admin/`) are the React equivalents of the old
+`OfferForm.astro`/`PodcastForm.astro` — same fields and multipart upload behavior, just
+calling these absolute cross-origin URLs with `Authorization: Bearer <token>` instead of a
+relative same-origin `fetch` with `credentials: 'same-origin'`.
 
 ### Auth model
 
-`src/lib/admin-auth.ts` implements a stateless, signed-cookie session — no KV, no database,
-matching this project's general avoidance of Cloudflare KV (see the comment in
-`astro.config.mjs` about `session: false`). The flow:
+`packages/shared/src/admin-auth.ts` implements a stateless, signed **bearer token** — no KV,
+no database. This replaced the original signed-cookie session once the admin UI and the API
+became different origins: cookies scoped `SameSite=Strict`/`Lax` are never sent cross-site at
+all, and relaxing to `SameSite=None` would trade that for third-party-cookie fragility with
+no real benefit, so a token the frontend attaches explicitly is the simpler fit for a
+cross-origin client/API split. The flow:
 
-1. The admin submits the password to `POST /api/admin/login`.
-2. The server compares it to the `ADMIN_UPLOAD_PASSWORD` secret. On success it issues a
-   cookie whose value is `<expiry-timestamp>.<HMAC-SHA256 signature>`, where the signature
-   is computed over the expiry timestamp using `ADMIN_UPLOAD_PASSWORD` itself as the HMAC
-   key. The cookie is `HttpOnly; Secure; SameSite=Strict` with a 12-hour `Max-Age`.
-3. Every subsequent admin page/API call re-verifies the cookie by recomputing the HMAC and
-   comparing it (in constant time) against the signature in the cookie, and checking the
-   expiry. Nothing is stored server-side — the cookie is self-contained proof that the
-   holder once knew the password, within the last 12 hours.
+1. The admin submits the password to `POST /admin/login` on `apps/api`.
+2. The server compares it to the `ADMIN_UPLOAD_PASSWORD` secret. On success it returns a
+   JSON body `{ token }`, where the token string is `<expiry-timestamp>.<HMAC-SHA256
+   signature>`, the signature computed over the expiry timestamp using
+   `ADMIN_UPLOAD_PASSWORD` itself as the HMAC key (12-hour expiry).
+3. `AdminApp.tsx` stores that token in `localStorage` and sends it as
+   `Authorization: Bearer <token>` on every subsequent `/admin/*` call. `apps/api`'s
+   `requireAuth` middleware re-verifies it by recomputing the HMAC and comparing it (in
+   constant time) against the signature, and checking the expiry. Nothing is stored
+   server-side — the token is self-contained proof that the holder once knew the password,
+   within the last 12 hours.
 
 Because the signing key is the password itself, rotating `ADMIN_UPLOAD_PASSWORD` (via
 `wrangler secret put`, see [`docs/deployment.md`](./deployment.md)) immediately invalidates

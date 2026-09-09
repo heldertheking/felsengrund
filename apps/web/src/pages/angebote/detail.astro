@@ -1,0 +1,15 @@
+---
+// Static shell for every /angebote/<slug> detail page — an .htaccess rewrite (see
+// apps/web/public/.htaccess) sends any unmatched /angebote/<slug> request here, since offer
+// slugs are created later via the admin panel and can't be enumerated at build time.
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import OfferDetail from '../../components/OfferDetail'
+---
+
+<BaseLayout title="Angebot – Kirche Felsengrund">
+  <article class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <div class="mx-auto max-w-3xl">
+      <OfferDetail client:load />
+    </div>
+  </article>
+</BaseLayout>

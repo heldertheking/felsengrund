@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const address = 'Felsengrund 1, 8618 Oetwil am See'
+const mapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`
+---
+
+<BaseLayout
+  title="Wegbeschreibung – Kirche Felsengrund"
+  description="So findest du zur Kirche Felsengrund in Oetwil am See."
+>
+  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+   <div class="mx-auto max-w-2xl">
+    <h1 class="font-display text-4xl font-bold text-kf-ink sm:text-5xl">Wegbeschreibung</h1>
+    <p class="mt-4 text-lg text-kf-ink-muted">
+      So findest du zu uns – wir freuen uns auf deinen Besuch.
+    </p>
+
+    <div class="mt-10 rounded-xl border border-kf-edge bg-kf-surface-sunken p-6 sm:p-8">
+      <h2 class="font-display text-lg font-semibold text-kf-ink">Adresse</h2>
+      <p class="mt-2 text-kf-ink-muted">
+        Kirche Felsengrund<br />
+        Felsengrund 1<br />
+        8618 Oetwil am See
+      </p>
+
+      <a
+        href={mapsDirectionsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="-my-3 mt-3 inline-flex items-center gap-1 py-3 font-display text-sm font-semibold text-kf-accent hover:underline"
+      >
+        Route berechnen →
+      </a>
+    </div>
+
+    <p class="mt-8 text-sm text-kf-ink-muted">
+      Fragen zur Anreise oder zu Parkmöglichkeiten? Melde dich einfach direkt über unsere{' '}
+      <a href="/kontakt" class="text-kf-accent hover:underline">Kontaktseite</a>.
+    </p>
+   </div>
+  </section>
+</BaseLayout>
