@@ -7,9 +7,11 @@ export const mediaRoute = new Hono<{ Bindings: Env }>()
 // binding. This binding resolves to local on-disk state in dev and the real bucket in
 // production automatically, so uploads work the same way in both environments.
 //
-// Hono's `/media/*` wildcard captures the full remaining path as `c.req.param('*')`, already
-// slash-joined (e.g. a request to /media/podcast/some-slug.mp3 gives '*' === 'podcast/some-slug.mp3'),
-// which is exactly the R2 object key layout used by admin-content.ts.
+// The key is read off `c.req.path` rather than `c.req.param('*')`: on the installed Hono
+// version (4.13.7), the trie router never assigns a value for a bare unnamed `*` segment — the
+// wildcard route matches, but `c.req.param('*')` is always `undefined` — so every /media/*
+// request was 404ing regardless of whether the object existed in R2. Slicing the prefix off the
+// path is what actually works, and needs no dependency on that router-specific behavior.
 
 type ParsedRange = { offset: number; length?: number } | { suffix: number }
 
@@ -42,8 +44,11 @@ function toR2Range(range: ParsedRange): R2Range {
 }
 
 mediaRoute.get('/media/*', async (c) => {
-  const key = c.req.param('*')
-  if (!key) return c.text('Not found.', 404)
+  const key = c.req.path.replace(/^\/media\//, '')
+  if (!key) {
+    console.warn('[media] request with no key after /media/')
+    return c.text('Not found.', 404)
+  }
 
   const requestedRange = parseRangeHeader(c.req.header('range') ?? null)
 
@@ -51,13 +56,20 @@ mediaRoute.get('/media/*', async (c) => {
   let servedRange = requestedRange
   try {
     object = await c.env.STORAGE.get(key, requestedRange ? { range: toR2Range(requestedRange) } : undefined)
-  } catch {
+  } catch (error) {
     // Unsatisfiable or malformed range (e.g. an offset beyond the object's size) — fall back
     // to a full response rather than failing the request outright.
+    console.warn(`[media] range request failed for key="${key}", falling back to full object`, error)
     servedRange = undefined
     object = await c.env.STORAGE.get(key)
   }
-  if (!object) return c.text('Not found.', 404)
+  if (!object) {
+    // This is the exact signal for "upload succeeded but the file isn't actually in R2" (or a
+    // key mismatch between what was stored and what's referenced) — always worth a log line,
+    // since from the client it's indistinguishable from a routing problem.
+    console.warn(`[media] key not found in R2: "${key}"`)
+    return c.text('Not found.', 404)
+  }
 
   const headers = new Headers()
   headers.set('Content-Type', object.httpMetadata?.contentType || 'application/octet-stream')

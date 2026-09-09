@@ -110,15 +110,35 @@ adminRoute.post('/admin/offers', async (c) => {
   if (organizers.length > 0) data.organizers = organizers
 
   const cardImageFile = formData.get('cardImage')
+  if (cardImageFile && typeof cardImageFile !== 'string') {
+    console.log(
+      `[admin/offers] cardImage field present for slug="${slug}": name="${cardImageFile.name}" size=${cardImageFile.size} type="${cardImageFile.type}"`,
+    )
+  } else {
+    console.log(`[admin/offers] no cardImage field in formData for slug="${slug}" (keys: ${[...formData.keys()].join(', ')})`)
+  }
+
   if (cardImageFile && typeof cardImageFile !== 'string' && cardImageFile.size > 0) {
-    data.cardImage = await putOfferImage(c.env.STORAGE, slug, cardImageFile)
+    try {
+      data.cardImage = await putOfferImage(c.env.STORAGE, slug, cardImageFile)
+      console.log(`[admin/offers] stored cardImage for slug="${slug}" at "${data.cardImage}"`)
+    } catch (error) {
+      console.error(`[admin/offers] failed to store cardImage for slug="${slug}"`, error)
+      throw error
+    }
   } else if (existing?.data.cardImage) {
     data.cardImage = existing.data.cardImage
   }
 
   const body = String(formData.get('body') ?? '')
 
-  await putOffer(c.env.STORAGE, slug, data, body)
+  try {
+    await putOffer(c.env.STORAGE, slug, data, body)
+    console.log(`[admin/offers] stored offer slug="${slug}"`)
+  } catch (error) {
+    console.error(`[admin/offers] failed to store offer slug="${slug}"`, error)
+    throw error
+  }
 
   return c.json({ slug })
 })
@@ -154,9 +174,23 @@ adminRoute.post('/admin/podcast', async (c) => {
   }
 
   const audioFile = formData.get('audio')
+  if (audioFile && typeof audioFile !== 'string') {
+    console.log(
+      `[admin/podcast] audio field present for slug="${slug}": name="${audioFile.name}" size=${audioFile.size} type="${audioFile.type}"`,
+    )
+  } else {
+    console.log(`[admin/podcast] no audio field in formData for slug="${slug}" (keys: ${[...formData.keys()].join(', ')})`)
+  }
+
   let audioUrl = existing?.data.audioUrl
   if (audioFile && typeof audioFile !== 'string' && audioFile.size > 0) {
-    audioUrl = await putPodcastAudio(c.env.STORAGE, slug, audioFile)
+    try {
+      audioUrl = await putPodcastAudio(c.env.STORAGE, slug, audioFile)
+      console.log(`[admin/podcast] stored audio for slug="${slug}" at "${audioUrl}"`)
+    } catch (error) {
+      console.error(`[admin/podcast] failed to store audio for slug="${slug}"`, error)
+      throw error
+    }
   }
   if (!audioUrl) return c.json({ error: 'Audiodatei fehlt.' }, 400)
 
@@ -173,14 +207,26 @@ adminRoute.post('/admin/podcast', async (c) => {
 
   const coverImageFile = formData.get('coverImage')
   if (coverImageFile && typeof coverImageFile !== 'string' && coverImageFile.size > 0) {
-    data.coverImage = await putPodcastImage(c.env.STORAGE, slug, coverImageFile)
+    try {
+      data.coverImage = await putPodcastImage(c.env.STORAGE, slug, coverImageFile)
+      console.log(`[admin/podcast] stored coverImage for slug="${slug}" at "${data.coverImage}"`)
+    } catch (error) {
+      console.error(`[admin/podcast] failed to store coverImage for slug="${slug}"`, error)
+      throw error
+    }
   } else if (existing?.data.coverImage) {
     data.coverImage = existing.data.coverImage
   }
 
   const body = String(formData.get('body') ?? '')
 
-  await putPodcastEpisode(c.env.STORAGE, slug, data, body)
+  try {
+    await putPodcastEpisode(c.env.STORAGE, slug, data, body)
+    console.log(`[admin/podcast] stored episode slug="${slug}"`)
+  } catch (error) {
+    console.error(`[admin/podcast] failed to store episode slug="${slug}"`, error)
+    throw error
+  }
 
   return c.json({ slug })
 })

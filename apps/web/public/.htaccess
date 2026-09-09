@@ -5,9 +5,19 @@ RewriteEngine On
 # fetches the matching content client-side from the API — offer/podcast slugs and admin
 # sub-routes are created after the site is built (via the admin panel), so they can't be
 # enumerated as real static files at build time.
+#
+# RewriteCond only ever guards the single RewriteRule immediately following it — it does not
+# carry over to later RewriteRules — so each rule below repeats its own !-f/!-d guard rather
+# than relying on one shared pair at the top (which previously left the podcast/admin rules
+# unconditional, rewriting even if a real matching file/directory existed).
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-
 RewriteRule ^angebote/([a-z0-9-]+)/?$ /angebote/detail/index.html [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^podcast/([a-z0-9-]+)/?$ /podcast/detail/index.html [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^admin(/.*)?$ /admin/index.html [L]

@@ -111,9 +111,14 @@ const leadershipTeam: LeadershipMember[] = [
     <ul class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
       {leadershipTeam.map((member) => (
         <li class="rounded-xl border border-kf-edge bg-kf-surface p-5">
-          <p class="font-display font-semibold text-kf-ink">{member.name}</p>
-          <p class="text-sm font-medium text-kf-accent">{member.role}</p>
-          <p class="mt-2 text-sm text-kf-ink-muted">{member.detail}</p>
+          <div class="flex flex-row gap-5">
+            <img src={member.image} alt={`Bild von ${member.name}`} class="aspect-square w-25 rounded-full border-kf-edge"/>
+            <div>
+              <p class="font-display font-semibold text-kf-ink">{member.name}</p>
+              <p class="text-sm font-medium text-kf-accent">{member.role}</p>
+              <p class="mt-2 text-sm text-kf-ink-muted">{member.detail}</p>
+            </div>
+          </div>
         </li>
       ))}
     </ul>

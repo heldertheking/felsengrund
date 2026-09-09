@@ -4,6 +4,12 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-09-07",
   "compatibility_flags": ["nodejs_compat"],
+  // Persists console.log/warn/error output (and request metadata) to the Cloudflare dashboard's
+  // Workers Logs, so past requests are inspectable after the fact instead of only being visible
+  // while `wrangler tail` is attached live.
+  "observability": {
+    "enabled": true
+  },
   "r2_buckets": [
     {
       "binding": "STORAGE",

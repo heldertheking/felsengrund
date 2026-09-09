@@ -83,3 +83,6 @@ sense. Viewing the code does not grant permission to reuse it: copying, redistri
 modifying, or using this code or its content (including for AI/ML training, which is
 prohibited outright) requires the copyright holder's explicit written permission. See
 [`LICENSE`](./LICENSE) for the full terms.
+
+---
+[<img alt="Deployed with FTP Deploy Action" src="https://img.shields.io/badge/Deployed With-FTP DEPLOY ACTION-%3CCOLOR%3E?style=for-the-badge&color=0077b6">](https://github.com/SamKirkland/FTP-Deploy-Action)
