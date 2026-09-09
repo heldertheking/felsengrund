@@ -73,9 +73,10 @@ Manual: `npm run build:api` (workspace script) or `cd apps/api && wrangler deplo
   runs the initial `npm install` at the actual repo root first (so the `@felsengrund/shared`
   workspace dependency resolves correctly) before `cd`-ing into this root directory for the
   build/deploy/version commands.
-- Build command: `npm run build` (runs `tsc --noEmit` as a pre-deploy type-check gate —
-  Wrangler bundles the Worker itself during deploy/versions-upload, so there's no separate
-  compile artifact to produce)
+- Build command: optional — `npx wrangler deploy`/`versions upload` bundle the Worker
+  themselves via esbuild, so there's no separate build artifact required. Leave it blank, or
+  set it to `npm run build` (runs `tsc --noEmit` as an extra pre-deploy type-check gate) if
+  you want that safety net.
 - Deploy command: `npx wrangler deploy`
 - Version command (for preview/non-production branches): `npx wrangler versions upload`
 - Build watch paths — once root directory is `apps/api`, use `src/**` (there's no `dist/`
