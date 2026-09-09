@@ -1,0 +1,13 @@
+---
+// Static shell for every /podcast/<slug> detail page — see apps/web/public/.htaccess.
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import PodcastDetail from '../../components/PodcastDetail'
+---
+
+<BaseLayout title="Podcast – Kirche Felsengrund">
+  <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <div class="mx-auto max-w-3xl">
+      <PodcastDetail client:load />
+    </div>
+  </div>
+</BaseLayout>

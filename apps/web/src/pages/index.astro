@@ -1,0 +1,163 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import HeroReveal from '../components/home/HeroReveal'
+import AngeboteTeaser from '../components/home/AngeboteTeaser'
+import PrayerWallForm from '../components/home/PrayerWallForm'
+import FeedbackForm from '../components/home/FeedbackForm'
+---
+
+<BaseLayout>
+  <!-- 1. Hero -->
+  <section class="relative overflow-hidden bg-kf-ink">
+    <img
+      src="/images/hero-banner.webp"
+      alt="Felsen und Wanderer – Sinnbild für den Namen Felsengrund"
+      class="absolute inset-0 h-full w-full object-cover"
+    />
+    <div class="absolute inset-0 bg-black/55"></div>
+    <div class="relative mx-auto max-w-4xl px-4 py-32 text-center sm:px-6 sm:py-40">
+      <HeroReveal client:visible>
+        <h1 class="font-display text-4xl font-bold text-white sm:text-5xl">Kirche Felsengrund</h1>
+        <p class="mt-4 text-xl font-display text-white/90">Kirche, die verändert.</p>
+        <div class="mt-8 flex flex-wrap justify-center gap-4">
+          <a
+            href="/gottesdienst"
+            class="rounded-lg bg-kf-accent px-6 py-3 font-display text-sm font-semibold text-white transition hover:opacity-90"
+          >
+            Gottesdienst besuchen
+          </a>
+          <a
+            href="/kontakt"
+            class="rounded-lg border border-white/70 px-6 py-3 font-display text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            Kontakt & Spenden
+          </a>
+        </div>
+      </HeroReveal>
+    </div>
+  </section>
+
+  <!-- 2. Willkommen / Gottesdienstzeiten -->
+  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <div class="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
+      <div>
+        <h2 class="font-display text-3xl font-bold text-kf-ink">Willkommen</h2>
+        <p class="mt-4 text-lg text-kf-ink-muted">
+          Kirche Felsengrund ist eine freie Missionsgemeinde in Oetwil am See. Wir laden dich herzlich
+          ein, uns kennenzulernen – egal ob du schon lange glaubst, neugierig bist oder einfach mal
+          reinschauen möchtest.
+        </p>
+        <a href="/gottesdienst" class="mt-4 inline-block font-display text-sm font-semibold text-kf-accent hover:underline">
+          Mehr zum Gottesdienst →
+        </a>
+      </div>
+
+      <div class="rounded-xl border border-kf-edge bg-kf-surface-sunken p-6 sm:p-8">
+        <h3 class="font-display text-lg font-semibold text-kf-ink">Gottesdienstzeiten</h3>
+        <dl class="mt-4 space-y-4">
+          <div>
+            <dt class="font-display text-sm font-semibold text-kf-accent">Sonntags</dt>
+            <dd class="mt-1 text-sm text-kf-ink-muted">09:45 – 11:15 Uhr, Gottesdienst</dd>
+          </div>
+          <div>
+            <dt class="font-display text-sm font-semibold text-kf-accent">Monatlich</dt>
+            <dd class="mt-1 text-sm text-kf-ink-muted">
+              18:00 Uhr, Dinner Church – Essen, Gemeinschaft und Impuls in lockerer Atmosphäre
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Aktuelle Angebote -->
+  <div class="bg-kf-surface-sunken">
+    <AngeboteTeaser client:visible />
+  </div>
+
+  <!-- 4. Gebetswand -->
+  <section id="gebetswand" class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+   <div class="mx-auto max-w-2xl">
+    <h2 class="font-display text-3xl font-bold text-kf-ink">Gebetswand</h2>
+    <p class="mt-4 text-lg text-kf-ink-muted">
+      Hast du ein Anliegen, für das wir gemeinsam beten dürfen? Trag es hier ein – wir nehmen es mit
+      ins Gebet. Du entscheidest selbst, ob dein Anliegen (anonym) auf der öffentlichen Gebetswand
+      erscheinen soll, oder ob nur unser Gebetsteam vertraulich davon erfährt.
+    </p>
+
+    <div class="mt-8">
+      <PrayerWallForm client:visible />
+    </div>
+   </div>
+  </section>
+
+  <!-- 5. Parkplatz -->
+  <section id="parkplatz" class="bg-kf-surface-sunken">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+     <div class="mx-auto max-w-2xl">
+      <h2 class="font-display text-3xl font-bold text-kf-ink">Parkplatz</h2>
+      <p class="mt-4 text-lg text-kf-ink-muted">
+        Hast du eine Frage zur letzten Predigt, oder ein Anliegen oder Feedback, das du gerne
+        loswerden möchtest? Dann ist das hier dein Parkplatz, wo du deine Fragen, Anliegen und
+        Feedbacks parkieren kannst. Wir freuen uns über deine Rückmeldung.
+      </p>
+
+      <div class="mt-8">
+        <FeedbackForm client:visible />
+      </div>
+     </div>
+    </div>
+  </section>
+
+  <!-- 6. Über uns teaser -->
+  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <div class="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
+      <img
+        src="/images/leiter.jpg"
+        alt="Leitungsteam der Kirche Felsengrund"
+        class="w-full rounded-xl object-cover"
+      />
+      <div>
+        <h2 class="font-display text-3xl font-bold text-kf-ink">Über uns</h2>
+        <p class="mt-4 text-lg text-kf-ink-muted">
+          Wir sind eine freie Missionsgemeinde, die zum Verband Freier Missionsgemeinden Schweiz
+          gehört. Unser Leitungsteam begleitet die Gemeinde in Verkündigung, Seelsorge und Gemeinschaft
+          und freut sich, dich kennenzulernen.
+        </p>
+        <a href="/uber-uns" class="mt-4 inline-block font-display text-sm font-semibold text-kf-accent hover:underline">
+          Mehr über uns erfahren →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Hilfe & Service teaser -->
+  <section class="bg-kf-surface-sunken">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <h2 class="font-display text-3xl font-bold text-kf-ink">Hilfe & Service</h2>
+      <p class="mt-4 text-lg text-kf-ink-muted">
+        Als Gemeinde engagieren wir uns auch praktisch für Menschen in unserer Umgebung.
+      </p>
+      <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <a
+          href="/lebensmittelabgabe"
+          class="rounded-xl border border-kf-edge bg-kf-surface p-6 transition hover:border-kf-accent hover:shadow-md"
+        >
+          <p class="font-display font-semibold text-kf-ink">Lebensmittelabgabe</p>
+          <p class="mt-1.5 text-sm text-kf-ink-muted">
+            Wöchentliche Lebensmittelabgabe für Menschen mit kleinem Budget.
+          </p>
+        </a>
+        <a
+          href="/ich-brauche-hilfe"
+          class="rounded-xl border border-kf-edge bg-kf-surface p-6 transition hover:border-kf-accent hover:shadow-md"
+        >
+          <p class="font-display font-semibold text-kf-ink">Ich brauche Hilfe</p>
+          <p class="mt-1.5 text-sm text-kf-ink-muted">
+            Ob Gebet oder ein persönliches Gespräch – wir sind für dich da.
+          </p>
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

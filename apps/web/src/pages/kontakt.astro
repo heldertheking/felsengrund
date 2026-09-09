@@ -1,0 +1,156 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+---
+
+<BaseLayout
+  title="Kontakt & Spenden – Kirche Felsengrund"
+  description="Kontaktiere die Kirche Felsengrund oder unterstütze uns mit einer Spende."
+>
+  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <h1 class="font-display text-4xl font-bold text-kf-ink sm:text-5xl">Kontakt & Spenden</h1>
+    <p class="mt-4 max-w-2xl text-lg text-kf-ink-muted">
+      Wir freuen uns über deine Nachricht — ob Frage, Anliegen oder einfach ein "Hallo".
+    </p>
+
+    <div class="mt-12 grid grid-cols-1 gap-12 lg:grid-cols-2">
+      <div>
+        <h2 class="font-display text-xl font-semibold text-kf-ink">Schreib uns</h2>
+
+        <form id="contact-form" class="mt-6 space-y-4" novalidate>
+          <div>
+            <label for="name" class="block text-sm font-medium text-kf-ink">Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required
+              class="mt-1.5 w-full min-h-11 rounded-lg border border-kf-edge bg-kf-surface px-3.5 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent lg:min-h-0"
+            />
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-kf-ink">E-Mail</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="mt-1.5 w-full min-h-11 rounded-lg border border-kf-edge bg-kf-surface px-3.5 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent lg:min-h-0"
+            />
+          </div>
+
+          <div>
+            <label for="subject" class="block text-sm font-medium text-kf-ink">Betreff</label>
+            <input
+              type="text"
+              id="subject"
+              name="subject"
+              required
+              class="mt-1.5 w-full min-h-11 rounded-lg border border-kf-edge bg-kf-surface px-3.5 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent lg:min-h-0"
+            />
+          </div>
+
+          <div>
+            <label for="message" class="block text-sm font-medium text-kf-ink">Nachricht</label>
+            <textarea
+              id="message"
+              name="message"
+              rows="5"
+              required
+              class="mt-1.5 w-full rounded-lg border border-kf-edge bg-kf-surface px-3.5 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
+            ></textarea>
+          </div>
+
+          <!-- The original site used Contact Form 7 + an image CAPTCHA plugin here; skipped
+               deliberately (not replicable without a paid service). -->
+
+          <button
+            type="submit"
+            class="inline-flex min-h-11 items-center justify-center rounded-lg bg-kf-accent px-6 py-2.5 font-display font-semibold text-white transition hover:opacity-90 lg:min-h-0"
+          >
+            Senden
+          </button>
+
+          <p id="contact-form-status" class="text-sm text-kf-ink-muted" role="status"></p>
+        </form>
+      </div>
+
+      <div class="space-y-10">
+        <div>
+          <h2 class="font-display text-xl font-semibold text-kf-ink">Ansprechperson</h2>
+          <p class="mt-3 text-kf-ink-muted">
+            Oliver Lutz<br />
+            <a href="mailto:oliver.lutz@kirche-felsengrund.ch" class="text-kf-accent hover:underline">
+              oliver.lutz@kirche-felsengrund.ch
+            </a>
+          </p>
+        </div>
+
+        <div>
+          <h2 class="font-display text-xl font-semibold text-kf-ink">Adresse</h2>
+          <p class="mt-3 text-kf-ink-muted">
+            Kirche Felsengrund<br />
+            Felsengrund 1<br />
+            8618 Oetwil am See
+          </p>
+        </div>
+
+        <div>
+          <h2 class="font-display text-xl font-semibold text-kf-ink">Spenden</h2>
+          <p class="mt-3 text-kf-ink-muted">
+            Wir freuen uns über jede Unterstützung — herzlichen Dank für deine Spende.
+          </p>
+          <dl class="mt-4 space-y-2 rounded-xl border border-kf-edge bg-kf-surface-sunken p-5 text-sm">
+            <div>
+              <dt class="font-semibold text-kf-ink">Kontoinhaber</dt>
+              <dd class="text-kf-ink-muted">Freie Missionsgemeinde Oetwil am See</dd>
+            </div>
+            <div>
+              <dt class="font-semibold text-kf-ink">IBAN</dt>
+              <dd class="text-kf-ink-muted">CH79 0070 0114 6002 0178 2</dd>
+            </div>
+          </dl>
+          <div class="mt-4 flex items-center gap-4 rounded-xl border border-kf-edge bg-kf-surface p-5">
+            <img
+              src="/images/qr-zahlteil-spende.png"
+              alt="Swiss QR-Code für Spenden an Freie Missionsgemeinde Oetwil am See"
+              width="110"
+              height="113"
+              class="h-auto w-28 shrink-0"
+            />
+            <p class="text-sm text-kf-ink-muted">
+              Mit der Banking-App oder TWINT deines Kontos einscannen, um direkt mit den
+              hinterlegten Spendendaten zu bezahlen.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#contact-form')
+  const status = document.querySelector<HTMLParagraphElement>('#contact-form-status')
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    if (!status || !form) return
+
+    const data = Object.fromEntries(new FormData(form).entries())
+    status.textContent = 'Wird gesendet…'
+
+    try {
+      const response = await fetch(`${import.meta.env.PUBLIC_API_BASE_URL}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!response.ok) throw new Error(`Request failed: ${response.status}`)
+      status.textContent = 'Danke für deine Nachricht! Wir melden uns bei dir.'
+      form.reset()
+    } catch {
+      status.textContent = 'Da ist etwas schiefgelaufen. Bitte versuch es später erneut.'
+    }
+  })
+</script>

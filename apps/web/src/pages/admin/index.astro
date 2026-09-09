@@ -1,0 +1,28 @@
+---
+// Single SPA entry point for the whole /admin section — every /admin/* path is rewritten here
+// by apps/web/public/.htaccess, since this is internal tooling with its own client-side view
+// state (login / offers / podcast), not a set of statically-enumerable pages. Deliberately not
+// using BaseLayout — no public site header/nav/footer, matches the old AdminLayout.astro intent
+// (noindex, standalone chrome).
+import '../../styles/global.css'
+import AdminApp from '../../components/admin/AdminApp'
+---
+
+<!doctype html>
+<html lang="de-CH">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>Kirche Felsengrund – Admin</title>
+  </head>
+  <body class="bg-kf-surface-sunken font-sans">
+    <AdminApp client:load />
+  </body>
+</html>

@@ -1,0 +1,108 @@
+import { useEffect, useRef, useState } from 'react'
+import { apiUrl } from '../lib/api'
+import type { PodcastDetailResponse } from '../lib/types'
+
+type State =
+  | { status: 'loading' }
+  | { status: 'not-found' }
+  | { status: 'error' }
+  | { status: 'ready'; episode: PodcastDetailResponse }
+
+function currentSlug(): string {
+  // See OfferDetail.tsx's currentSlug for why this guards against a server-render pass.
+  if (typeof window === 'undefined') return ''
+  const segments = window.location.pathname.split('/').filter(Boolean)
+  return segments[segments.length - 1] ?? ''
+}
+
+export default function PodcastDetail() {
+  const [slug] = useState(currentSlug)
+  const [state, setState] = useState<State>(
+    slug && slug !== 'podcast' ? { status: 'loading' } : { status: 'not-found' },
+  )
+  const audioRef = useRef<HTMLAudioElement>(null)
+
+  useEffect(() => {
+    if (!slug || slug === 'podcast') return
+
+    let cancelled = false
+
+    fetch(apiUrl(`/podcast/${slug}`))
+      .then(async (response) => {
+        if (response.status === 404) return null
+        if (!response.ok) throw new Error(`/podcast/${slug} responded with ${response.status}`)
+        return (await response.json()) as PodcastDetailResponse
+      })
+      .then((episode) => {
+        if (cancelled) return
+        if (!episode) setState({ status: 'not-found' })
+        else setState({ status: 'ready', episode })
+      })
+      .catch((error) => {
+        console.error('Failed to load podcast episode', error)
+        if (!cancelled) setState({ status: 'error' })
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [slug])
+
+  if (state.status === 'loading') {
+    return <p className="text-sm text-kf-ink-muted">Wird geladen …</p>
+  }
+
+  if (state.status === 'not-found') {
+    return (
+      <div>
+        <h1 className="font-display text-3xl font-bold text-kf-ink">Episode nicht gefunden</h1>
+        <p className="mt-4 text-kf-ink-muted">
+          Diese Episode existiert nicht (mehr). Schau dir{' '}
+          <a href="/podcast" className="text-kf-accent hover:underline">
+            alle Episoden
+          </a>{' '}
+          an.
+        </p>
+      </div>
+    )
+  }
+
+  if (state.status === 'error') {
+    return (
+      <p className="text-sm text-red-700" role="alert">
+        Die Episode konnte nicht geladen werden. Bitte lade die Seite neu.
+      </p>
+    )
+  }
+
+  const { episode } = state
+
+  return (
+    <article>
+      {episode.data.coverImage && (
+        <img
+          src={episode.data.coverImage}
+          alt={episode.data.title}
+          className="mb-6 aspect-video w-full rounded-xl object-cover"
+        />
+      )}
+      <p className="font-display text-sm font-semibold uppercase tracking-wide text-kf-accent">
+        Podcast{episode.data.episodeNumber ? ` · Folge ${episode.data.episodeNumber}` : ''}
+      </p>
+      <h1 className="mt-2 break-words font-display text-4xl font-bold text-kf-ink">{episode.data.title}</h1>
+      <p className="mt-2 text-sm text-kf-ink-muted">
+        {new Date(episode.data.publishDate).toLocaleDateString('de-CH')}
+        {episode.data.duration && <> · {episode.data.duration}</>}
+      </p>
+
+      <div className="mt-6 rounded-2xl border border-kf-edge bg-kf-surface-sunken p-5">
+        <audio ref={audioRef} controls preload="metadata" src={episode.data.audioUrl} className="w-full" />
+      </div>
+
+      <div
+        className="prose prose-neutral mt-10 max-w-none"
+        dangerouslySetInnerHTML={{ __html: episode.bodyHtml }}
+      />
+    </article>
+  )
+}
