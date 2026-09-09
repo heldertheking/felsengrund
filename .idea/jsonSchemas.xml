@@ -14,6 +14,9 @@
                   <Item>
                     <option name="path" value="api/wrangler.jsonc" />
                   </Item>
+                  <Item>
+                    <option name="path" value="apps/api/wrangler.jsonc" />
+                  </Item>
                 </list>
               </option>
             </SchemaInfo>
@@ -29,6 +32,9 @@
                 <list>
                   <Item>
                     <option name="path" value="package.json" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="apps/api/package.json" />
                   </Item>
                 </list>
               </option>
