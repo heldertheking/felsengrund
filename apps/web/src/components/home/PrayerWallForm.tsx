@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { apiUrl } from '../../lib/api'
+import type {FormEvent} from 'react'
+import {useState} from 'react'
+import {apiUrl} from '../../lib/api'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
 /**
- * "Jetzt für mich beten" prayer request form (feeds the "Gebetswand" on the
- * live site). POSTs to the Worker's /prayer-request endpoint, the same one
+ * "Jetzt für mich beten" prayer request form.
+ * POSTs to the Worker's /prayer-request endpoint, the same one
  * used by the dedicated /jetzt-fuer-mich-beten page.
  */
 export default function PrayerWallForm() {
@@ -14,8 +14,6 @@ export default function PrayerWallForm() {
   const [displayName, setDisplayName] = useState('')
   const [description, setDescription] = useState('')
   const [email, setEmail] = useState('')
-  const [prayUntil, setPrayUntil] = useState('')
-  const [publish, setPublish] = useState(false)
   const [status, setStatus] = useState<Status>('idle')
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -31,8 +29,6 @@ export default function PrayerWallForm() {
           displayName,
           description,
           email: email || undefined,
-          prayUntil: prayUntil || undefined,
-          publishOnWall: publish,
         }),
       })
       if (!response.ok) throw new Error(`Unexpected response: ${response.status}`)
@@ -42,8 +38,6 @@ export default function PrayerWallForm() {
       setDisplayName('')
       setDescription('')
       setEmail('')
-      setPrayUntil('')
-      setPublish(false)
     } catch {
       setStatus('error')
     }
@@ -102,61 +96,18 @@ export default function PrayerWallForm() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
-          <label htmlFor="pw-email" className="block text-sm font-medium text-kf-ink">
-            E-Mail (optional, für Rückmeldungen)
-          </label>
-          <input
-            id="pw-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="pw-until" className="block text-sm font-medium text-kf-ink">
-            Wie lange sollen wir für dich beten?
-          </label>
-          <input
-            id="pw-until"
-            type="date"
-            value={prayUntil}
-            onChange={(e) => setPrayUntil(e.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-          />
-        </div>
-      </div>
-
-      <fieldset>
-        <legend className="text-sm font-medium text-kf-ink">
-          Darf dein Anliegen (anonym) auf der öffentlichen Gebetswand veröffentlicht werden?
-        </legend>
-        <div className="mt-2 flex flex-wrap gap-6">
-          <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-kf-ink-muted">
+            <label htmlFor="pw-email" className="block text-sm font-medium text-kf-ink">
+                E-Mail (optional, für Rückmeldungen)
+            </label>
             <input
-              type="radio"
-              name="pw-publish"
-              checked={publish}
-              onChange={() => setPublish(true)}
-              className="accent-kf-accent"
+                id="pw-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
             />
-            Ja
-          </label>
-          <label className="flex min-h-11 items-center gap-2 py-2 text-sm text-kf-ink-muted">
-            <input
-              type="radio"
-              name="pw-publish"
-              checked={!publish}
-              onChange={() => setPublish(false)}
-              className="accent-kf-accent"
-            />
-            Nein, nur vertraulich beten
-          </label>
         </div>
-      </fieldset>
 
       <p className="text-xs text-kf-ink-muted">
         Deine Angaben werden vertraulich behandelt und ausschliesslich für dieses Gebetsanliegen verwendet.

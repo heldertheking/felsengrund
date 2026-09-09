@@ -12,6 +12,7 @@ interface ScheduleEntry {
   title: string
   cadence: string
   note?: string
+  link?: string
 }
 
 const schedule: ScheduleEntry[] = [
@@ -22,7 +23,8 @@ const schedule: ScheduleEntry[] = [
   {
     title: 'Dinner Church',
     cadence: 'Monatlich, 18:00 Uhr',
-    note: 'Details und Anmeldung auf dinnerchurch.ch',
+    note: 'Details und Anmeldung hier',
+    link: '/angebote/dinner-church'
   },
   {
     title: 'Kids-Treff',
@@ -40,12 +42,14 @@ const schedule: ScheduleEntry[] = [
   },
   {
     title: 'Smallgroups / Hauskreise',
-    cadence: 'Kein fester öffentlicher Termin — bitte direkt anfragen',
+    cadence: 'Termin bitte anfragen',
+    link: '/kontakt'
   },
   {
     title: 'Biblischer Unterricht',
-    cadence: 'Kein fester öffentlicher Termin — bitte direkt anfragen',
+    cadence: 'Termin bitte anfragen',
     note: 'Offen für alle Jugendlichen, unabhängig von der Kirchenzugehörigkeit.',
+    link: '/kontakt'
   },
   {
     title: 'Senioren',
@@ -85,17 +89,39 @@ const schedule: ScheduleEntry[] = [
         ></iframe>
       </div>
     ) : (
-      <ul class="mt-10 space-y-4">
-        {schedule.map((entry) => (
-          <li class="rounded-xl border border-kf-edge bg-kf-surface p-5">
-            <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-              <p class="font-display font-semibold text-kf-ink">{entry.title}</p>
-              <p class="text-sm font-medium text-kf-accent">{entry.cadence}</p>
-            </div>
-            {entry.note && <p class="mt-2 text-sm text-kf-ink-muted">{entry.note}</p>}
-          </li>
-        ))}
-      </ul>
+        <ul class="mt-10 space-y-4">
+          {schedule.map((entry) => {
+            const isExternal = entry.link?.startsWith('http://') || entry.link?.startsWith('https://');
+            const hasLink = Boolean(entry.link && entry.link.trim().length > 0);
+
+            return (
+                <li class="rounded-xl border border-kf-edge bg-kf-surface p-5 hover:border-kf-accent transition-colors">
+                  {hasLink ? (
+                      <a
+                          href={entry.link}
+                          target={isExternal ? "_blank" : undefined}
+                          rel={isExternal ? "noopener noreferrer" : undefined}
+                          class="block h-full w-full"
+                      >
+                        <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+                          <p class="font-display font-semibold text-kf-ink">{entry.title}</p>
+                          <p class="text-sm font-medium text-kf-accent">{entry.cadence}</p>
+                        </div>
+                        {entry.note && <p class="mt-2 text-sm text-kf-ink-muted">{entry.note}</p>}
+                      </a>
+                  ) : (
+                      <div>
+                        <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+                          <p class="font-display font-semibold text-kf-ink">{entry.title}</p>
+                          <p class="text-sm font-medium text-kf-accent">{entry.cadence}</p>
+                        </div>
+                        {entry.note && <p class="mt-2 text-sm text-kf-ink-muted">{entry.note}</p>}
+                      </div>
+                  )}
+                </li>
+            );
+          })}
+        </ul>
     )}
   </section>
 </BaseLayout>

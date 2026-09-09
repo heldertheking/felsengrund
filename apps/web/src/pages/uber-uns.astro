@@ -13,13 +13,13 @@ const coreValues: CoreValue[] = [
       'Die gute Nachricht von Jesus Christus steht im Zentrum von allem, was wir glauben und tun.',
   },
   {
+    name: 'Glaube',
+    description: 'Wir vertrauen Gott in allen Lebenslagen und laden andere ein, diesen Glauben zu entdecken.',
+  },
+  {
     name: 'Hoffnung',
     description:
       'Wir leben aus der Hoffnung, die uns durch die Auferstehung von Jesus Christus geschenkt ist.',
-  },
-  {
-    name: 'Glaube',
-    description: 'Wir vertrauen Gott in allen Lebenslagen und laden andere ein, diesen Glauben zu entdecken.',
   },
   {
     name: 'Liebe',
@@ -28,28 +28,33 @@ const coreValues: CoreValue[] = [
 ]
 
 interface LeadershipMember {
+  image: string
   name: string
   role: string
   detail: string
 }
-
+// TODO: Update images & Other Members
 const leadershipTeam: LeadershipMember[] = [
   {
-    name: 'Oliver Lutz',
+    image: '/images/portraits/placeholder.png',
+    name: 'Oliver Lutz, PhD',
     role: 'Pastor',
-    detail: 'Dr. theol., Jahrgang 1969.',
+    detail: 'Theologe, jahrgang 1969',
   },
   {
+    image: '/images/portraits/placeholder.png',
     name: 'Erwin Meier',
     role: 'Gemeindeleiter',
     detail: 'Jahrgang 1967, engagiert in Lobpreis- und Gebetsversammlungen.',
   },
   {
+    image: '/images/portraits/placeholder.png',
     name: 'Tabea Meier',
     role: 'Jugendleiterin',
     detail: 'Jahrgang 1991, ausgebildete Pflegefachfrau.',
   },
   {
+    image: '/images/portraits/placeholder.png',
     name: 'Sonja Lutz',
     role: 'Leiterin Kinderprogramm',
     detail: 'Jahrgang 1969.',
@@ -67,7 +72,7 @@ const leadershipTeam: LeadershipMember[] = [
     <div class="mt-6 max-w-3xl space-y-4 text-lg text-kf-ink-muted">
       <p>
         Kirche Felsengrund ist eine evangelische Freikirche ("Freie Missionsgemeinde") in Oetwil am
-        See. Wir sind Mitglied im <strong class="text-kf-ink">Verband Freier Missionsgemeinden Schweiz</strong>.
+        See. Wir sind Mitglied im <a href="https://www.vfmg.ch/" class="hover:text-kf-accent">Verband Freier Missionsgemeinden Schweiz</a>.
       </p>
       <p>
         Wir glauben an den einen Gott: Gott den Vater, Jesus Christus, seinen Sohn, und den Heiligen
@@ -94,13 +99,12 @@ const leadershipTeam: LeadershipMember[] = [
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
     <h2 class="font-display text-2xl font-bold text-kf-ink">Leitungsteam</h2>
     <p class="mt-2 max-w-2xl text-kf-ink-muted">
-      Diese Menschen tragen die Leitung unserer Gemeinde. Einzelporträts liegen uns aktuell nicht
-      vor — das Foto unten zeigt einen Teil des Teams.
+      Diese Menschen tragen die Leitung unserer Gemeinde.
     </p>
-
+    <!-- TODO: Bild muss erstellt werder-->
     <img
-      src="/images/leiter.jpg"
-      alt="Ein Teil des Leitungsteams der Kirche Felsengrund"
+      src="/images/gemeindes_leitung.jpg"
+      alt="Das Gemeindeleitungsteam vor dem Felsengrund Gebäude"
       class="mt-6 w-full max-w-2xl rounded-xl border border-kf-edge object-cover"
     />
 

@@ -64,15 +64,11 @@ formsRoute.post('/prayer-request', async (c) => {
     return c.json({ error: 'Fehlende Angaben.' }, 400)
   }
 
-  const publish = body.publishOnWall === true || body.publishOnWall === 'yes'
-
   await sendNotification(c.env, 'prayer-request', {
     topic: String(body.topic),
     displayName: String(body.displayName),
     description: String(body.description),
     email: body.email ? String(body.email) : undefined,
-    prayUntil: body.prayUntil ? String(body.prayUntil) : undefined,
-    publishOnWall: publish ? 'yes' : 'no',
   })
 
   return c.json({ ok: true })

@@ -23,8 +23,7 @@ import FormStatus from '../components/hilfe/FormStatus.astro'
     <h2 class="font-display text-2xl font-semibold text-kf-ink">Gebetsanliegen einreichen</h2>
     <p class="mt-3 rounded-xl border border-kf-edge bg-kf-surface-sunken p-4 text-sm text-kf-ink-muted">
       <strong class="font-semibold text-kf-ink">Vertraulich:</strong> Dein Anliegen wird ausschliesslich
-      von unserem Gebetsteam gelesen. Nur wenn du unten ausdrücklich zustimmst, erscheint es – ohne
-      Namen oder Kontaktdaten – auf der öffentlichen Gebetswand.
+      von unserem Gebetsteam gelesen.
     </p>
 
     <form id="prayer-request-form" class="mt-8 flex flex-col gap-6">
@@ -67,25 +66,6 @@ import FormStatus from '../components/hilfe/FormStatus.astro'
           class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 lg:py-2 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
         />
       </FormField>
-
-      <FormField label="Bis wann sollen wir für dich beten?" name="prayUntil">
-        <input
-          type="date"
-          id="prayUntil"
-          name="prayUntil"
-          class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 lg:py-2 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-        />
-      </FormField>
-
-      <RadioGroup
-        legend="Darf dein Anliegen (ohne Namen oder Kontaktdaten) auf der öffentlichen Gebetswand veröffentlicht werden?"
-        name="publishOnWall"
-        required
-        options={[
-          { value: 'yes', label: 'Ja' },
-          { value: 'no', label: 'Nein' },
-        ]}
-      />
 
       <div class="flex flex-col gap-2 pt-2">
         <button
