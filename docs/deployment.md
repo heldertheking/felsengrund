@@ -67,10 +67,19 @@ Manual: `npm run build:api` (workspace script) or `cd apps/api && wrangler deplo
 
 **Recommended for ongoing deploys**: connect this repo to Cloudflare **Workers Builds**
 (Cloudflare dashboard → Workers & Pages → this Worker → Settings → Builds) with:
-- Root directory: `apps/api`
-- Build command: `npm install` (Wrangler bundles the Worker directly on deploy — no separate
-  compile step needed)
+- Root directory: `apps/api` — **not** `/`. This is what tells Wrangler where to find
+  `wrangler.jsonc`; with the root directory left at `/`, the deploy/version commands below
+  run from the repo root instead and fail to find it. Cloudflare's monorepo support still
+  runs the initial `npm install` at the actual repo root first (so the `@felsengrund/shared`
+  workspace dependency resolves correctly) before `cd`-ing into this root directory for the
+  build/deploy/version commands.
+- Build command: `npm run build` (runs `tsc --noEmit` as a pre-deploy type-check gate —
+  Wrangler bundles the Worker itself during deploy/versions-upload, so there's no separate
+  compile artifact to produce)
 - Deploy command: `npx wrangler deploy`
+- Version command (for preview/non-production branches): `npx wrangler versions upload`
+- Build watch paths — once root directory is `apps/api`, use `src/**` (there's no `dist/`
+  here; nothing in this Worker writes one)
 
 This auto-deploys on every push to the configured branch, with no `CLOUDFLARE_API_TOKEN`
 needing to live in GitHub.
