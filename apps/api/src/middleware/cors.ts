@@ -1,6 +1,19 @@
 import type { MiddlewareHandler } from 'hono'
 import type { Env } from '../types'
 
+// An ALLOWED_ORIGINS entry of the form "https://*.example.com" matches "https://example.com"
+// itself and any single- or multi-label subdomain of it (e.g. "https://staging.example.com").
+// A plain entry (no "*.") must match the request Origin exactly.
+function originMatches(pattern: string, origin: string): boolean {
+  if (pattern === origin) return true
+  const wildcard = pattern.match(/^(https?:\/\/)\*\.(.+)$/)
+  if (!wildcard) return false
+  const [, scheme, domain] = wildcard
+  if (!origin.startsWith(scheme)) return false
+  const host = origin.slice(scheme.length)
+  return host === domain || host.endsWith(`.${domain}`)
+}
+
 /**
  * CORS for a bearer-token API: no cookies are ever involved (see packages/shared/src/admin-auth.ts),
  * so there's no need for Access-Control-Allow-Credentials — just an explicit origin allowlist
@@ -12,7 +25,18 @@ export const corsMiddleware: MiddlewareHandler<{ Bindings: Env }> = async (c, ne
     .map((origin) => origin.trim())
     .filter(Boolean)
   const requestOrigin = c.req.header('Origin')
-  const allowOrigin = requestOrigin && allowedOrigins.includes(requestOrigin) ? requestOrigin : undefined
+  const allowOrigin =
+    requestOrigin && allowedOrigins.some((pattern) => originMatches(pattern, requestOrigin))
+      ? requestOrigin
+      : undefined
+
+  if (requestOrigin && !allowOrigin) {
+    // Logged (not just silently dropped) so a stale/missing ALLOWED_ORIGINS entry shows up in
+    // `wrangler tail` instead of only manifesting as an unexplained CORS error in the browser.
+    console.warn(
+      `[cors] Rejected origin "${requestOrigin}" — not in ALLOWED_ORIGINS (${allowedOrigins.join(', ') || '<empty>'})`,
+    )
+  }
 
   if (c.req.method === 'OPTIONS') {
     const headers = new Headers()

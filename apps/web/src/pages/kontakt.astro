@@ -130,6 +130,8 @@ import BaseLayout from '../layouts/BaseLayout.astro'
 </BaseLayout>
 
 <script>
+  import { apiUrl } from '../lib/api'
+
   const form = document.querySelector<HTMLFormElement>('#contact-form')
   const status = document.querySelector<HTMLParagraphElement>('#contact-form-status')
 
@@ -141,7 +143,7 @@ import BaseLayout from '../layouts/BaseLayout.astro'
     status.textContent = 'Wird gesendet…'
 
     try {
-      const response = await fetch(`${import.meta.env.PUBLIC_API_BASE_URL}/contact`, {
+      const response = await fetch(apiUrl('/contact'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -149,7 +151,8 @@ import BaseLayout from '../layouts/BaseLayout.astro'
       if (!response.ok) throw new Error(`Request failed: ${response.status}`)
       status.textContent = 'Danke für deine Nachricht! Wir melden uns bei dir.'
       form.reset()
-    } catch {
+    } catch (error) {
+      console.error('Failed to submit contact form', error)
       status.textContent = 'Da ist etwas schiefgelaufen. Bitte versuch es später erneut.'
     }
   })

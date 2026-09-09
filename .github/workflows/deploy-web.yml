@@ -25,6 +25,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify required build vars
+        run: |
+          if [ -z "${{ vars.PUBLIC_API_BASE_URL }}" ]; then
+            echo "::error::PUBLIC_API_BASE_URL repo variable is not set (Settings -> Secrets and variables -> Actions -> Variables). The build would silently bake in an empty API base URL, breaking every API call in production."
+            exit 1
+          fi
+
       - name: Build Webapp
         env:
           PUBLIC_API_BASE_URL: ${{ vars.PUBLIC_API_BASE_URL }}
@@ -55,3 +62,4 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
           server-dir: ./
+          dangerous-clean-slate: true # Should be handled with care, clears server data on every deployment.

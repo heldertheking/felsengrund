@@ -156,6 +156,8 @@ const secondaryLinks = [
 </style>
 
 <script>
+  import { apiUrl } from '../lib/api'
+
   const trigger = document.querySelector<HTMLButtonElement>('[data-mobile-trigger]')
   const panel = document.querySelector<HTMLElement>('[data-mobile-panel]')
   const mobileNav = document.querySelector<HTMLElement>('[data-mobile-nav]')
@@ -202,7 +204,7 @@ const secondaryLinks = [
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;')
 
-  fetch(`${import.meta.env.PUBLIC_API_BASE_URL}/nav`)
+  fetch(apiUrl('/nav'))
     .then((response) => {
       if (!response.ok) throw new Error(`/nav responded with ${response.status}`)
       return response.json() as Promise<OfferNavGroup[]>

@@ -18,12 +18,12 @@
 
     // This Worker's own public origin. Used to rewrite relative /media/<key> paths (as stored
     // by admin-content.ts) into absolute URLs before they're returned to the frontend, since
-    // frontend and API are now different origins. Replace with the real workers.dev URL after
-    // first deploy (or a custom domain later).
-    "PUBLIC_WORKER_ORIGIN": "https://REPLACE-ME.workers.dev",
+    // frontend and API are now different origins.
+    "PUBLIC_WORKER_ORIGIN": "https://felsengrund.jroliveirahelder.workers.dev",
 
     // Comma-separated list of frontend origins allowed to call this API (see
-    // src/middleware/cors.ts). Add the webkeeper.ch production/staging origins once known.
-    "ALLOWED_ORIGINS": "http://localhost:4321"
+    // src/middleware/cors.ts). "https://*.kirche-felsengrund.ch" matches the apex domain plus
+    // any subdomain (www, staging, develop, ...); localhost:4321 covers local `astro dev`.
+    "ALLOWED_ORIGINS": "http://localhost:4321,https://*.kirche-felsengrund.ch"
   }
 }

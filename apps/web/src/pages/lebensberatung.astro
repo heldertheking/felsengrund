@@ -113,6 +113,8 @@ import FormStatus from '../components/hilfe/FormStatus.astro'
 </BaseLayout>
 
 <script>
+  import { apiUrl } from '../lib/api'
+
   const form = document.querySelector('#counseling-form')
   const status = document.querySelector('#counseling-status')
 
@@ -128,7 +130,7 @@ import FormStatus from '../components/hilfe/FormStatus.astro'
     if (submitButton instanceof HTMLButtonElement) submitButton.disabled = true
 
     try {
-      const response = await fetch(`${import.meta.env.PUBLIC_API_BASE_URL}/counseling`, {
+      const response = await fetch(apiUrl('/counseling'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -139,7 +141,8 @@ import FormStatus from '../components/hilfe/FormStatus.astro'
       status.textContent = 'Danke! Wir melden uns innerhalb von 48 Stunden bei dir zurück.'
       status.dataset.state = 'success'
       form.reset()
-    } catch {
+    } catch (error) {
+      console.error('Failed to submit counseling request', error)
       status.textContent =
         'Das hat leider nicht geklappt. Bitte versuche es später erneut oder schreib uns direkt an oliver.lutz@kirche-felsengrund.ch.'
       status.dataset.state = 'error'
