@@ -1,21 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
+import AgendaCard from "../components/AgendaCard.astro";
+import type {AgendaItem} from '../components/AgendaCard.astro';
 
-// Build-time toggle (this page is statically prerendered, so the env var must be set wherever
-// the site is BUILT, not just deployed — a GitHub Actions build-time env var, not a runtime
-// secret). Set GOOGLE_CALENDAR_EMBED_URL to the `src` URL from Google Calendar's own
-// "Settings > Integrate calendar > Embed code" (just the src, not the whole <iframe> snippet).
-// Unset, this falls back to the static recurring-schedule list below.
 const calendarEmbedUrl = import.meta.env.GOOGLE_CALENDAR_EMBED_URL as string | undefined
-
-interface ScheduleEntry {
-  title: string
-  cadence: string
-  note?: string
-  link?: string
-}
-
-const schedule: ScheduleEntry[] = [
+const agenda: AgendaItem[] = [
   {
     title: 'Gottesdienst',
     cadence: 'Sonntags, 09:45 – ca. 11:15 Uhr',
@@ -66,8 +55,8 @@ const schedule: ScheduleEntry[] = [
     cadence: 'Wöchentlich, montags, 16:30–17:15 Uhr',
   },
 ]
----
 
+---
 <BaseLayout
   title="Agenda – Kirche Felsengrund"
   description="Wiederkehrende Termine und Angebote der Kirche Felsengrund im Überblick."
@@ -75,8 +64,8 @@ const schedule: ScheduleEntry[] = [
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
     <h1 class="font-display text-4xl font-bold text-kf-ink sm:text-5xl">Agenda</h1>
     <p class="mt-4 max-w-2xl text-lg text-kf-ink-muted">
-      Eine Übersicht unserer regelmässigen Termine. Für saisonale Veranstaltungen und Ausnahmen
-      empfehlen wir, direkt bei uns nachzufragen.
+      Eine Übersicht unserer regelmäßigen Termine. Für saisonale Veranstaltungen und Ausnahmen
+      empfehlen wir, direkt bei uns <a href="/kontakt">nachzufragen</a>.
     </p>
 
     {calendarEmbedUrl ? (
@@ -85,42 +74,14 @@ const schedule: ScheduleEntry[] = [
           src={calendarEmbedUrl}
           loading="lazy"
           title="Kirche Felsengrund – Kalender"
-          class="h-[420px] w-full border-0 sm:h-[650px]"
+          class="h-105 w-full border-0 sm:h-162.5"
         ></iframe>
       </div>
     ) : (
         <ul class="mt-10 space-y-4">
-          {schedule.map((entry) => {
-            const isExternal = entry.link?.startsWith('http://') || entry.link?.startsWith('https://');
-            const hasLink = Boolean(entry.link && entry.link.trim().length > 0);
-
-            return (
-                <li class="rounded-xl border border-kf-edge bg-kf-surface p-5 hover:border-kf-accent transition-colors">
-                  {hasLink ? (
-                      <a
-                          href={entry.link}
-                          target={isExternal ? "_blank" : undefined}
-                          rel={isExternal ? "noopener noreferrer" : undefined}
-                          class="block h-full w-full"
-                      >
-                        <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-                          <p class="font-display font-semibold text-kf-ink">{entry.title}</p>
-                          <p class="text-sm font-medium text-kf-accent">{entry.cadence}</p>
-                        </div>
-                        {entry.note && <p class="mt-2 text-sm text-kf-ink-muted">{entry.note}</p>}
-                      </a>
-                  ) : (
-                      <div>
-                        <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-                          <p class="font-display font-semibold text-kf-ink">{entry.title}</p>
-                          <p class="text-sm font-medium text-kf-accent">{entry.cadence}</p>
-                        </div>
-                        {entry.note && <p class="mt-2 text-sm text-kf-ink-muted">{entry.note}</p>}
-                      </div>
-                  )}
-                </li>
-            );
-          })}
+          {agenda.map((entry) =>
+              <AgendaCard item={entry}/>
+          )}
         </ul>
     )}
   </section>
