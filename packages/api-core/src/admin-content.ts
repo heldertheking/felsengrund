@@ -14,7 +14,7 @@ const PODCAST_PREFIX = 'podcast/'
 const OFFER_IMAGES_PREFIX = 'images/offers/'
 const PODCAST_IMAGES_PREFIX = 'images/podcast/'
 
-function splitFrontmatter(raw: string): { data: Record<string, unknown>; body: string } {
+export function splitFrontmatter(raw: string): { data: Record<string, unknown>; body: string } {
   const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/)
   if (!match) return { data: {}, body: raw.trim() }
   return { data: (parseYaml(match[1]) ?? {}) as Record<string, unknown>, body: match[2].trim() }

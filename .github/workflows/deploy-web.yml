@@ -44,7 +44,7 @@ jobs:
           name: astro-dist
           path: apps/web/dist/
           # actions/upload-artifact@v4 silently drops dotfiles (.htaccess included) unless told
-          # otherwise — without this, .htaccess never reaches the deploy job at all, every time,
+          # otherwise — without this, .htaccess never reaches the deployment job at all, every time,
           # regardless of how the FTP step itself behaves.
           include-hidden-files: true
 

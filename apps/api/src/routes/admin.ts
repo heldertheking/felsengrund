@@ -13,6 +13,7 @@ import {
   putPodcastEpisode,
   putPodcastImage,
   slugify,
+  splitFrontmatter,
   verifySessionToken,
 } from '@felsengrund/api-core'
 import { CATEGORY_DETAILS, type OfferFrontmatter, type OfferOrganizer, type EpisodeFrontmatter } from '@felsengrund/types'
@@ -135,6 +136,40 @@ adminRoute.post('/admin/offers', async (c) => {
     logger.info('stored offer', { slug })
   } catch (error) {
     logger.error('failed to store offer', { slug, error })
+    throw error
+  }
+
+  return c.json({ slug })
+})
+
+adminRoute.post('/admin/offers/import', async (c) => {
+  const formData = await c.req.formData()
+  const file = formData.get('file')
+  if (!file || typeof file === 'string') return c.json({ error: 'Datei fehlt.' }, 400)
+
+  const raw = await file.text()
+  const { data: rawData, body } = splitFrontmatter(raw)
+
+  const title = typeof rawData.title === 'string' ? rawData.title.trim() : ''
+  if (!title) return c.json({ error: 'Titel fehlt in der Datei.' }, 400)
+
+  if (!VALID_CATEGORIES.includes(rawData.category as OfferFrontmatter['category'])) {
+    return c.json({ error: 'Ungültige oder fehlende Kategorie in der Datei.' }, 400)
+  }
+
+  const slug = slugify(title)
+  if (!slug) return c.json({ error: 'Titel ergibt keinen gültigen Slug.' }, 400)
+
+  const conflict = await getOffer(c.env.STORAGE, slug)
+  if (conflict) return c.json({ error: 'Ein Angebot mit diesem Titel existiert bereits.' }, 409)
+
+  const data = { ...rawData, title } as OfferFrontmatter
+
+  try {
+    await putOffer(c.env.STORAGE, slug, data, body)
+    logger.info('imported offer', { slug })
+  } catch (error) {
+    logger.error('failed to import offer', { slug, error })
     throw error
   }
 

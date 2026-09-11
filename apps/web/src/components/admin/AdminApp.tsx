@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { apiClient, clearAdminToken, getAdminToken, setAdminToken } from '../../lib/api'
+import Breadcrumbs from '../Breadcrumbs'
 import OffersManager from './OffersManager'
 import PodcastManager from './PodcastManager'
 
@@ -79,6 +80,9 @@ export default function AdminApp() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
+      <Breadcrumbs
+        items={[{ label: 'Home', href: '/' }, { label: 'Admin' }, { label: view === 'offers' ? 'Angebote' : 'Podcast' }]}
+      />
       <div className="rounded-2xl border border-kf-edge bg-kf-surface p-8 shadow-md">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <span className="font-display text-lg font-bold text-kf-ink">Kirche Felsengrund – Admin</span>

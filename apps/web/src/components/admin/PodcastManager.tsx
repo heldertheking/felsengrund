@@ -1,6 +1,7 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { apiClient } from '../../lib/api'
 import { UnauthorizedError, type Episode } from '@felsengrund/types'
+import { downloadMdocExport } from '../../lib/export'
 
 const inputClass =
   'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent'
@@ -18,11 +19,16 @@ export default function PodcastManager({ onUnauthorized }: Props) {
   const [episodes, setEpisodes] = useState<Episode[] | null>(null)
   const [mode, setMode] = useState<Mode>({ view: 'list' })
   const [listError, setListError] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
 
   function reload() {
     apiClient.podcast
       .list()
-      .then(setEpisodes)
+      .then((data) => {
+        setEpisodes(data)
+        setSelected((prev) => new Set([...prev].filter((slug) => data.some((e) => e.slug === slug))))
+      })
       .catch(() => setListError('Episoden konnten nicht geladen werden.'))
   }
 
@@ -30,10 +36,51 @@ export default function PodcastManager({ onUnauthorized }: Props) {
     reload()
   }, [])
 
+  function toggleSelected(slug: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(slug)) next.delete(slug)
+      else next.add(slug)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (!episodes) return
+    setSelected((prev) => (prev.size === episodes.length ? new Set() : new Set(episodes.map((e) => e.slug))))
+  }
+
+  async function handleBulkDelete() {
+    if (selected.size === 0) return
+    if (!confirm(`${selected.size} Episode(n) wirklich löschen?`)) return
+    setBulkBusy(true)
+    try {
+      for (const slug of selected) {
+        await apiClient.podcast.delete(slug)
+      }
+      setSelected(new Set())
+      reload()
+    } catch (err) {
+      if (err instanceof UnauthorizedError) return onUnauthorized()
+      alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.')
+    } finally {
+      setBulkBusy(false)
+    }
+  }
+
+  function handleBulkExport() {
+    if (!episodes) return
+    const rows = episodes
+      .filter((e) => selected.has(e.slug))
+      .map((e) => ({ slug: e.slug, data: e.data as unknown as Record<string, unknown>, body: e.body }))
+    downloadMdocExport('podcast-export', rows)
+  }
+
   if (mode.view === 'form') {
     return (
       <PodcastForm
         episode={mode.episode}
+        episodes={episodes}
         onDone={() => {
           setMode({ view: 'list' })
           reload()
@@ -59,13 +106,55 @@ export default function PodcastManager({ onUnauthorized }: Props) {
       {listError && <p className="mt-4 text-sm text-red-700">{listError}</p>}
       {!episodes && !listError && <p className="mt-4 text-sm text-kf-ink-muted">Wird geladen …</p>}
 
+      {episodes && episodes.length > 0 && (
+        <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
+          <label className="flex items-center gap-2 text-kf-ink-muted">
+            <input
+              type="checkbox"
+              checked={selected.size === episodes.length}
+              onChange={toggleSelectAll}
+              className="rounded border-kf-edge"
+            />
+            Alle auswählen
+          </label>
+          {selected.size > 0 && (
+            <>
+              <span className="text-kf-ink-muted">{selected.size} ausgewählt</span>
+              <button
+                type="button"
+                onClick={handleBulkExport}
+                className="rounded-lg border border-kf-edge px-3 py-1.5 text-xs font-semibold text-kf-ink transition hover:border-kf-accent hover:text-kf-accent"
+              >
+                Exportieren
+              </button>
+              <button
+                type="button"
+                disabled={bulkBusy}
+                onClick={handleBulkDelete}
+                className="rounded-lg border border-red-600 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+              >
+                Löschen
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       {episodes && (
-        <ul className="mt-6 divide-y divide-kf-edge border-y border-kf-edge">
+        <ul className="mt-4 divide-y divide-kf-edge border-y border-kf-edge">
           {episodes.map((episode) => (
             <li key={episode.slug} className="flex items-center justify-between gap-4 py-3">
-              <div className="min-w-0">
-                <p className="truncate font-medium text-kf-ink">{episode.data.title}</p>
-                <p className="text-xs text-kf-ink-muted">{episode.slug}</p>
+              <div className="flex min-w-0 items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={selected.has(episode.slug)}
+                  onChange={() => toggleSelected(episode.slug)}
+                  className="shrink-0 rounded border-kf-edge"
+                />
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-kf-ink">{episode.data.title}</p>
+                  <p className="text-xs text-kf-ink-muted">{episode.slug}</p>
+                </div>
               </div>
               <div className="flex shrink-0 gap-2">
                 <button
@@ -123,18 +212,35 @@ function DeleteButton({
   )
 }
 
+function nextEpisodeNumber(episodes: Episode[] | null): string {
+  if (!episodes || episodes.length === 0) return '1'
+  const max = Math.max(0, ...episodes.map((e) => e.data.episodeNumber ?? 0))
+  return String(max + 1)
+}
+
+function formatDuration(totalSeconds: number): string {
+  const seconds = Math.round(totalSeconds)
+  const minutes = Math.floor(seconds / 60)
+  const remainder = seconds % 60
+  return `${minutes}:${remainder.toString().padStart(2, '0')}`
+}
+
 function PodcastForm({
   episode,
+  episodes,
   onDone,
   onUnauthorized,
 }: {
   episode: Episode | null
+  episodes: Episode[] | null
   onDone: () => void
   onUnauthorized: () => void
 }) {
   const isEdit = episode !== null
   const [title, setTitle] = useState(episode?.data.title ?? '')
-  const [episodeNumber, setEpisodeNumber] = useState(episode?.data.episodeNumber?.toString() ?? '')
+  const [episodeNumber, setEpisodeNumber] = useState(
+    episode?.data.episodeNumber?.toString() ?? nextEpisodeNumber(episodes),
+  )
   const [publishDate, setPublishDate] = useState(episode?.data.publishDate ?? '')
   const [duration, setDuration] = useState(episode?.data.duration ?? '')
   const [audio, setAudio] = useState<File | null>(null)
@@ -142,6 +248,22 @@ function PodcastForm({
   const [body, setBody] = useState(episode?.body ?? '')
   const [status, setStatus] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  function handleAudioChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null
+    setAudio(file)
+    if (!file) return
+
+    const objectUrl = URL.createObjectURL(file)
+    const probe = new Audio()
+    probe.preload = 'metadata'
+    probe.onloadedmetadata = () => {
+      if (Number.isFinite(probe.duration)) setDuration(formatDuration(probe.duration))
+      URL.revokeObjectURL(objectUrl)
+    }
+    probe.onerror = () => URL.revokeObjectURL(objectUrl)
+    probe.src = objectUrl
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -241,7 +363,7 @@ function PodcastForm({
           type="file"
           accept="audio/*"
           required={!isEdit}
-          onChange={(e) => setAudio(e.target.files?.[0] ?? null)}
+          onChange={handleAudioChange}
           className={fileInputClass}
         />
         {isEdit && <p className="mt-1 text-xs text-kf-ink-muted">Leer lassen, um die bestehende Datei zu behalten.</p>}

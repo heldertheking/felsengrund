@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react'
 import {apiClient} from '../lib/api'
 import {CATEGORY_DETAILS, type OfferDetailResponse} from '@felsengrund/types'
+import Breadcrumbs from './Breadcrumbs'
 
 type State =
   | { status: 'loading' }
@@ -44,13 +45,21 @@ export default function OfferDetail() {
     }
   }, [slug])
 
+  const baseCrumbs = [{ label: 'Home', href: '/' }, { label: 'Angebote', href: '/angebote' }]
+
   if (state.status === 'loading') {
-    return <p className="text-sm text-kf-ink-muted">Wird geladen …</p>
+    return (
+      <div>
+        <Breadcrumbs items={[...baseCrumbs, { label: '…' }]} />
+        <p className="text-sm text-kf-ink-muted">Wird geladen …</p>
+      </div>
+    )
   }
 
   if (state.status === 'not-found') {
     return (
       <div>
+        <Breadcrumbs items={[...baseCrumbs, { label: 'Nicht gefunden' }]} />
         <h1 className="font-display text-3xl font-bold text-kf-ink">Angebot nicht gefunden</h1>
         <p className="mt-4 text-kf-ink-muted">
           Dieses Angebot existiert nicht (mehr). Schau dir{' '}
@@ -65,9 +74,12 @@ export default function OfferDetail() {
 
   if (state.status === 'error') {
     return (
-      <p className="text-sm text-red-700" role="alert">
-        Das Angebot konnte nicht geladen werden. Bitte lade die Seite neu.
-      </p>
+      <div>
+        <Breadcrumbs items={[...baseCrumbs, { label: 'Fehler' }]} />
+        <p className="text-sm text-red-700" role="alert">
+          Das Angebot konnte nicht geladen werden. Bitte lade die Seite neu.
+        </p>
+      </div>
     )
   }
 
@@ -75,6 +87,7 @@ export default function OfferDetail() {
 
   return (
     <div>
+      <Breadcrumbs items={[...baseCrumbs, { label: offer.data.title }]} />
       {offer.data.cardImage && (
         <img
           src={offer.data.cardImage}

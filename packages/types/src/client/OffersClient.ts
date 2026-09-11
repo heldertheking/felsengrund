@@ -39,4 +39,10 @@ export class OffersClient extends BaseClient {
   delete(slug: string): Promise<{ ok: true }> {
     return this.authedJson(`/admin/offers/${slug}`, { method: 'DELETE' })
   }
+
+  importMdoc(file: File): Promise<SaveResult> {
+    const formData = new FormData()
+    formData.set('file', file)
+    return this.authedJson('/admin/offers/import', { method: 'POST', body: formData })
+  }
 }

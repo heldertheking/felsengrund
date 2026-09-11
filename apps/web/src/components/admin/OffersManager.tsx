@@ -1,6 +1,7 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { apiClient } from '../../lib/api'
 import { CATEGORY_DETAILS, UnauthorizedError, type Offer, type OfferFrontmatter, type OfferOrganizer } from '@felsengrund/types'
+import { downloadMdocExport } from '../../lib/export'
 
 const CATEGORIES: { value: OfferFrontmatter['category']; label: string }[] = Object.entries(CATEGORY_DETAILS)
   .sort((a, b) => a[1].index - b[1].index)
@@ -20,17 +21,83 @@ export default function OffersManager({ onUnauthorized }: Props) {
   const [offers, setOffers] = useState<Offer[] | null>(null)
   const [mode, setMode] = useState<Mode>({ view: 'list' })
   const [listError, setListError] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+  const importInputRef = useRef<HTMLInputElement>(null)
 
   function reload() {
     apiClient.offers
       .list()
-      .then(setOffers)
+      .then((data) => {
+        setOffers(data)
+        setSelected((prev) => new Set([...prev].filter((slug) => data.some((o) => o.slug === slug))))
+      })
       .catch(() => setListError('Angebote konnten nicht geladen werden.'))
   }
 
   useEffect(() => {
     reload()
   }, [])
+
+  function toggleSelected(slug: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(slug)) next.delete(slug)
+      else next.add(slug)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (!offers) return
+    setSelected((prev) => (prev.size === offers.length ? new Set() : new Set(offers.map((o) => o.slug))))
+  }
+
+  async function handleBulkDelete() {
+    if (selected.size === 0) return
+    if (!confirm(`${selected.size} Angebot(e) wirklich löschen?`)) return
+    setBulkBusy(true)
+    try {
+      for (const slug of selected) {
+        await apiClient.offers.delete(slug)
+      }
+      setSelected(new Set())
+      reload()
+    } catch (err) {
+      if (err instanceof UnauthorizedError) return onUnauthorized()
+      alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.')
+    } finally {
+      setBulkBusy(false)
+    }
+  }
+
+  function handleBulkExport() {
+    if (!offers) return
+    const rows = offers
+      .filter((o) => selected.has(o.slug))
+      .map((o) => ({ slug: o.slug, data: o.data as unknown as Record<string, unknown>, body: o.body }))
+    downloadMdocExport('angebote-export', rows)
+  }
+
+  async function handleImportFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    setImporting(true)
+    setImportError(null)
+    try {
+      await apiClient.offers.importMdoc(file)
+      reload()
+    } catch (err) {
+      if (err instanceof UnauthorizedError) return onUnauthorized()
+      setImportError(err instanceof Error ? err.message : 'Import fehlgeschlagen.')
+    } finally {
+      setImporting(false)
+    }
+  }
 
   if (mode.view === 'form') {
     return (
@@ -47,27 +114,87 @@ export default function OffersManager({ onUnauthorized }: Props) {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-lg font-semibold text-kf-ink">Angebote</h2>
-        <button
-          type="button"
-          onClick={() => setMode({ view: 'form', offer: null })}
-          className="rounded-lg bg-kf-accent px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
-        >
-          Neues Angebot
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => importInputRef.current?.click()}
+            disabled={importing}
+            className="rounded-lg border border-kf-edge px-4 py-2 text-sm font-semibold text-kf-ink transition hover:border-kf-accent hover:text-kf-accent disabled:opacity-50"
+          >
+            {importing ? 'Wird importiert …' : 'Importieren'}
+          </button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".mdoc"
+            onChange={handleImportFile}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => setMode({ view: 'form', offer: null })}
+            className="rounded-lg bg-kf-accent px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+          >
+            Neues Angebot
+          </button>
+        </div>
       </div>
 
+      {importError && <p className="mt-4 text-sm text-red-700">{importError}</p>}
       {listError && <p className="mt-4 text-sm text-red-700">{listError}</p>}
       {!offers && !listError && <p className="mt-4 text-sm text-kf-ink-muted">Wird geladen …</p>}
 
+      {offers && offers.length > 0 && (
+        <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
+          <label className="flex items-center gap-2 text-kf-ink-muted">
+            <input
+              type="checkbox"
+              checked={selected.size === offers.length}
+              onChange={toggleSelectAll}
+              className="rounded border-kf-edge"
+            />
+            Alle auswählen
+          </label>
+          {selected.size > 0 && (
+            <>
+              <span className="text-kf-ink-muted">{selected.size} ausgewählt</span>
+              <button
+                type="button"
+                onClick={handleBulkExport}
+                className="rounded-lg border border-kf-edge px-3 py-1.5 text-xs font-semibold text-kf-ink transition hover:border-kf-accent hover:text-kf-accent"
+              >
+                Exportieren
+              </button>
+              <button
+                type="button"
+                disabled={bulkBusy}
+                onClick={handleBulkDelete}
+                className="rounded-lg border border-red-600 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+              >
+                Löschen
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       {offers && (
-        <ul className="mt-6 divide-y divide-kf-edge border-y border-kf-edge">
+        <ul className="mt-4 divide-y divide-kf-edge border-y border-kf-edge">
           {offers.map((offer) => (
             <li key={offer.slug} className="flex items-center justify-between gap-4 py-3">
-              <div className="min-w-0">
-                <p className="truncate font-medium text-kf-ink">{offer.data.title}</p>
-                <p className="text-xs text-kf-ink-muted">{offer.slug}</p>
+              <div className="flex min-w-0 items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={selected.has(offer.slug)}
+                  onChange={() => toggleSelected(offer.slug)}
+                  className="shrink-0 rounded border-kf-edge"
+                />
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-kf-ink">{offer.data.title}</p>
+                  <p className="text-xs text-kf-ink-muted">{offer.slug}</p>
+                </div>
               </div>
               <div className="flex shrink-0 gap-2">
                 <button
