@@ -3,6 +3,12 @@
 ADMIN_UPLOAD_PASSWORD=changeme
 N8N_WEBHOOK_SECRET=changeme
 
+# Overrides wrangler.jsonc's `vars.PUBLIC_WORKER_ORIGIN` (which points at the deployed prod
+# Worker) for local `wrangler dev` — without this, media URLs (cardImage/coverImage/audioUrl)
+# rewritten by rewriteMediaUrls() point at prod, which doesn't have whatever you just uploaded
+# to your local R2 sim, so images/audio 404 or silently fail to play.
+PUBLIC_WORKER_ORIGIN=http://localhost:8787
+
 # N8N_WEBHOOK_URL itself is NOT a secret (see wrangler.jsonc `vars`) — only the secret above
 # authenticates the request. Configure n8n's Webhook node to recompute the HMAC-SHA256 of the
 # raw request body using this same secret and compare it (constant-time) against the

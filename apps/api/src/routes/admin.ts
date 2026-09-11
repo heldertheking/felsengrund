@@ -243,6 +243,16 @@ adminRoute.post('/admin/podcast', async (c) => {
   const duration = formData.get('duration')
   if (duration) data.duration = String(duration)
 
+  const speakersRaw = formData.get('speakers')
+  if (typeof speakersRaw === 'string' && speakersRaw.trim().length > 0) {
+    try {
+      const parsed = JSON.parse(speakersRaw)
+      if (Array.isArray(parsed) && parsed.length > 0) data.speakers = parsed
+    } catch {
+      // ignore malformed speakers payload
+    }
+  }
+
   const coverImageFile = formData.get('coverImage')
   if (coverImageFile && typeof coverImageFile !== 'string' && coverImageFile.size > 0) {
     try {

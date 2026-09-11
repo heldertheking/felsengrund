@@ -28,7 +28,8 @@ function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md items-center px-4">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4">
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Admin' }]} />
       <form onSubmit={handleSubmit} className="w-full rounded-2xl border border-kf-edge bg-kf-surface p-8 shadow-md">
         <h1 className="font-display text-lg font-bold text-kf-ink">Kirche Felsengrund – Admin</h1>
         <div className="mt-6">

@@ -24,7 +24,9 @@
 
     // This Worker's own public origin. Used to rewrite relative /media/<key> paths (as stored
     // by admin-content.ts) into absolute URLs before they're returned to the frontend, since
-    // frontend and API are now different origins.
+    // frontend and API are now different origins. Overridden to http://localhost:8787 in
+    // .dev.vars for local `wrangler dev` — otherwise locally-uploaded media 404s because the
+    // rewritten URL points at prod, which was never given that file.
     "PUBLIC_WORKER_ORIGIN": "https://felsengrund.jroliveirahelder.workers.dev",
 
     // Comma-separated list of frontend origins allowed to call this API (see

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import { apiClient } from '../lib/api'
-import type { Episode } from '@felsengrund/types'
+import {useEffect, useState} from 'react'
+import {apiClient} from '../lib/api'
+import type {Episode, PodcastSpeaker} from '@felsengrund/types'
 
 type State = { status: 'loading' } | { status: 'error' } | { status: 'ready'; episodes: Episode[] }
 
@@ -24,6 +24,21 @@ export default function PodcastList() {
       cancelled = true
     }
   }, [])
+
+  const speakers = (list: PodcastSpeaker[]): string => {
+    if (list.length === 0) {
+      return "";
+    }
+    if (list.length === 1) {
+      return list[0].name;
+    }
+    if (list.length === 2) {
+      return `${list[0].name}, ${list[1].name}`;
+    }
+
+    const remainingCount = list.length - 2;
+    return `${list[0].name}, ${list[1].name}, and ${remainingCount} ${remainingCount === 1 ? "other" : "others"}`;
+  };
 
   if (state.status === 'loading') {
     return <p className="mt-10 text-sm text-kf-ink-muted">Episoden werden geladen …</p>
@@ -60,7 +75,7 @@ export default function PodcastList() {
                 </p>
                 <p className="mt-1 text-sm text-kf-ink-muted">
                   {new Date(episode.data.publishDate).toLocaleDateString('de-CH')}
-                  {episode.data.duration && <> · {episode.data.duration}</>}
+                  {` • ${episode.data.duration} - ${speakers(episode.data.speakers!)}`}
                 </p>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { apiClient } from '../../lib/api'
-import { UnauthorizedError, type Episode } from '@felsengrund/types'
+import { UnauthorizedError, type Episode, type PodcastSpeaker } from '@felsengrund/types'
 import { downloadMdocExport } from '../../lib/export'
 
 const inputClass =
@@ -245,9 +245,14 @@ function PodcastForm({
   const [duration, setDuration] = useState(episode?.data.duration ?? '')
   const [audio, setAudio] = useState<File | null>(null)
   const [coverImage, setCoverImage] = useState<File | null>(null)
+  const [speakers, setSpeakers] = useState<PodcastSpeaker[]>(episode?.data.speakers ?? [])
   const [body, setBody] = useState(episode?.body ?? '')
   const [status, setStatus] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  function updateSpeaker(index: number, field: keyof PodcastSpeaker, value: string | boolean) {
+    setSpeakers((rows) => rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)))
+  }
 
   function handleAudioChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null
@@ -271,12 +276,15 @@ function PodcastForm({
     setSubmitting(true)
 
     try {
+      const speakersInput = speakers.filter((s) => s.name.trim())
+
       if (isEdit) {
         await apiClient.podcast.update(episode.slug, {
           title,
           publishDate,
           episodeNumber: episodeNumber ? Number(episodeNumber) : undefined,
           duration,
+          speakers: speakersInput,
           body,
           audio: audio ?? undefined,
           coverImage: coverImage ?? undefined,
@@ -288,6 +296,7 @@ function PodcastForm({
           publishDate,
           episodeNumber: episodeNumber ? Number(episodeNumber) : undefined,
           duration,
+          speakers: speakersInput,
           body,
           audio,
           coverImage: coverImage ?? undefined,
@@ -367,6 +376,46 @@ function PodcastForm({
           className={fileInputClass}
         />
         {isEdit && <p className="mt-1 text-xs text-kf-ink-muted">Leer lassen, um die bestehende Datei zu behalten.</p>}
+      </div>
+
+      <div>
+        <span className={labelClass}>Sprecher</span>
+        <div className="mt-2 flex flex-col gap-2">
+          {speakers.map((speaker, index) => (
+            <div key={index} className="grid grid-cols-1 gap-2 rounded-lg border border-kf-edge p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+              <input
+                type="text"
+                placeholder="Name"
+                value={speaker.name}
+                onChange={(e) => updateSpeaker(index, 'name', e.target.value)}
+                className={inputClass}
+              />
+              <label className="flex items-center gap-2 text-xs font-medium text-kf-ink-muted">
+                <input
+                  type="checkbox"
+                  checked={speaker.main ?? false}
+                  onChange={(e) => updateSpeaker(index, 'main', e.target.checked)}
+                  className="rounded border-kf-edge"
+                />
+                Hauptsprecher
+              </label>
+              <button
+                type="button"
+                onClick={() => setSpeakers((rows) => rows.filter((_, i) => i !== index))}
+                className="justify-self-start rounded-lg border border-kf-edge px-3 py-2 text-xs font-semibold text-kf-ink-muted transition hover:border-red-600 hover:text-red-600 sm:justify-self-center"
+              >
+                Entfernen
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => setSpeakers((rows) => [...rows, { name: '' }])}
+          className="mt-2 rounded-lg border border-kf-edge px-3 py-1.5 text-xs font-semibold text-kf-ink transition hover:border-kf-accent hover:text-kf-accent"
+        >
+          Sprecher hinzufügen
+        </button>
       </div>
 
       <div>

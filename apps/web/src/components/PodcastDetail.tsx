@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { apiClient } from '../lib/api'
 import type { EpisodeDetailResponse } from '@felsengrund/types'
+import Breadcrumbs from './Breadcrumbs'
+import PodcastPlayer from './PodcastPlayer'
+import SpeakerPills from './SpeakerPills'
 
 type State =
   | { status: 'loading' }
@@ -20,7 +23,6 @@ export default function PodcastDetail() {
   const [state, setState] = useState<State>(
     slug && slug !== 'podcast' ? { status: 'loading' } : { status: 'not-found' },
   )
-  const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
     if (!slug || slug === 'podcast') return
@@ -44,13 +46,21 @@ export default function PodcastDetail() {
     }
   }, [slug])
 
+  const baseCrumbs = [{ label: 'Home', href: '/' }, { label: 'Podcast', href: '/podcast' }]
+
   if (state.status === 'loading') {
-    return <p className="text-sm text-kf-ink-muted">Wird geladen …</p>
+    return (
+      <div>
+        <Breadcrumbs items={[...baseCrumbs, { label: '…' }]} />
+        <p className="text-sm text-kf-ink-muted">Wird geladen …</p>
+      </div>
+    )
   }
 
   if (state.status === 'not-found') {
     return (
       <div>
+        <Breadcrumbs items={[...baseCrumbs, { label: 'Nicht gefunden' }]} />
         <h1 className="font-display text-3xl font-bold text-kf-ink">Episode nicht gefunden</h1>
         <p className="mt-4 text-kf-ink-muted">
           Diese Episode existiert nicht (mehr). Schau dir{' '}
@@ -65,9 +75,12 @@ export default function PodcastDetail() {
 
   if (state.status === 'error') {
     return (
-      <p className="text-sm text-red-700" role="alert">
-        Die Episode konnte nicht geladen werden. Bitte lade die Seite neu.
-      </p>
+      <div>
+        <Breadcrumbs items={[...baseCrumbs, { label: 'Fehler' }]} />
+        <p className="text-sm text-red-700" role="alert">
+          Die Episode konnte nicht geladen werden. Bitte lade die Seite neu.
+        </p>
+      </div>
     )
   }
 
@@ -75,6 +88,7 @@ export default function PodcastDetail() {
 
   return (
     <article>
+      <Breadcrumbs items={[...baseCrumbs, { label: episode.data.title }]} />
       {episode.data.coverImage && (
         <img
           src={episode.data.coverImage}
@@ -92,8 +106,10 @@ export default function PodcastDetail() {
       </p>
 
       <div className="mt-6 rounded-2xl border border-kf-edge bg-kf-surface-sunken p-5">
-        <audio ref={audioRef} controls preload="metadata" src={episode.data.audioUrl} className="w-full" />
+        <PodcastPlayer src={episode.data.audioUrl} title={episode.data.title} />
       </div>
+
+      <SpeakerPills speakers={episode.data.speakers ?? []} />
 
       <div
         className="prose prose-neutral mt-10 max-w-none"

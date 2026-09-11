@@ -9,6 +9,7 @@ function buildPodcastFormData(input: CreatePodcastInput | UpdatePodcastInput, sl
   formData.set('publishDate', input.publishDate)
   if (input.episodeNumber) formData.set('episodeNumber', String(input.episodeNumber))
   formData.set('duration', input.duration ?? '')
+  formData.set('speakers', JSON.stringify((input.speakers ?? []).filter((s) => s.name.trim())))
   formData.set('body', input.body ?? '')
   if (input.audio) formData.set('audio', input.audio)
   if (input.coverImage) formData.set('coverImage', input.coverImage)
