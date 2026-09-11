@@ -33,7 +33,8 @@ interface OfferOrganizer {
  * @property targetAudience Target Audience for Offer e.g. All, Kids, Teenies, etc.
  * @property schedule Schedule when Offer happens, e.g. Every second sunday
  * @property location Where the Offer takes place
- * @property mapsLink Google Maps link to display embedded map.
+ * @property mapsLink Google Maps link the "Ort" section's location text links out to.
+ * @property googleMapsIframeLink Google Maps embed URL rendered as an <iframe> on the page.
  * @property organizers List of {@link OfferOrganizer}.
  * @property registration What kind of registration process is needed, e.g. Send email to <code>xxx@mail.com</code>
  */
@@ -46,6 +47,7 @@ interface Frontmatter {
     schedule?: string
     location?: string
     mapsLink?: string
+    googleMapsIframeLink?: string
     organizers?: OfferOrganizer[]
     registration?: string
 }

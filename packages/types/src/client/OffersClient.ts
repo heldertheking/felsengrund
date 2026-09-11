@@ -12,6 +12,7 @@ function buildOfferFormData(input: CreateOfferInput | UpdateOfferInput, slug?: s
   formData.set('schedule', input.schedule ?? '')
   formData.set('location', input.location ?? '')
   formData.set('mapsLink', input.mapsLink ?? '')
+  formData.set('googleMapsIframeLink', input.googleMapsIframeLink ?? '')
   formData.set('registration', input.registration ?? '')
   formData.set('organizers', JSON.stringify((input.organizers ?? []).filter((o) => o.name.trim())))
   formData.set('body', input.body ?? '')

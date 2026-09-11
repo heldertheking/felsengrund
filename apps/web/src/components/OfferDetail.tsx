@@ -152,6 +152,13 @@ export default function OfferDetail() {
           </ul>
         </div>
       )}
+        {offer.data.googleMapsIframeLink && (
+            <iframe
+                src={offer.data.googleMapsIframeLink}
+                className="border-0 w-full aspect-5/2" allowFullScreen={false} loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+            />
+        )}
         <p className="mt-10 text-sm text-kf-ink-muted">
             Bei Fragen melde dich gerne über das{' '}
             <a

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'r
 import { apiClient } from '../../lib/api'
 import { CATEGORY_DETAILS, UnauthorizedError, type Offer, type OfferFrontmatter, type OfferOrganizer } from '@felsengrund/types'
 import { downloadMdocExport } from '../../lib/export'
+import { filterMdocFiles } from '../../lib/mdoc'
 
 const CATEGORIES: { value: OfferFrontmatter['category']; label: string }[] = Object.entries(CATEGORY_DETAILS)
   .sort((a, b) => a[1].index - b[1].index)
@@ -81,22 +82,33 @@ export default function OffersManager({ onUnauthorized }: Props) {
     downloadMdocExport('angebote-export', rows)
   }
 
-  async function handleImportFile(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
+  async function handleImportFiles(event: ChangeEvent<HTMLInputElement>) {
+    const picked = Array.from(event.target.files ?? [])
     event.target.value = ''
-    if (!file) return
+    if (picked.length === 0) return
+
+    const files = filterMdocFiles(picked)
+    if (files.length === 0) {
+      setImportError('Keine .mdoc-Dateien gefunden.')
+      return
+    }
 
     setImporting(true)
     setImportError(null)
-    try {
-      await apiClient.offers.importMdoc(file)
-      reload()
-    } catch (err) {
-      if (err instanceof UnauthorizedError) return onUnauthorized()
-      setImportError(err instanceof Error ? err.message : 'Import fehlgeschlagen.')
-    } finally {
-      setImporting(false)
+    const failures: string[] = []
+
+    for (const file of files) {
+      try {
+        await apiClient.offers.importMdoc(file)
+      } catch (err) {
+        if (err instanceof UnauthorizedError) return onUnauthorized()
+        failures.push(`${file.name}: ${err instanceof Error ? err.message : 'Import fehlgeschlagen.'}`)
+      }
     }
+
+    setImporting(false)
+    setImportError(failures.length > 0 ? failures.join('\n') : null)
+    reload()
   }
 
   if (mode.view === 'form') {
@@ -129,7 +141,8 @@ export default function OffersManager({ onUnauthorized }: Props) {
             ref={importInputRef}
             type="file"
             accept=".mdoc"
-            onChange={handleImportFile}
+            multiple
+            onChange={handleImportFiles}
             className="hidden"
           />
           <button
@@ -142,7 +155,7 @@ export default function OffersManager({ onUnauthorized }: Props) {
         </div>
       </div>
 
-      {importError && <p className="mt-4 text-sm text-red-700">{importError}</p>}
+      {importError && <p className="mt-4 whitespace-pre-line text-sm text-red-700">{importError}</p>}
       {listError && <p className="mt-4 text-sm text-red-700">{listError}</p>}
       {!offers && !listError && <p className="mt-4 text-sm text-kf-ink-muted">Wird geladen …</p>}
 
@@ -269,6 +282,7 @@ function OfferForm({
   const [schedule, setSchedule] = useState(offer?.data.schedule ?? '')
   const [location, setLocation] = useState(offer?.data.location ?? '')
   const [mapsLink, setMapsLink] = useState(offer?.data.mapsLink ?? '')
+  const [googleMapsIframeLink, setGoogleMapsIframeLink] = useState(offer?.data.googleMapsIframeLink ?? '')
   const [registration, setRegistration] = useState(offer?.data.registration ?? '')
   const [organizers, setOrganizers] = useState<OfferOrganizer[]>(offer?.data.organizers ?? [])
   const [cardImage, setCardImage] = useState<File | null>(null)
@@ -294,6 +308,7 @@ function OfferForm({
         schedule,
         location,
         mapsLink,
+        googleMapsIframeLink,
         registration,
         organizers: organizers.filter((o) => o.name.trim()),
         body,
@@ -366,8 +381,18 @@ function OfferForm({
       </div>
 
       <div>
-        <label className={labelClass}>Google-Maps-Link</label>
+        <label className={labelClass}>Google Maps Link</label>
         <input type="url" value={mapsLink} onChange={(e) => setMapsLink(e.target.value)} className={inputClass} />
+      </div>
+
+      <div>
+        <label className={labelClass}>Google Maps Iframe URL</label>
+        <input
+          type="url"
+          value={googleMapsIframeLink}
+          onChange={(e) => setGoogleMapsIframeLink(e.target.value)}
+          className={inputClass}
+        />
       </div>
 
       <div>
