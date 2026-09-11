@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { apiUrl } from '../lib/api'
-import type { PodcastEpisode } from '../lib/types'
+import { apiClient } from '../lib/api'
+import type { Episode } from '@felsengrund/types'
 
-type State = { status: 'loading' } | { status: 'error' } | { status: 'ready'; episodes: PodcastEpisode[] }
+type State = { status: 'loading' } | { status: 'error' } | { status: 'ready'; episodes: Episode[] }
 
 export default function PodcastList() {
   const [state, setState] = useState<State>({ status: 'loading' })
@@ -10,11 +10,8 @@ export default function PodcastList() {
   useEffect(() => {
     let cancelled = false
 
-    fetch(apiUrl('/podcast'))
-      .then((response) => {
-        if (!response.ok) throw new Error(`/podcast responded with ${response.status}`)
-        return response.json() as Promise<PodcastEpisode[]>
-      })
+    apiClient.podcast
+      .list()
       .then((episodes) => {
         if (!cancelled) setState({ status: 'ready', episodes })
       })

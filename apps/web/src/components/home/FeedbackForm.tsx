@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { apiUrl } from '../../lib/api'
+import { apiClient } from '../../lib/api'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -18,16 +18,11 @@ export default function FeedbackForm() {
     setStatus('submitting')
 
     try {
-      const response = await fetch(apiUrl('/feedback'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message,
-          name: name || undefined,
-          email: email || undefined,
-        }),
+      await apiClient.forms.submitFeedback({
+        message,
+        name: name || undefined,
+        email: email || undefined,
       })
-      if (!response.ok) throw new Error(`Unexpected response: ${response.status}`)
 
       setStatus('success')
       setMessage('')

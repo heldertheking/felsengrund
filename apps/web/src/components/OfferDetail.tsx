@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import { apiUrl } from '../lib/api'
-import { CATEGORY_LABELS, type OfferDetailResponse } from '../lib/types'
+import {useEffect, useState} from 'react'
+import {apiClient} from '../lib/api'
+import {CATEGORY_DETAILS, type OfferDetailResponse} from '@felsengrund/types'
 
 type State =
   | { status: 'loading' }
@@ -27,12 +27,8 @@ export default function OfferDetail() {
 
     let cancelled = false
 
-    fetch(apiUrl(`/offers/${slug}`))
-      .then(async (response) => {
-        if (response.status === 404) return null
-        if (!response.ok) throw new Error(`/offers/${slug} responded with ${response.status}`)
-        return (await response.json()) as OfferDetailResponse
-      })
+    apiClient.offers
+      .get(slug)
       .then((offer) => {
         if (cancelled) return
         if (!offer) setState({ status: 'not-found' })
@@ -58,7 +54,7 @@ export default function OfferDetail() {
         <h1 className="font-display text-3xl font-bold text-kf-ink">Angebot nicht gefunden</h1>
         <p className="mt-4 text-kf-ink-muted">
           Dieses Angebot existiert nicht (mehr). Schau dir{' '}
-          <a href="/angebote" className="text-kf-accent hover:underline">
+            <a href="/angebote" className="text-kf-accent underline underline-offset-2">
             alle Angebote
           </a>{' '}
           an.
@@ -87,9 +83,9 @@ export default function OfferDetail() {
         />
       )}
       <p className="font-display text-sm font-semibold uppercase tracking-wide text-kf-accent">
-        {CATEGORY_LABELS[offer.data.category]}
+        {CATEGORY_DETAILS[offer.data.category].label}
       </p>
-      <h1 className="mt-2 break-words font-display text-4xl font-bold text-kf-ink">{offer.data.title}</h1>
+        <h1 className="mt-2 wrap-break-word font-display text-4xl font-bold text-kf-ink">{offer.data.title}</h1>
       {offer.data.intro && <p className="mt-4 text-lg text-kf-ink-muted">{offer.data.intro}</p>}
 
       <dl className="mt-8 grid grid-cols-1 gap-4 rounded-xl border border-kf-edge bg-kf-surface-sunken p-6 sm:grid-cols-2">
@@ -104,7 +100,7 @@ export default function OfferDetail() {
             <dt className="text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">Ort</dt>
             <dd className="mt-1 text-sm text-kf-ink">
               {offer.data.mapsLink ? (
-                <a href={offer.data.mapsLink} className="text-kf-accent hover:underline">
+                  <a href={offer.data.mapsLink} className="text-kf-accent underline underline-offset-2">
                   {offer.data.location}
                 </a>
               ) : (
@@ -134,15 +130,24 @@ export default function OfferDetail() {
           <p className="font-display text-sm font-semibold text-kf-ink">Ansprechpersonen</p>
           <ul className="mt-3 space-y-2">
             {offer.data.organizers.map((person, index) => (
-              <li key={index} className="break-words text-sm text-kf-ink-muted">
+                <li key={index} className="wrap-break-word text-sm text-kf-ink-muted">
                 <span className="font-medium text-kf-ink">{person.name}</span>
-                {person.role && <> — {person.role}</>}
+                    {person.role && <> - {person.role}</>}
                 {person.contact && <> · {person.contact}</>}
               </li>
             ))}
           </ul>
         </div>
       )}
+        <p className="mt-10 text-sm text-kf-ink-muted">
+            Bei Fragen melde dich gerne über das{' '}
+            <a
+                href={`/kontakt?subject=${encodeURIComponent(`Frage(n) bezüglich ${offer.data.title}`)}`}
+                className="text-kf-accent underline underline-offset-2"
+            >
+                Kontaktformular
+            </a>
+        </p>
     </div>
   )
 }

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { apiUrl } from '../lib/api'
-import type { PodcastDetailResponse } from '../lib/types'
+import { apiClient } from '../lib/api'
+import type { EpisodeDetailResponse } from '@felsengrund/types'
 
 type State =
   | { status: 'loading' }
   | { status: 'not-found' }
   | { status: 'error' }
-  | { status: 'ready'; episode: PodcastDetailResponse }
+  | { status: 'ready'; episode: EpisodeDetailResponse }
 
 function currentSlug(): string {
   // See OfferDetail.tsx's currentSlug for why this guards against a server-render pass.
@@ -27,12 +27,8 @@ export default function PodcastDetail() {
 
     let cancelled = false
 
-    fetch(apiUrl(`/podcast/${slug}`))
-      .then(async (response) => {
-        if (response.status === 404) return null
-        if (!response.ok) throw new Error(`/podcast/${slug} responded with ${response.status}`)
-        return (await response.json()) as PodcastDetailResponse
-      })
+    apiClient.podcast
+      .get(slug)
       .then((episode) => {
         if (cancelled) return
         if (!episode) setState({ status: 'not-found' })
@@ -58,7 +54,7 @@ export default function PodcastDetail() {
         <h1 className="font-display text-3xl font-bold text-kf-ink">Episode nicht gefunden</h1>
         <p className="mt-4 text-kf-ink-muted">
           Diese Episode existiert nicht (mehr). Schau dir{' '}
-          <a href="/podcast" className="text-kf-accent hover:underline">
+          <a href="/podcast" className="text-kf-accent underline underline-offset-2">
             alle Episoden
           </a>{' '}
           an.
@@ -103,6 +99,16 @@ export default function PodcastDetail() {
         className="prose prose-neutral mt-10 max-w-none"
         dangerouslySetInnerHTML={{ __html: episode.bodyHtml }}
       />
+
+      <p className="mt-10 text-sm text-kf-ink-muted">
+        Bei Fragen zu dieser Episode melde dich gerne über das{' '}
+        <a
+          href={`/kontakt?subject=${encodeURIComponent(`Frage zu Podcast episode ${episode.data.title}`)}`}
+          className="text-kf-accent underline underline-offset-2"
+        >
+          Kontaktformular
+        </a>
+      </p>
     </article>
   )
 }

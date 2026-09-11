@@ -43,7 +43,7 @@ wrangler secret put N8N_WEBHOOK_SECRET
   model — there is no cookie anymore, since the admin UI is served from a different origin
   than the API).
 - **`N8N_WEBHOOK_SECRET`** — HMAC-SHA256 key used to authenticate outgoing webhook calls to
-  n8n on form submission (`packages/shared/src/notify.ts`).
+  n8n on form submission (`packages/api-core/src/notify.ts`).
 
 For local development, copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars`.
 

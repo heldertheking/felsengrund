@@ -9,7 +9,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@felsengrund/shared": "*",
+    "@felsengrund/api-core": "*",
+    "@felsengrund/types": "*",
+    "@felsengrund/logger": "*",
     "hono": "^4.6.14"
   },
   "devDependencies": {

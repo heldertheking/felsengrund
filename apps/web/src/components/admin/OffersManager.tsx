@@ -1,14 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { adminFetch, apiUrl } from '../../lib/api'
-import type { Offer, OfferData, OfferOrganizer } from '../../lib/types'
+import { apiClient } from '../../lib/api'
+import { CATEGORY_DETAILS, UnauthorizedError, type Offer, type OfferFrontmatter, type OfferOrganizer } from '@felsengrund/types'
 
-const CATEGORIES: { value: OfferData['category']; label: string }[] = [
-  { value: 'gottesdienst', label: 'Gottesdienst' },
-  { value: 'kinder-jugend', label: 'Kinder & Jugend' },
-  { value: 'gemeinschaft', label: 'Gemeinschaft' },
-  { value: 'senioren', label: 'Senioren' },
-  { value: 'hilfe-service', label: 'Hilfe & Service' },
-]
+const CATEGORIES: { value: OfferFrontmatter['category']; label: string }[] = Object.entries(CATEGORY_DETAILS)
+  .sort((a, b) => a[1].index - b[1].index)
+  .map(([value, details]) => ({ value: value as OfferFrontmatter['category'], label: details.label }))
 
 const inputClass =
   'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent'
@@ -26,8 +22,8 @@ export default function OffersManager({ onUnauthorized }: Props) {
   const [listError, setListError] = useState<string | null>(null)
 
   function reload() {
-    fetch(apiUrl('/offers'))
-      .then((r) => r.json() as Promise<Offer[]>)
+    apiClient.offers
+      .list()
       .then(setOffers)
       .catch(() => setListError('Angebote konnten nicht geladen werden.'))
   }
@@ -107,11 +103,10 @@ function DeleteButton({
     if (!confirm('Dieses Angebot wirklich löschen?')) return
     setBusy(true)
     try {
-      const response = await adminFetch(`/admin/offers/${slug}`, { method: 'DELETE' })
-      if (response.status === 401) return onUnauthorized()
-      if (!response.ok) throw new Error(`Fehler ${response.status}`)
+      await apiClient.offers.delete(slug)
       onDeleted()
     } catch (err) {
+      if (err instanceof UnauthorizedError) return onUnauthorized()
       alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.')
     } finally {
       setBusy(false)
@@ -142,7 +137,7 @@ function OfferForm({
   const isEdit = offer !== null
   const [title, setTitle] = useState(offer?.data.title ?? '')
   const [intro, setIntro] = useState(offer?.data.intro ?? '')
-  const [category, setCategory] = useState<OfferData['category']>(offer?.data.category ?? 'gottesdienst')
+  const [category, setCategory] = useState<OfferFrontmatter['category']>(offer?.data.category ?? 'gottesdienst')
   const [targetAudience, setTargetAudience] = useState(offer?.data.targetAudience ?? '')
   const [schedule, setSchedule] = useState(offer?.data.schedule ?? '')
   const [location, setLocation] = useState(offer?.data.location ?? '')
@@ -164,28 +159,28 @@ function OfferForm({
     setSubmitting(true)
 
     try {
-      const formData = new FormData()
-      if (isEdit) formData.set('slug', offer.slug)
-      formData.set('title', title)
-      formData.set('intro', intro)
-      formData.set('category', category)
-      formData.set('targetAudience', targetAudience)
-      formData.set('schedule', schedule)
-      formData.set('location', location)
-      formData.set('mapsLink', mapsLink)
-      formData.set('registration', registration)
-      formData.set('organizers', JSON.stringify(organizers.filter((o) => o.name.trim())))
-      formData.set('body', body)
-      if (cardImage) formData.set('cardImage', cardImage)
+      const input = {
+        title,
+        intro,
+        category,
+        targetAudience,
+        schedule,
+        location,
+        mapsLink,
+        registration,
+        organizers: organizers.filter((o) => o.name.trim()),
+        body,
+        cardImage: cardImage ?? undefined,
+      }
 
-      const response = await adminFetch('/admin/offers', { method: 'POST', body: formData })
-      if (response.status === 401) return onUnauthorized()
-      if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as { error?: string } | null
-        throw new Error(data?.error ?? `Fehler ${response.status}`)
+      if (isEdit) {
+        await apiClient.offers.update(offer.slug, input)
+      } else {
+        await apiClient.offers.create(input)
       }
       onDone()
     } catch (err) {
+      if (err instanceof UnauthorizedError) return onUnauthorized()
       setStatus(err instanceof Error ? err.message : 'Da ist etwas schiefgelaufen.')
       setSubmitting(false)
     }
@@ -219,7 +214,7 @@ function OfferForm({
 
       <div>
         <label className={labelClass}>Kategorie</label>
-        <select value={category} onChange={(e) => setCategory(e.target.value as OfferData['category'])} className={inputClass}>
+        <select value={category} onChange={(e) => setCategory(e.target.value as OfferFrontmatter['category'])} className={inputClass}>
           {CATEGORIES.map((c) => (
             <option key={c.value} value={c.value}>
               {c.label}

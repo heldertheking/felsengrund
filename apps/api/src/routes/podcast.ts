@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { getPodcastEpisode, listPodcastEpisodes, renderMarkdoc } from '@felsengrund/shared'
+import { getPodcastEpisode, listPodcastEpisodes, renderMarkdoc } from '@felsengrund/api-core'
 import type { Env } from '../types'
 import { rewriteMediaUrls } from '../lib/media-url'
 

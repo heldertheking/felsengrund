@@ -1,11 +1,12 @@
 import { Hono } from 'hono'
-import { sendNotification } from '@felsengrund/shared'
+import { sendNotification } from '@felsengrund/api-core'
+import type { ContactInput, CounselingInput, FeedbackInput, PrayerRequestInput } from '@felsengrund/types'
 import type { Env } from '../types'
 
 export const formsRoute = new Hono<{ Bindings: Env }>()
 
 formsRoute.post('/contact', async (c) => {
-  const body = (await c.req.json()) as Record<string, string>
+  const body = (await c.req.json()) as Partial<ContactInput>
 
   if (!body.name || !body.email || !body.subject || !body.message) {
     return c.json({ error: 'Fehlende Angaben.' }, 400)
@@ -22,7 +23,7 @@ formsRoute.post('/contact', async (c) => {
 })
 
 formsRoute.post('/counseling', async (c) => {
-  const body = (await c.req.json()) as Record<string, string>
+  const body = (await c.req.json()) as Partial<CounselingInput>
 
   if (!body.name || !body.email || !body.subject || !body.message) {
     return c.json({ error: 'Fehlende Angaben.' }, 400)
@@ -42,7 +43,7 @@ formsRoute.post('/counseling', async (c) => {
 })
 
 formsRoute.post('/feedback', async (c) => {
-  const body = (await c.req.json()) as Record<string, string | undefined>
+  const body = (await c.req.json()) as Partial<FeedbackInput>
 
   if (!body.message) {
     return c.json({ error: 'Fehlende Angaben.' }, 400)
@@ -58,15 +59,15 @@ formsRoute.post('/feedback', async (c) => {
 })
 
 formsRoute.post('/prayer-request', async (c) => {
-  const body = (await c.req.json()) as Record<string, string | boolean | undefined>
+  const body = (await c.req.json()) as Partial<PrayerRequestInput>
 
-  if (!body.topic || !body.displayName || !body.description) {
+  if (!body.topic || !body.description) {
     return c.json({ error: 'Fehlende Angaben.' }, 400)
   }
 
   await sendNotification(c.env, 'prayer-request', {
     topic: String(body.topic),
-    displayName: String(body.displayName),
+    displayName: body.displayName ? String(body.displayName) : 'Anonym',
     description: String(body.description),
     email: body.email ? String(body.email) : undefined,
   })

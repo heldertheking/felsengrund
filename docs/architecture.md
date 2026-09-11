@@ -21,7 +21,7 @@ frontmatter block followed by a Markdoc body, in the same format the original
 Keystatic-managed `.mdoc` files used. There is no `src/content/` collection anymore —
 these documents live as objects in the `STORAGE` R2 bucket, and are read at request time.
 
-All of this logic lives in `packages/shared/src/admin-content.ts`, which every route in
+All of this logic lives in `packages/api-core/src/admin-content.ts`, which every route in
 `apps/api` uses to read/write offers and podcast episodes — `apps/web` never touches R2
 directly, it only ever sees the JSON `apps/api` returns. Key shapes:
 
@@ -136,7 +136,7 @@ relative same-origin `fetch` with `credentials: 'same-origin'`.
 
 ### Auth model
 
-`packages/shared/src/admin-auth.ts` implements a stateless, signed **bearer token** — no KV,
+`packages/api-core/src/admin-auth.ts` implements a stateless, signed **bearer token** — no KV,
 no database. This replaced the original signed-cookie session once the admin UI and the API
 became different origins: cookies scoped `SameSite=Strict`/`Lax` are never sent cross-site at
 all, and relaxing to `SameSite=None` would trade that for third-party-cookie fragility with

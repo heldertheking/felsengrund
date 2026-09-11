@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { apiUrl } from '../../lib/api'
-import { CATEGORY_ORDER, type Offer } from '../../lib/types'
+import { apiClient } from '../../lib/api'
+import { CATEGORY_DETAILS, type Offer } from '@felsengrund/types'
 
 type State = { status: 'loading' } | { status: 'error' } | { status: 'ready'; offers: Offer[] }
 
@@ -10,11 +10,8 @@ export default function AngeboteTeaser() {
   useEffect(() => {
     let cancelled = false
 
-    fetch(apiUrl('/offers'))
-      .then((response) => {
-        if (!response.ok) throw new Error(`/offers responded with ${response.status}`)
-        return response.json() as Promise<Offer[]>
-      })
+    apiClient.offers
+      .list()
       .then((offers) => {
         if (!cancelled) setState({ status: 'ready', offers })
       })
@@ -32,7 +29,7 @@ export default function AngeboteTeaser() {
     state.status === 'ready'
       ? state.offers
           .slice()
-          .sort((a, b) => CATEGORY_ORDER.indexOf(a.data.category) - CATEGORY_ORDER.indexOf(b.data.category))
+          .sort((a, b) => CATEGORY_DETAILS[a.data.category].index - CATEGORY_DETAILS[b.data.category].index)
           .slice(0, 4)
       : []
 

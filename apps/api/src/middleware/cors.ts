@@ -15,7 +15,7 @@ function originMatches(pattern: string, origin: string): boolean {
 }
 
 /**
- * CORS for a bearer-token API: no cookies are ever involved (see packages/shared/src/admin-auth.ts),
+ * CORS for a bearer-token API: no cookies are ever involved (see packages/api-core/src/admin-auth.ts),
  * so there's no need for Access-Control-Allow-Credentials — just an explicit origin allowlist
  * (never `*`, since form/admin routes accept POST with user data) and the headers our clients
  * actually send.

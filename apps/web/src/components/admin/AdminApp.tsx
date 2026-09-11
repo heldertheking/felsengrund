@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { apiUrl, clearAdminToken, getAdminToken, setAdminToken } from '../../lib/api'
+import { apiClient, clearAdminToken, getAdminToken, setAdminToken } from '../../lib/api'
 import OffersManager from './OffersManager'
 import PodcastManager from './PodcastManager'
 
@@ -16,16 +16,8 @@ function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
     setError(null)
 
     try {
-      const formData = new FormData()
-      formData.set('password', password)
-      const response = await fetch(apiUrl('/admin/login'), { method: 'POST', body: formData })
-      const data = (await response.json().catch(() => null)) as { token?: string; error?: string } | null
-
-      if (!response.ok || !data?.token) {
-        throw new Error(data?.error ?? `Fehler ${response.status}`)
-      }
-
-      setAdminToken(data.token)
+      const token = await apiClient.admin.login(password)
+      setAdminToken(token)
       onLoggedIn()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Anmeldung fehlgeschlagen.')

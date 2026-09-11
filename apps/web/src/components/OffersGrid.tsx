@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { apiUrl } from '../lib/api'
-import { CATEGORY_LABELS, CATEGORY_ORDER, type Offer } from '../lib/types'
+import { apiClient } from '../lib/api'
+import { CATEGORY_DETAILS, type Offer } from '@felsengrund/types'
 
 type State = { status: 'loading' } | { status: 'error' } | { status: 'ready'; offers: Offer[] }
 
@@ -10,11 +10,8 @@ export default function OffersGrid() {
   useEffect(() => {
     let cancelled = false
 
-    fetch(apiUrl('/offers'))
-      .then((response) => {
-        if (!response.ok) throw new Error(`/offers responded with ${response.status}`)
-        return response.json() as Promise<Offer[]>
-      })
+    apiClient.offers
+      .list()
       .then((offers) => {
         if (!cancelled) setState({ status: 'ready', offers })
       })
@@ -44,14 +41,16 @@ export default function OffersGrid() {
 
   return (
     <>
-      {CATEGORY_ORDER.map((category) => {
+      {Object.entries(CATEGORY_DETAILS)
+        .sort((a, b) => a[1].index - b[1].index)
+        .map(([category, details]) => {
         const items = offers.filter((offer) => offer.data.category === category)
         const isHilfeService = category === 'hilfe-service'
         if (items.length === 0 && !isHilfeService) return null
 
         return (
           <div key={category} className="mt-12 first:mt-0">
-            <h2 className="font-display text-xl font-semibold text-kf-accent">{CATEGORY_LABELS[category]}</h2>
+            <h2 className="font-display text-xl font-semibold text-kf-accent">{details.label}</h2>
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((offer) => (
                 <a

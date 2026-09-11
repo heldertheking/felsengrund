@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { adminFetch, apiUrl } from '../../lib/api'
-import type { PodcastEpisode } from '../../lib/types'
+import { apiClient } from '../../lib/api'
+import { UnauthorizedError, type Episode } from '@felsengrund/types'
 
 const inputClass =
   'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent'
@@ -12,16 +12,16 @@ interface Props {
   onUnauthorized: () => void
 }
 
-type Mode = { view: 'list' } | { view: 'form'; episode: PodcastEpisode | null }
+type Mode = { view: 'list' } | { view: 'form'; episode: Episode | null }
 
 export default function PodcastManager({ onUnauthorized }: Props) {
-  const [episodes, setEpisodes] = useState<PodcastEpisode[] | null>(null)
+  const [episodes, setEpisodes] = useState<Episode[] | null>(null)
   const [mode, setMode] = useState<Mode>({ view: 'list' })
   const [listError, setListError] = useState<string | null>(null)
 
   function reload() {
-    fetch(apiUrl('/podcast'))
-      .then((r) => r.json() as Promise<PodcastEpisode[]>)
+    apiClient.podcast
+      .list()
       .then(setEpisodes)
       .catch(() => setListError('Episoden konnten nicht geladen werden.'))
   }
@@ -101,11 +101,10 @@ function DeleteButton({
     if (!confirm('Diese Episode wirklich löschen?')) return
     setBusy(true)
     try {
-      const response = await adminFetch(`/admin/podcast/${slug}`, { method: 'DELETE' })
-      if (response.status === 401) return onUnauthorized()
-      if (!response.ok) throw new Error(`Fehler ${response.status}`)
+      await apiClient.podcast.delete(slug)
       onDeleted()
     } catch (err) {
+      if (err instanceof UnauthorizedError) return onUnauthorized()
       alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.')
     } finally {
       setBusy(false)
@@ -129,7 +128,7 @@ function PodcastForm({
   onDone,
   onUnauthorized,
 }: {
-  episode: PodcastEpisode | null
+  episode: Episode | null
   onDone: () => void
   onUnauthorized: () => void
 }) {
@@ -150,24 +149,31 @@ function PodcastForm({
     setSubmitting(true)
 
     try {
-      const formData = new FormData()
-      if (isEdit) formData.set('slug', episode.slug)
-      formData.set('title', title)
-      formData.set('publishDate', publishDate)
-      if (episodeNumber) formData.set('episodeNumber', episodeNumber)
-      formData.set('duration', duration)
-      formData.set('body', body)
-      if (audio) formData.set('audio', audio)
-      if (coverImage) formData.set('coverImage', coverImage)
-
-      const response = await adminFetch('/admin/podcast', { method: 'POST', body: formData })
-      if (response.status === 401) return onUnauthorized()
-      if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as { error?: string } | null
-        throw new Error(data?.error ?? `Fehler ${response.status}`)
+      if (isEdit) {
+        await apiClient.podcast.update(episode.slug, {
+          title,
+          publishDate,
+          episodeNumber: episodeNumber ? Number(episodeNumber) : undefined,
+          duration,
+          body,
+          audio: audio ?? undefined,
+          coverImage: coverImage ?? undefined,
+        })
+      } else {
+        if (!audio) throw new Error('Bitte eine Audiodatei auswählen.')
+        await apiClient.podcast.create({
+          title,
+          publishDate,
+          episodeNumber: episodeNumber ? Number(episodeNumber) : undefined,
+          duration,
+          body,
+          audio,
+          coverImage: coverImage ?? undefined,
+        })
       }
       onDone()
     } catch (err) {
+      if (err instanceof UnauthorizedError) return onUnauthorized()
       setStatus(err instanceof Error ? err.message : 'Da ist etwas schiefgelaufen.')
       setSubmitting(false)
     }
@@ -226,7 +232,7 @@ function PodcastForm({
         {episode?.data.audioUrl && (
           <p className="mt-1 text-xs text-kf-ink-muted">
             Aktuelle Datei:{' '}
-            <a href={episode.data.audioUrl} className="text-kf-accent hover:underline" target="_blank" rel="noreferrer">
+            <a href={episode.data.audioUrl} className="text-kf-accent underline underline-offset-2" target="_blank" rel="noreferrer">
               anhören
             </a>
           </p>

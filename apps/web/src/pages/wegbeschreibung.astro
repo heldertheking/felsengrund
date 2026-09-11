@@ -36,7 +36,7 @@ const mapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${
 
     <p class="mt-8 text-sm text-kf-ink-muted">
       Fragen zur Anreise oder zu Parkmöglichkeiten? Melde dich einfach direkt über unsere{' '}
-      <a href="/kontakt" class="text-kf-accent hover:underline">Kontaktseite</a>.
+      <a href={`/kontakt?subject=${encodeURIComponent('Frage(n) bezüglich Anreise')}`} class="text-kf-accent underline underline-offset-2">Kontaktseite</a>.
     </p>
    </div>
   </section>

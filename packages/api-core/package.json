@@ -1,5 +1,5 @@
 {
-  "name": "@felsengrund/shared",
+  "name": "@felsengrund/api-core",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@felsengrund/types": "*",
     "@markdoc/markdoc": "^0.5.9",
     "yaml": "^2.9.0"
   },

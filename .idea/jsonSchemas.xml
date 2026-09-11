@@ -39,6 +39,15 @@
                   <Item>
                     <option name="path" value="apps/web/package.json" />
                   </Item>
+                  <Item>
+                    <option name="path" value="packages/types/package.json" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="packages/api-core/package.json" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="packages/logger/package.json" />
+                  </Item>
                 </list>
               </option>
             </SchemaInfo>

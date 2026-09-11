@@ -1,6 +1,6 @@
 import type {FormEvent} from 'react'
 import {useState} from 'react'
-import {apiUrl} from '../../lib/api'
+import {apiClient} from '../../lib/api'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -21,17 +21,12 @@ export default function PrayerWallForm() {
     setStatus('submitting')
 
     try {
-      const response = await fetch(apiUrl('/prayer-request'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic,
-          displayName,
-          description,
-          email: email || undefined,
-        }),
+      await apiClient.forms.submitPrayerRequest({
+        topic,
+        displayName: displayName || undefined,
+        description,
+        email: email || undefined,
       })
-      if (!response.ok) throw new Error(`Unexpected response: ${response.status}`)
 
       setStatus('success')
       setTopic('')
@@ -69,12 +64,12 @@ export default function PrayerWallForm() {
 
       <div>
         <label htmlFor="pw-name" className="block text-sm font-medium text-kf-ink">
-          Wie möchtest du genannt werden? *
+          Wie möchtest du genannt werden?{' '}
+          <span className="text-xs font-normal text-kf-ink-muted">(optional, lass das Feld leer, um anonym zu bleiben)</span>
         </label>
         <input
           id="pw-name"
           type="text"
-          required
           placeholder="z. B. dein Vorname oder anonym"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}

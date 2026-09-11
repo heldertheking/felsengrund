@@ -32,13 +32,13 @@ const agenda: AgendaItem[] = [
   {
     title: 'Smallgroups / Hauskreise',
     cadence: 'Termin bitte anfragen',
-    link: '/kontakt'
+    link: `/kontakt?subject=${encodeURIComponent('Terminanfrage Smallgroups / Hauskreise')}`
   },
   {
     title: 'Biblischer Unterricht',
     cadence: 'Termin bitte anfragen',
     note: 'Offen für alle Jugendlichen, unabhängig von der Kirchenzugehörigkeit.',
-    link: '/kontakt'
+    link: `/kontakt?subject=${encodeURIComponent('Terminanfrage Biblischer Unterricht')}`
   },
   {
     title: 'Senioren',
@@ -65,7 +65,8 @@ const agenda: AgendaItem[] = [
     <h1 class="font-display text-4xl font-bold text-kf-ink sm:text-5xl">Agenda</h1>
     <p class="mt-4 max-w-2xl text-lg text-kf-ink-muted">
       Eine Übersicht unserer regelmäßigen Termine. Für saisonale Veranstaltungen und Ausnahmen
-      empfehlen wir, direkt bei uns <a href="/kontakt">nachzufragen</a>.
+      empfehlen wir, direkt bei uns{' '}
+      <a href={`/kontakt?subject=${encodeURIComponent('Frage(n) bezüglich Termine')}`} class="text-kf-accent underline underline-offset-2">nachzufragen</a>.
     </p>
 
     {calendarEmbedUrl ? (

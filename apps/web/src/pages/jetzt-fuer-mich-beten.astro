@@ -36,12 +36,12 @@ import FormStatus from '../components/hilfe/FormStatus.astro'
         />
       </FormField>
 
-      <FormField label="Wie möchtest du genannt werden?" name="displayName" required>
+      <FormField label="Wie möchtest du genannt werden?" name="displayName" hint="Lass das Feld leer, um anonym zu bleiben.">
         <input
           type="text"
           id="displayName"
           name="displayName"
-          required
+          placeholder="z. B. dein Vorname oder anonym"
           class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 lg:py-2 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
         />
       </FormField>
@@ -81,7 +81,8 @@ import FormStatus from '../components/hilfe/FormStatus.astro'
 </BaseLayout>
 
 <script>
-  import { apiUrl } from '../lib/api'
+  import { apiClient } from '../lib/api'
+  import type { PrayerRequestInput } from '@felsengrund/types'
 
   const form = document.querySelector('#prayer-request-form')
   const status = document.querySelector('#prayer-request-status')
@@ -98,13 +99,7 @@ import FormStatus from '../components/hilfe/FormStatus.astro'
     if (submitButton instanceof HTMLButtonElement) submitButton.disabled = true
 
     try {
-      const response = await fetch(apiUrl('/prayer-request'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-
-      if (!response.ok) throw new Error(`Unexpected status ${response.status}`)
+      await apiClient.forms.submitPrayerRequest(payload as unknown as PrayerRequestInput)
 
       status.textContent = 'Danke! Dein Anliegen ist bei uns angekommen – wir beten für dich.'
       status.dataset.state = 'success'

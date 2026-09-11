@@ -19,9 +19,13 @@ a traditional client/API split rather than a single server-rendered app:
   podcast content backed by [Cloudflare R2](https://developers.cloudflare.com/r2/), media
   streaming, and the admin CMS's backend (bearer-token auth, not cookies — see
   [`docs/architecture.md`](./docs/architecture.md)).
-- **`packages/shared`** — plain TypeScript used by `apps/api`: R2-backed content access
+- **`packages/types`** — shared TypeScript types (offers, podcast episodes, nav, admin,
+  forms) used by both `apps/web` and `apps/api` so the two halves agree on shapes.
+- **`packages/api-core`** — plain TypeScript used by `apps/api`: R2-backed content access
   (Markdoc-rendered offers/podcast episodes), the n8n webhook relay, and the admin
   bearer-token auth.
+- **`packages/logger`** — a tiny leveled console logger shared by `apps/api` (and available
+  to `apps/web`) for consistent, namespaced log output.
 
 Tailwind CSS v4 and React (`@astrojs/react`) are used in `apps/web` for interactive islands
 — form components, and the client-fetch-driven offers/podcast/admin views — rather than for
@@ -44,7 +48,7 @@ two secrets (see `apps/api/.dev.vars.example` for the authoritative list and inl
 
 - `ADMIN_UPLOAD_PASSWORD` — the password that gates the `/admin` content panel locally.
 - `N8N_WEBHOOK_SECRET` — the HMAC signing secret used to authenticate the site's outgoing
-  form-submission webhook calls to n8n (see `packages/shared/src/notify.ts`).
+  form-submission webhook calls to n8n (see `packages/api-core/src/notify.ts`).
 
 ### npm scripts (run from the repo root)
 

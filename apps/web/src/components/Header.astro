@@ -156,7 +156,8 @@ const secondaryLinks = [
 </style>
 
 <script>
-  import { apiUrl } from '../lib/api'
+  import { apiClient } from '../lib/api';
+  import type { NavGroup } from '@felsengrund/types';
 
   const trigger = document.querySelector<HTMLButtonElement>('[data-mobile-trigger]')
   const panel = document.querySelector<HTMLElement>('[data-mobile-panel]')
@@ -189,11 +190,6 @@ const secondaryLinks = [
 
   // The "Angebote" groups reflect live content, so they're fetched client-side from the
   // Worker API (cross-origin) rather than baked into the page at build time.
-  interface OfferNavGroup {
-    label: string
-    links: { label: string; href: string }[]
-  }
-
   const desktopOfferGroups = document.querySelector<HTMLElement>('[data-offer-groups]')
 
   const escapeHtml = (value: string) =>
@@ -204,12 +200,9 @@ const secondaryLinks = [
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;')
 
-  fetch(apiUrl('/nav'))
-    .then((response) => {
-      if (!response.ok) throw new Error(`/nav responded with ${response.status}`)
-      return response.json() as Promise<OfferNavGroup[]>
-    })
-    .then((groups) => {
+  apiClient.nav
+    .list()
+    .then((groups: NavGroup[]) => {
       if (desktopOfferGroups) {
         desktopOfferGroups.innerHTML = groups
           .map(
