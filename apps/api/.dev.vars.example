@@ -13,3 +13,6 @@ PUBLIC_WORKER_ORIGIN=http://localhost:8787
 # authenticates the request. Configure n8n's Webhook node to recompute the HMAC-SHA256 of the
 # raw request body using this same secret and compare it (constant-time) against the
 # X-Webhook-Signature header before trusting the payload.
+
+# Webpage url
+PUBLIC_WEB_URL=http://localhost:4321
