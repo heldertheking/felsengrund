@@ -5,4 +5,5 @@ export interface Env {
   ADMIN_UPLOAD_PASSWORD?: string
   PUBLIC_WORKER_ORIGIN: string
   ALLOWED_ORIGINS: string
+  PUBLIC_WEB_URL: string
 }
