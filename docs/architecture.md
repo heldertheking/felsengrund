@@ -121,7 +121,7 @@ All requiring a valid bearer token except login:
 
 | Route                  | Method | Purpose                                                                                                              |
 | ---------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
-| `/admin/login`         | POST   | Checks the submitted password against `ADMIN_UPLOAD_PASSWORD`; on success returns `{ token }`                        |
+| `/admin/login`         | POST   | Checks the submitted password against `KFA_ADMIN_PASSWORD`; on success returns `{ token }`                        |
 | `/admin/logout`        | POST   | Stateless no-op (kept for symmetry/future revocation) — the frontend just discards its stored token                  |
 | `/admin/offers`        | POST   | Creates or updates an offer (multipart form; handles the optional `cardImage` upload)                                |
 | `/admin/offers/:slug`  | DELETE | Deletes an offer                                                                                                     |
@@ -144,10 +144,10 @@ no real benefit, so a token the frontend attaches explicitly is the simpler fit 
 cross-origin client/API split. The flow:
 
 1. The admin submits the password to `POST /admin/login` on `apps/api`.
-2. The server compares it to the `ADMIN_UPLOAD_PASSWORD` secret. On success it returns a
+2. The server compares it to the `KFA_ADMIN_PASSWORD` secret. On success it returns a
    JSON body `{ token }`, where the token string is `<expiry-timestamp>.<HMAC-SHA256
 signature>`, the signature computed over the expiry timestamp using
-   `ADMIN_UPLOAD_PASSWORD` itself as the HMAC key (12-hour expiry).
+   `KFA_ADMIN_PASSWORD` itself as the HMAC key (12-hour expiry).
 3. `AdminApp.tsx` stores that token in `localStorage` and sends it as
    `Authorization: Bearer <token>` on every subsequent `/admin/*` call. `apps/api`'s
    `requireAuth` middleware re-verifies it by recomputing the HMAC and comparing it (in
@@ -155,10 +155,10 @@ signature>`, the signature computed over the expiry timestamp using
    server-side — the token is self-contained proof that the holder once knew the password,
    within the last 12 hours.
 
-Because the signing key is the password itself, rotating `ADMIN_UPLOAD_PASSWORD` (via
+Because the signing key is the password itself, rotating `KFA_ADMIN_PASSWORD` (via
 `wrangler secret put`, see [`docs/deployment.md`](./deployment.md)) immediately invalidates
 all existing sessions, with no separate revocation step needed.
 
-`ADMIN_UPLOAD_PASSWORD` is the single password for the entire admin panel — it is not
+`KFA_ADMIN_PASSWORD` is the single password for the entire admin panel — it is not
 scoped separately per section, and (despite its name, a holdover from when it only gated
 audio upload) it now gates offers, podcast episodes, and all admin uploads together.

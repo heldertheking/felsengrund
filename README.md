@@ -46,7 +46,7 @@ npm run dev:web    # starts apps/web's Astro dev server
 `apps/api/.dev.vars` is gitignored and read automatically by Wrangler's dev server. It holds
 two secrets (see `apps/api/.dev.vars.example` for the authoritative list and inline notes):
 
-- `ADMIN_UPLOAD_PASSWORD` — the password that gates the `/admin` content panel locally.
+- `KFA_ADMIN_PASSWORD` — the password that gates the `/admin` content panel locally.
 - `N8N_WEBHOOK_SECRET` — the HMAC signing secret used to authenticate the site's outgoing
   form-submission webhook calls to n8n (see `packages/api-core/src/notify.ts`).
 

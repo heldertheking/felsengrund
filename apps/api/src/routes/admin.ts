@@ -31,7 +31,7 @@ const logger = createLogger('admin');
 
 const requireAuth: MiddlewareHandler<{ Bindings: Env }> = async (c, next) => {
   const token = parseBearerToken(c.req.header('authorization'));
-  const authenticated = await verifySessionToken(token, c.env.ADMIN_UPLOAD_PASSWORD ?? '');
+  const authenticated = await verifySessionToken(token, c.env.KFA_ADMIN_PASSWORD ?? '');
   if (!authenticated) return c.json({ error: 'Nicht angemeldet.' }, 401);
   await next();
 };
@@ -40,7 +40,7 @@ adminRoute.post('/admin/login', async (c) => {
   const formData = await c.req.formData();
   const password = formData.get('password');
 
-  if (typeof password !== 'string' || !c.env.ADMIN_UPLOAD_PASSWORD || password !== c.env.ADMIN_UPLOAD_PASSWORD) {
+  if (typeof password !== 'string' || !c.env.KFA_ADMIN_PASSWORD || password !== c.env.KFA_ADMIN_PASSWORD) {
     return c.json({ error: 'Falsches Passwort.' }, 401);
   }
 

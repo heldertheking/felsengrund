@@ -38,7 +38,7 @@ wrangler secret put ADMIN_UPLOAD_PASSWORD
 wrangler secret put N8N_WEBHOOK_SECRET
 ```
 
-- **`ADMIN_UPLOAD_PASSWORD`** — gates `/admin/login`, which returns a signed bearer token on
+- **`KFA_ADMIN_PASSWORD`** — gates `/admin/login`, which returns a signed bearer token on
   success (see [`docs/architecture.md`](./architecture.md) for the token-based admin auth
   model — there is no cookie anymore, since the admin UI is served from a different origin
   than the API).
