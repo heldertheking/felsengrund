@@ -1,8 +1,8 @@
-import type {FormEvent} from 'react'
-import {useState} from 'react'
-import {apiClient} from '../../lib/api'
+import type { FormEvent } from 'react';
+import { useState } from 'react';
+import { apiClient } from '../../lib/api';
 
-type Status = 'idle' | 'submitting' | 'success' | 'error'
+type Status = 'idle' | 'submitting' | 'success' | 'error';
 
 /**
  * "Jetzt für mich beten" prayer request form.
@@ -10,15 +10,15 @@ type Status = 'idle' | 'submitting' | 'success' | 'error'
  * used by the dedicated /jetzt-fuer-mich-beten page.
  */
 export default function PrayerWallForm() {
-  const [topic, setTopic] = useState('')
-  const [displayName, setDisplayName] = useState('')
-  const [description, setDescription] = useState('')
-  const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<Status>('idle')
+  const [topic, setTopic] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [description, setDescription] = useState('');
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<Status>('idle');
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setStatus('submitting')
+    event.preventDefault();
+    setStatus('submitting');
 
     try {
       await apiClient.forms.submitPrayerRequest({
@@ -26,15 +26,15 @@ export default function PrayerWallForm() {
         displayName: displayName || undefined,
         description,
         email: email || undefined,
-      })
+      });
 
-      setStatus('success')
-      setTopic('')
-      setDisplayName('')
-      setDescription('')
-      setEmail('')
+      setStatus('success');
+      setTopic('');
+      setDisplayName('');
+      setDescription('');
+      setEmail('');
     } catch {
-      setStatus('error')
+      setStatus('error');
     }
   }
 
@@ -43,11 +43,14 @@ export default function PrayerWallForm() {
       <p className="rounded-lg border border-kf-edge bg-kf-surface p-6 text-kf-ink" role="status">
         Danke für dein Vertrauen. Dein Gebetsanliegen wurde übermittelt.
       </p>
-    )
+    );
   }
 
   return (
-    <form className="space-y-5 rounded-xl border border-kf-edge bg-kf-surface p-6 shadow-sm sm:p-8" onSubmit={handleSubmit}>
+    <form
+      className="space-y-5 rounded-xl border border-kf-edge bg-kf-surface p-6 shadow-sm sm:p-8"
+      onSubmit={handleSubmit}
+    >
       <div>
         <label htmlFor="pw-topic" className="block text-sm font-medium text-kf-ink">
           Um welches Thema geht es? *
@@ -65,7 +68,9 @@ export default function PrayerWallForm() {
       <div>
         <label htmlFor="pw-name" className="block text-sm font-medium text-kf-ink">
           Wie möchtest du genannt werden?{' '}
-          <span className="text-xs font-normal text-kf-ink-muted">(optional, lass das Feld leer, um anonym zu bleiben)</span>
+          <span className="text-xs font-normal text-kf-ink-muted">
+            (optional, lass das Feld leer, um anonym zu bleiben)
+          </span>
         </label>
         <input
           id="pw-name"
@@ -91,18 +96,18 @@ export default function PrayerWallForm() {
         />
       </div>
 
-        <div>
-            <label htmlFor="pw-email" className="block text-sm font-medium text-kf-ink">
-                E-Mail (optional, für Rückmeldungen)
-            </label>
-            <input
-                id="pw-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-            />
-        </div>
+      <div>
+        <label htmlFor="pw-email" className="block text-sm font-medium text-kf-ink">
+          E-Mail (optional, für Rückmeldungen)
+        </label>
+        <input
+          id="pw-email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="mt-1.5 w-full rounded-lg border border-kf-edge px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
+        />
+      </div>
 
       <p className="text-xs text-kf-ink-muted">
         Deine Angaben werden vertraulich behandelt und ausschliesslich für dieses Gebetsanliegen verwendet.
@@ -122,5 +127,5 @@ export default function PrayerWallForm() {
         {status === 'submitting' ? 'Wird gesendet…' : 'Gebetsanliegen senden'}
       </button>
     </form>
-  )
+  );
 }

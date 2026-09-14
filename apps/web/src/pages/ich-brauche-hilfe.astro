@@ -1,13 +1,12 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
-import HilfeHero from '../components/hilfe/HilfeHero.astro'
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HilfeHero from '../components/hilfe/HilfeHero.astro';
 
 const offerings = [
   {
     title: 'Betet für mich',
     href: '/jetzt-fuer-mich-beten',
-    description:
-      'Reiche ein Gebetsanliegen ein - unser Gebetsteam nimmt es vertraulich entgegen und betet für dich.',
+    description: 'Reiche ein Gebetsanliegen ein - unser Gebetsteam nimmt es vertraulich entgegen und betet für dich.',
     cta: 'Jetzt für mich beten',
   },
   {
@@ -17,7 +16,7 @@ const offerings = [
       'Vertrauliches, kostenloses Gespräch mit einer Ansprechperson aus unserer Gemeinde - wir melden uns innerhalb von 48 Stunden bei dir.',
     cta: 'Beratung anfragen',
   },
-]
+];
 ---
 
 <BaseLayout
@@ -57,7 +56,10 @@ const offerings = [
 
     <p class="mt-10 text-sm text-kf-ink-muted">
       Solltest du sonst Gebetsanliegen haben, melde dich bei uns über das{' '}
-      <a href="/jetzt-fuer-mich-beten" class="text-kf-accent underline underline-offset-2">Gebetsanliegen-Formular</a>.
+      <a href="/jetzt-fuer-mich-beten" class="text-kf-accent underline underline-offset-2">
+        Gebetsanliegen-Formular
+      </a>
+      .
     </p>
   </section>
 </BaseLayout>

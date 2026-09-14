@@ -1,41 +1,41 @@
-import { useRef, useState, type ChangeEvent, type SyntheticEvent } from 'react'
+import { useRef, useState, type ChangeEvent, type SyntheticEvent } from 'react';
 
 interface Props {
-  src: string
-  title: string
+  src: string;
+  title: string;
 }
 
 function formatTime(seconds: number): string {
-  if (!Number.isFinite(seconds)) return '0:00'
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.floor(seconds % 60)
-  return `${mins}:${secs.toString().padStart(2, '0')}`
+  if (!Number.isFinite(seconds)) return '0:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 export default function PodcastPlayer({ src, title }: Props) {
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const [playing, setPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [seeking, setSeeking] = useState(false)
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [seeking, setSeeking] = useState(false);
 
   function togglePlay() {
-    const audio = audioRef.current
-    if (!audio) return
-    if (audio.paused) audio.play()
-    else audio.pause()
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) audio.play();
+    else audio.pause();
   }
 
   function handleSeekInput(event: ChangeEvent<HTMLInputElement>) {
-    setSeeking(true)
-    setCurrentTime(Number(event.target.value))
+    setSeeking(true);
+    setCurrentTime(Number(event.target.value));
   }
 
   function commitSeek(event: SyntheticEvent<HTMLInputElement>) {
-    const audio = audioRef.current
-    const value = Number((event.target as HTMLInputElement).value)
-    if (audio) audio.currentTime = value
-    setSeeking(false)
+    const audio = audioRef.current;
+    const value = Number((event.target as HTMLInputElement).value);
+    if (audio) audio.currentTime = value;
+    setSeeking(false);
   }
 
   return (
@@ -48,7 +48,7 @@ export default function PodcastPlayer({ src, title }: Props) {
         onPause={() => setPlaying(false)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
         onTimeUpdate={(e) => {
-          if (!seeking) setCurrentTime(e.currentTarget.currentTime)
+          if (!seeking) setCurrentTime(e.currentTarget.currentTime);
         }}
         onEnded={() => setPlaying(false)}
         className="hidden"
@@ -91,5 +91,5 @@ export default function PodcastPlayer({ src, title }: Props) {
         </div>
       </div>
     </div>
-  )
+  );
 }

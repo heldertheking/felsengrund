@@ -1,19 +1,22 @@
 ---
 interface Props {
-  label: string
-  name: string
-  required?: boolean
-  hint?: string
+  label: string;
+  name: string;
+  required?: boolean;
+  hint?: string;
 }
 
-const { label, name, required = false, hint } = Astro.props
+const { label, name, required = false, hint } = Astro.props;
 ---
 
 <div class="flex flex-col gap-1.5">
   <label for={name} class="font-display text-sm font-medium text-kf-ink">
     {label}
     {required ? (
-      <span class="text-kf-accent" aria-hidden="true"> *</span>
+      <span class="text-kf-accent" aria-hidden="true">
+        {' '}
+        *
+      </span>
     ) : (
       <span class="text-xs font-normal text-kf-ink-muted"> (optional)</span>
     )}

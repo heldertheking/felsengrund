@@ -1,79 +1,83 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
-import { apiClient } from '../../lib/api'
-import { UnauthorizedError, type Episode, type PodcastSpeaker } from '@felsengrund/types'
-import { downloadMdocExport } from '../../lib/export'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { apiClient } from '../../lib/api';
+import { UnauthorizedError, type Episode, type PodcastSpeaker } from '@felsengrund/types';
+import { downloadMdocExport } from '../../lib/export';
 
 const inputClass =
-  'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent'
+  'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent';
 const fileInputClass =
-  'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink file:mr-3 file:rounded-md file:border-0 file:bg-kf-accent file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white'
-const labelClass = 'text-xs font-semibold uppercase tracking-wide text-kf-ink-muted'
+  'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink file:mr-3 file:rounded-md file:border-0 file:bg-kf-accent file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white';
+const labelClass = 'text-xs font-semibold uppercase tracking-wide text-kf-ink-muted';
 
 interface Props {
-  onUnauthorized: () => void
+  onUnauthorized: () => void;
 }
 
-type Mode = { view: 'list' } | { view: 'form'; episode: Episode | null }
+type Mode = { view: 'list' } | { view: 'form'; episode: Episode | null };
 
 export default function PodcastManager({ onUnauthorized }: Props) {
-  const [episodes, setEpisodes] = useState<Episode[] | null>(null)
-  const [mode, setMode] = useState<Mode>({ view: 'list' })
-  const [listError, setListError] = useState<string | null>(null)
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [bulkBusy, setBulkBusy] = useState(false)
+  const [episodes, setEpisodes] = useState<Episode[] | null>(null);
+  const [mode, setMode] = useState<Mode>({ view: 'list' });
+  const [listError, setListError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   function reload() {
     apiClient.podcast
       .list()
       .then((data) => {
-        setEpisodes(data)
-        setSelected((prev) => new Set([...prev].filter((slug) => data.some((e) => e.slug === slug))))
+        setEpisodes(data);
+        setSelected((prev) => new Set([...prev].filter((slug) => data.some((e) => e.slug === slug))));
       })
-      .catch(() => setListError('Episoden konnten nicht geladen werden.'))
+      .catch(() => setListError('Episoden konnten nicht geladen werden.'));
   }
 
   useEffect(() => {
-    reload()
-  }, [])
+    reload();
+  }, []);
 
   function toggleSelected(slug: string) {
     setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(slug)) next.delete(slug)
-      else next.add(slug)
-      return next
-    })
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
   }
 
   function toggleSelectAll() {
-    if (!episodes) return
-    setSelected((prev) => (prev.size === episodes.length ? new Set() : new Set(episodes.map((e) => e.slug))))
+    if (!episodes) return;
+    setSelected((prev) => (prev.size === episodes.length ? new Set() : new Set(episodes.map((e) => e.slug))));
   }
 
   async function handleBulkDelete() {
-    if (selected.size === 0) return
-    if (!confirm(`${selected.size} Episode(n) wirklich löschen?`)) return
-    setBulkBusy(true)
+    if (selected.size === 0) return;
+    if (!confirm(`${selected.size} Episode(n) wirklich löschen?`)) return;
+    setBulkBusy(true);
     try {
       for (const slug of selected) {
-        await apiClient.podcast.delete(slug)
+        await apiClient.podcast.delete(slug);
       }
-      setSelected(new Set())
-      reload()
+      setSelected(new Set());
+      reload();
     } catch (err) {
-      if (err instanceof UnauthorizedError) return onUnauthorized()
-      alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.')
+      if (err instanceof UnauthorizedError) return onUnauthorized();
+      alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.');
     } finally {
-      setBulkBusy(false)
+      setBulkBusy(false);
     }
   }
 
   function handleBulkExport() {
-    if (!episodes) return
+    if (!episodes) return;
     const rows = episodes
       .filter((e) => selected.has(e.slug))
-      .map((e) => ({ slug: e.slug, data: e.data as unknown as Record<string, unknown>, body: e.body }))
-    downloadMdocExport('podcast-export', rows)
+      .map((e) => ({
+        slug: e.slug,
+        data: e.data as unknown as Record<string, unknown>,
+        body: e.body,
+      }));
+    downloadMdocExport('podcast-export', rows);
   }
 
   if (mode.view === 'form') {
@@ -82,12 +86,12 @@ export default function PodcastManager({ onUnauthorized }: Props) {
         episode={mode.episode}
         episodes={episodes}
         onDone={() => {
-          setMode({ view: 'list' })
-          reload()
+          setMode({ view: 'list' });
+          reload();
         }}
         onUnauthorized={onUnauthorized}
       />
-    )
+    );
   }
 
   return (
@@ -172,7 +176,7 @@ export default function PodcastManager({ onUnauthorized }: Props) {
         </ul>
       )}
     </div>
-  )
+  );
 }
 
 function DeleteButton({
@@ -180,23 +184,23 @@ function DeleteButton({
   onDeleted,
   onUnauthorized,
 }: {
-  slug: string
-  onDeleted: () => void
-  onUnauthorized: () => void
+  slug: string;
+  onDeleted: () => void;
+  onUnauthorized: () => void;
 }) {
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState(false);
 
   async function handleClick() {
-    if (!confirm('Diese Episode wirklich löschen?')) return
-    setBusy(true)
+    if (!confirm('Diese Episode wirklich löschen?')) return;
+    setBusy(true);
     try {
-      await apiClient.podcast.delete(slug)
-      onDeleted()
+      await apiClient.podcast.delete(slug);
+      onDeleted();
     } catch (err) {
-      if (err instanceof UnauthorizedError) return onUnauthorized()
-      alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.')
+      if (err instanceof UnauthorizedError) return onUnauthorized();
+      alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.');
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
   }
 
@@ -209,20 +213,20 @@ function DeleteButton({
     >
       Löschen
     </button>
-  )
+  );
 }
 
 function nextEpisodeNumber(episodes: Episode[] | null): string {
-  if (!episodes || episodes.length === 0) return '1'
-  const max = Math.max(0, ...episodes.map((e) => e.data.episodeNumber ?? 0))
-  return String(max + 1)
+  if (!episodes || episodes.length === 0) return '1';
+  const max = Math.max(0, ...episodes.map((e) => e.data.episodeNumber ?? 0));
+  return String(max + 1);
 }
 
 function formatDuration(totalSeconds: number): string {
-  const seconds = Math.round(totalSeconds)
-  const minutes = Math.floor(seconds / 60)
-  const remainder = seconds % 60
-  return `${minutes}:${remainder.toString().padStart(2, '0')}`
+  const seconds = Math.round(totalSeconds);
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return `${minutes}:${remainder.toString().padStart(2, '0')}`;
 }
 
 function PodcastForm({
@@ -231,52 +235,52 @@ function PodcastForm({
   onDone,
   onUnauthorized,
 }: {
-  episode: Episode | null
-  episodes: Episode[] | null
-  onDone: () => void
-  onUnauthorized: () => void
+  episode: Episode | null;
+  episodes: Episode[] | null;
+  onDone: () => void;
+  onUnauthorized: () => void;
 }) {
-  const isEdit = episode !== null
-  const [title, setTitle] = useState(episode?.data.title ?? '')
+  const isEdit = episode !== null;
+  const [title, setTitle] = useState(episode?.data.title ?? '');
   const [episodeNumber, setEpisodeNumber] = useState(
     episode?.data.episodeNumber?.toString() ?? nextEpisodeNumber(episodes),
-  )
-  const [publishDate, setPublishDate] = useState(episode?.data.publishDate ?? '')
-  const [duration, setDuration] = useState(episode?.data.duration ?? '')
-  const [audio, setAudio] = useState<File | null>(null)
-  const [coverImage, setCoverImage] = useState<File | null>(null)
-  const [speakers, setSpeakers] = useState<PodcastSpeaker[]>(episode?.data.speakers ?? [])
-  const [body, setBody] = useState(episode?.body ?? '')
-  const [status, setStatus] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  );
+  const [publishDate, setPublishDate] = useState(episode?.data.publishDate ?? '');
+  const [duration, setDuration] = useState(episode?.data.duration ?? '');
+  const [audio, setAudio] = useState<File | null>(null);
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [speakers, setSpeakers] = useState<PodcastSpeaker[]>(episode?.data.speakers ?? []);
+  const [body, setBody] = useState(episode?.body ?? '');
+  const [status, setStatus] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   function updateSpeaker(index: number, field: keyof PodcastSpeaker, value: string | boolean) {
-    setSpeakers((rows) => rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)))
+    setSpeakers((rows) => rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
   }
 
   function handleAudioChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0] ?? null
-    setAudio(file)
-    if (!file) return
+    const file = event.target.files?.[0] ?? null;
+    setAudio(file);
+    if (!file) return;
 
-    const objectUrl = URL.createObjectURL(file)
-    const probe = new Audio()
-    probe.preload = 'metadata'
+    const objectUrl = URL.createObjectURL(file);
+    const probe = new Audio();
+    probe.preload = 'metadata';
     probe.onloadedmetadata = () => {
-      if (Number.isFinite(probe.duration)) setDuration(formatDuration(probe.duration))
-      URL.revokeObjectURL(objectUrl)
-    }
-    probe.onerror = () => URL.revokeObjectURL(objectUrl)
-    probe.src = objectUrl
+      if (Number.isFinite(probe.duration)) setDuration(formatDuration(probe.duration));
+      URL.revokeObjectURL(objectUrl);
+    };
+    probe.onerror = () => URL.revokeObjectURL(objectUrl);
+    probe.src = objectUrl;
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setStatus('Wird gespeichert …')
-    setSubmitting(true)
+    event.preventDefault();
+    setStatus('Wird gespeichert …');
+    setSubmitting(true);
 
     try {
-      const speakersInput = speakers.filter((s) => s.name.trim())
+      const speakersInput = speakers.filter((s) => s.name.trim());
 
       if (isEdit) {
         await apiClient.podcast.update(episode.slug, {
@@ -288,9 +292,9 @@ function PodcastForm({
           body,
           audio: audio ?? undefined,
           coverImage: coverImage ?? undefined,
-        })
+        });
       } else {
-        if (!audio) throw new Error('Bitte eine Audiodatei auswählen.')
+        if (!audio) throw new Error('Bitte eine Audiodatei auswählen.');
         await apiClient.podcast.create({
           title,
           publishDate,
@@ -300,20 +304,22 @@ function PodcastForm({
           body,
           audio,
           coverImage: coverImage ?? undefined,
-        })
+        });
       }
-      onDone()
+      onDone();
     } catch (err) {
-      if (err instanceof UnauthorizedError) return onUnauthorized()
-      setStatus(err instanceof Error ? err.message : 'Da ist etwas schiefgelaufen.')
-      setSubmitting(false)
+      if (err instanceof UnauthorizedError) return onUnauthorized();
+      setStatus(err instanceof Error ? err.message : 'Da ist etwas schiefgelaufen.');
+      setSubmitting(false);
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-semibold text-kf-ink">{isEdit ? 'Episode bearbeiten' : 'Neue Episode'}</h2>
+        <h2 className="font-display text-lg font-semibold text-kf-ink">
+          {isEdit ? 'Episode bearbeiten' : 'Neue Episode'}
+        </h2>
         <button type="button" onClick={onDone} className="text-sm text-kf-ink-muted hover:text-kf-accent">
           Zurück zur Liste
         </button>
@@ -363,7 +369,12 @@ function PodcastForm({
         {episode?.data.audioUrl && (
           <p className="mt-1 text-xs text-kf-ink-muted">
             Aktuelle Datei:{' '}
-            <a href={episode.data.audioUrl} className="text-kf-accent underline underline-offset-2" target="_blank" rel="noreferrer">
+            <a
+              href={episode.data.audioUrl}
+              className="text-kf-accent underline underline-offset-2"
+              target="_blank"
+              rel="noreferrer"
+            >
               anhören
             </a>
           </p>
@@ -382,7 +393,10 @@ function PodcastForm({
         <span className={labelClass}>Sprecher</span>
         <div className="mt-2 flex flex-col gap-2">
           {speakers.map((speaker, index) => (
-            <div key={index} className="grid grid-cols-1 gap-2 rounded-lg border border-kf-edge p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+            <div
+              key={index}
+              className="grid grid-cols-1 gap-2 rounded-lg border border-kf-edge p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center"
+            >
               <input
                 type="text"
                 placeholder="Name"
@@ -421,14 +435,28 @@ function PodcastForm({
       <div>
         <label className={labelClass}>Cover-Bild</label>
         {episode?.data.coverImage && (
-          <img src={episode.data.coverImage} alt="" className="mt-2 h-24 w-24 rounded-lg border border-kf-edge object-cover" />
+          <img
+            src={episode.data.coverImage}
+            alt=""
+            className="mt-2 h-24 w-24 rounded-lg border border-kf-edge object-cover"
+          />
         )}
-        <input type="file" accept="image/*" onChange={(e) => setCoverImage(e.target.files?.[0] ?? null)} className={fileInputClass} />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setCoverImage(e.target.files?.[0] ?? null)}
+          className={fileInputClass}
+        />
       </div>
 
       <div>
         <label className={labelClass}>Shownotes (Markdoc)</label>
-        <textarea rows={14} value={body} onChange={(e) => setBody(e.target.value)} className={`${inputClass} font-mono`} />
+        <textarea
+          rows={14}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          className={`${inputClass} font-mono`}
+        />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -442,5 +470,5 @@ function PodcastForm({
         {status && <p className="text-sm text-kf-ink-muted">{status}</p>}
       </div>
     </form>
-  )
+  );
 }

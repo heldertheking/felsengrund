@@ -52,13 +52,13 @@ two secrets (see `apps/api/.dev.vars.example` for the authoritative list and inl
 
 ### npm scripts (run from the repo root)
 
-| Script | What it does |
-|---|---|
-| `npm run dev:web` | Starts `apps/web`'s Astro dev server |
-| `npm run dev:api` | Starts `apps/api`'s Wrangler dev server |
-| `npm run build:web` | Type-checks and builds `apps/web` for production |
+| Script              | What it does                                                                                  |
+| ------------------- | --------------------------------------------------------------------------------------------- |
+| `npm run dev:web`   | Starts `apps/web`'s Astro dev server                                                          |
+| `npm run dev:api`   | Starts `apps/api`'s Wrangler dev server                                                       |
+| `npm run build:web` | Type-checks and builds `apps/web` for production                                              |
 | `npm run build:api` | Builds `apps/api` (mainly useful as a pre-deploy check; `wrangler deploy` bundles on its own) |
-| `npm run lint` | Runs ESLint across every workspace |
+| `npm run lint`      | Runs ESLint across every workspace                                                            |
 
 ## Content & Admin
 
@@ -89,4 +89,5 @@ prohibited outright) requires the copyright holder's explicit written permission
 [`LICENSE`](./LICENSE) for the full terms.
 
 ---
+
 [<img alt="Deployed with FTP Deploy Action" src="https://img.shields.io/badge/Deployed With-FTP DEPLOY ACTION-%3CCOLOR%3E?style=for-the-badge&color=0077b6">](https://github.com/SamKirkland/FTP-Deploy-Action)

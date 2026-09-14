@@ -1,9 +1,9 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
-import AgendaCard from "../components/AgendaCard.astro";
-import type {AgendaItem} from '../components/AgendaCard.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AgendaCard from '../components/AgendaCard.astro';
+import type { AgendaItem } from '../components/AgendaCard.astro';
 
-const calendarEmbedUrl = import.meta.env.GOOGLE_CALENDAR_EMBED_URL as string | undefined
+const calendarEmbedUrl = import.meta.env.GOOGLE_CALENDAR_EMBED_URL as string | undefined;
 const agenda: AgendaItem[] = [
   {
     title: 'Gottesdienst',
@@ -13,7 +13,7 @@ const agenda: AgendaItem[] = [
     title: 'Dinner Church',
     cadence: 'Monatlich, 18:00 Uhr',
     note: 'Details und Anmeldung hier',
-    link: '/angebote/dinner-church'
+    link: '/angebote/dinner-church',
   },
   {
     title: 'Kids-Treff',
@@ -32,13 +32,13 @@ const agenda: AgendaItem[] = [
   {
     title: 'Smallgroups / Hauskreise',
     cadence: 'Termin bitte anfragen',
-    link: `/kontakt?subject=${encodeURIComponent('Terminanfrage Smallgroups / Hauskreise')}`
+    link: `/kontakt?subject=${encodeURIComponent('Terminanfrage Smallgroups / Hauskreise')}`,
   },
   {
     title: 'Biblischer Unterricht',
     cadence: 'Termin bitte anfragen',
     note: 'Offen für alle Jugendlichen, unabhängig von der Kirchenzugehörigkeit.',
-    link: `/kontakt?subject=${encodeURIComponent('Terminanfrage Biblischer Unterricht')}`
+    link: `/kontakt?subject=${encodeURIComponent('Terminanfrage Biblischer Unterricht')}`,
   },
   {
     title: 'Senioren',
@@ -54,9 +54,9 @@ const agenda: AgendaItem[] = [
     title: 'Lebensmittelabgabe',
     cadence: 'Wöchentlich, montags, 16:30–17:15 Uhr',
   },
-]
-
+];
 ---
+
 <BaseLayout
   title="Agenda – Kirche Felsengrund"
   description="Wiederkehrende Termine und Angebote der Kirche Felsengrund im Überblick."
@@ -64,9 +64,15 @@ const agenda: AgendaItem[] = [
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
     <h1 class="font-display text-4xl font-bold text-kf-ink sm:text-5xl">Agenda</h1>
     <p class="mt-4 max-w-2xl text-lg text-kf-ink-muted">
-      Eine Übersicht unserer regelmäßigen Termine. Für saisonale Veranstaltungen und Ausnahmen
-      empfehlen wir, direkt bei uns{' '}
-      <a href={`/kontakt?subject=${encodeURIComponent('Frage(n) bezüglich Termine')}`} class="text-kf-accent underline underline-offset-2">nachzufragen</a>.
+      Eine Übersicht unserer regelmäßigen Termine. Für saisonale Veranstaltungen und Ausnahmen empfehlen wir, direkt bei
+      uns{' '}
+      <a
+        href={`/kontakt?subject=${encodeURIComponent('Frage(n) bezüglich Termine')}`}
+        class="text-kf-accent underline underline-offset-2"
+      >
+        nachzufragen
+      </a>
+      .
     </p>
 
     {calendarEmbedUrl ? (
@@ -79,11 +85,11 @@ const agenda: AgendaItem[] = [
         ></iframe>
       </div>
     ) : (
-        <ul class="mt-10 space-y-4">
-          {agenda.map((entry) =>
-              <AgendaCard item={entry}/>
-          )}
-        </ul>
+      <ul class="mt-10 space-y-4">
+        {agenda.map((entry) => (
+          <AgendaCard item={entry} />
+        ))}
+      </ul>
     )}
   </section>
 </BaseLayout>

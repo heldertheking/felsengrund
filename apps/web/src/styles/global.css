@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
@@ -13,8 +13,8 @@
   --color-kf-surface-sunken: #fbf3f8;
   --color-kf-edge: #ecdce6;
 
-  --font-sans: "Open Sans", system-ui, sans-serif;
-  --font-display: "Raleway", system-ui, sans-serif;
+  --font-sans: 'Open Sans', system-ui, sans-serif;
+  --font-display: 'Raleway', system-ui, sans-serif;
 }
 
 body {

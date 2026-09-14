@@ -1,52 +1,55 @@
-import { useEffect, useState } from 'react'
-import { apiClient } from '../lib/api'
-import type { EpisodeDetailResponse } from '@felsengrund/types'
-import Breadcrumbs from './Breadcrumbs'
-import PodcastPlayer from './PodcastPlayer'
-import SpeakerPills from './SpeakerPills'
+import { useEffect, useState } from 'react';
+import { apiClient } from '../lib/api';
+import type { EpisodeDetailResponse } from '@felsengrund/types';
+import Breadcrumbs from './Breadcrumbs';
+import PodcastPlayer from './PodcastPlayer';
+import SpeakerPills from './SpeakerPills';
 
 type State =
   | { status: 'loading' }
   | { status: 'not-found' }
   | { status: 'error' }
-  | { status: 'ready'; episode: EpisodeDetailResponse }
+  | { status: 'ready'; episode: EpisodeDetailResponse };
 
 function currentSlug(): string {
   // See OfferDetail.tsx's currentSlug for why this guards against a server-render pass.
-  if (typeof window === 'undefined') return ''
-  const segments = window.location.pathname.split('/').filter(Boolean)
-  return segments[segments.length - 1] ?? ''
+  if (typeof window === 'undefined') return '';
+  const segments = window.location.pathname.split('/').filter(Boolean);
+  return segments[segments.length - 1] ?? '';
 }
 
 export default function PodcastDetail() {
-  const [slug] = useState(currentSlug)
+  const [slug] = useState(currentSlug);
   const [state, setState] = useState<State>(
     slug && slug !== 'podcast' ? { status: 'loading' } : { status: 'not-found' },
-  )
+  );
 
   useEffect(() => {
-    if (!slug || slug === 'podcast') return
+    if (!slug || slug === 'podcast') return;
 
-    let cancelled = false
+    let cancelled = false;
 
     apiClient.podcast
       .get(slug)
       .then((episode) => {
-        if (cancelled) return
-        if (!episode) setState({ status: 'not-found' })
-        else setState({ status: 'ready', episode })
+        if (cancelled) return;
+        if (!episode) setState({ status: 'not-found' });
+        else setState({ status: 'ready', episode });
       })
       .catch((error) => {
-        console.error('Failed to load podcast episode', error)
-        if (!cancelled) setState({ status: 'error' })
-      })
+        console.error('Failed to load podcast episode', error);
+        if (!cancelled) setState({ status: 'error' });
+      });
 
     return () => {
-      cancelled = true
-    }
-  }, [slug])
+      cancelled = true;
+    };
+  }, [slug]);
 
-  const baseCrumbs = [{ label: 'Home', href: '/' }, { label: 'Podcast', href: '/podcast' }]
+  const baseCrumbs = [
+    { label: 'Home', href: '/' },
+    { label: 'Podcast', href: '/podcast' },
+  ];
 
   if (state.status === 'loading') {
     return (
@@ -54,7 +57,7 @@ export default function PodcastDetail() {
         <Breadcrumbs items={[...baseCrumbs, { label: '…' }]} />
         <p className="text-sm text-kf-ink-muted">Wird geladen …</p>
       </div>
-    )
+    );
   }
 
   if (state.status === 'not-found') {
@@ -70,7 +73,7 @@ export default function PodcastDetail() {
           an.
         </p>
       </div>
-    )
+    );
   }
 
   if (state.status === 'error') {
@@ -81,10 +84,10 @@ export default function PodcastDetail() {
           Die Episode konnte nicht geladen werden. Bitte lade die Seite neu.
         </p>
       </div>
-    )
+    );
   }
 
-  const { episode } = state
+  const { episode } = state;
 
   return (
     <article>
@@ -97,7 +100,8 @@ export default function PodcastDetail() {
         />
       )}
       <p className="font-display text-sm font-semibold uppercase tracking-wide text-kf-accent">
-        Podcast{episode.data.episodeNumber ? ` · Folge ${episode.data.episodeNumber}` : ''}
+        Podcast
+        {episode.data.episodeNumber ? ` · Folge ${episode.data.episodeNumber}` : ''}
       </p>
       <h1 className="mt-2 break-words font-display text-4xl font-bold text-kf-ink">{episode.data.title}</h1>
       <p className="mt-2 text-sm text-kf-ink-muted">
@@ -111,10 +115,7 @@ export default function PodcastDetail() {
 
       <SpeakerPills speakers={episode.data.speakers ?? []} />
 
-      <div
-        className="prose prose-neutral mt-10 max-w-none"
-        dangerouslySetInnerHTML={{ __html: episode.bodyHtml }}
-      />
+      <div className="prose prose-neutral mt-10 max-w-none" dangerouslySetInnerHTML={{ __html: episode.bodyHtml }} />
 
       <p className="mt-10 text-sm text-kf-ink-muted">
         Bei Fragen zu dieser Episode melde dich gerne über das{' '}
@@ -126,5 +127,5 @@ export default function PodcastDetail() {
         </a>
       </p>
     </article>
-  )
+  );
 }

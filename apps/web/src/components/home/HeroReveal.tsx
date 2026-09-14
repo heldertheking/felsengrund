@@ -1,8 +1,8 @@
-import { motion } from 'framer-motion'
-import type { ReactNode } from 'react'
+import { motion } from 'framer-motion';
+import type { ReactNode } from 'react';
 
 interface HeroRevealProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 /**
@@ -19,5 +19,5 @@ export default function HeroReveal({ children }: HeroRevealProps) {
     >
       {children}
     </motion.div>
-  )
+  );
 }

@@ -1,29 +1,29 @@
-import { useState, type FormEvent } from 'react'
-import { apiClient, clearAdminToken, getAdminToken, setAdminToken } from '../../lib/api'
-import Breadcrumbs from '../Breadcrumbs'
-import OffersManager from './OffersManager'
-import PodcastManager from './PodcastManager'
+import { useState, type FormEvent } from 'react';
+import { apiClient, clearAdminToken, getAdminToken, setAdminToken } from '../../lib/api';
+import Breadcrumbs from '../Breadcrumbs';
+import OffersManager from './OffersManager';
+import PodcastManager from './PodcastManager';
 
-type View = 'offers' | 'podcast'
+type View = 'offers' | 'podcast';
 
 function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setSubmitting(true)
-    setError(null)
+    event.preventDefault();
+    setSubmitting(true);
+    setError(null);
 
     try {
-      const token = await apiClient.admin.login(password)
-      setAdminToken(token)
-      onLoggedIn()
+      const token = await apiClient.admin.login(password);
+      setAdminToken(token);
+      onLoggedIn();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Anmeldung fehlgeschlagen.')
+      setError(err instanceof Error ? err.message : 'Anmeldung fehlgeschlagen.');
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
   }
 
@@ -60,29 +60,33 @@ function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
         </button>
       </form>
     </div>
-  )
+  );
 }
 
 export default function AdminApp() {
-  const [authenticated, setAuthenticated] = useState(() => Boolean(getAdminToken()))
-  const [view, setView] = useState<View>('offers')
+  const [authenticated, setAuthenticated] = useState(() => Boolean(getAdminToken()));
+  const [view, setView] = useState<View>('offers');
 
-  if (!authenticated) return <LoginForm onLoggedIn={() => setAuthenticated(true)} />
+  if (!authenticated) return <LoginForm onLoggedIn={() => setAuthenticated(true)} />;
 
   function handleLogout() {
-    clearAdminToken()
-    setAuthenticated(false)
+    clearAdminToken();
+    setAuthenticated(false);
   }
 
   function handleUnauthorized() {
-    clearAdminToken()
-    setAuthenticated(false)
+    clearAdminToken();
+    setAuthenticated(false);
   }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <Breadcrumbs
-        items={[{ label: 'Home', href: '/' }, { label: 'Admin' }, { label: view === 'offers' ? 'Angebote' : 'Podcast' }]}
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Admin' },
+          { label: view === 'offers' ? 'Angebote' : 'Podcast' },
+        ]}
       />
       <div className="rounded-2xl border border-kf-edge bg-kf-surface p-8 shadow-md">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -119,5 +123,5 @@ export default function AdminApp() {
         )}
       </div>
     </div>
-  )
+  );
 }

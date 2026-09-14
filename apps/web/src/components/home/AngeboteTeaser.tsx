@@ -1,29 +1,29 @@
-import { useEffect, useState } from 'react'
-import { apiClient } from '../../lib/api'
-import { CATEGORY_DETAILS, type Offer } from '@felsengrund/types'
+import { useEffect, useState } from 'react';
+import { apiClient } from '../../lib/api';
+import { CATEGORY_DETAILS, type Offer } from '@felsengrund/types';
 
-type State = { status: 'loading' } | { status: 'error' } | { status: 'ready'; offers: Offer[] }
+type State = { status: 'loading' } | { status: 'error' } | { status: 'ready'; offers: Offer[] };
 
 export default function AngeboteTeaser() {
-  const [state, setState] = useState<State>({ status: 'loading' })
+  const [state, setState] = useState<State>({ status: 'loading' });
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
 
     apiClient.offers
       .list()
       .then((offers) => {
-        if (!cancelled) setState({ status: 'ready', offers })
+        if (!cancelled) setState({ status: 'ready', offers });
       })
       .catch((error) => {
-        console.error('Failed to load offers teaser', error)
-        if (!cancelled) setState({ status: 'error' })
-      })
+        console.error('Failed to load offers teaser', error);
+        if (!cancelled) setState({ status: 'error' });
+      });
 
     return () => {
-      cancelled = true
-    }
-  }, [])
+      cancelled = true;
+    };
+  }, []);
 
   const featured =
     state.status === 'ready'
@@ -31,7 +31,7 @@ export default function AngeboteTeaser() {
           .slice()
           .sort((a, b) => CATEGORY_DETAILS[a.data.category].index - CATEGORY_DETAILS[b.data.category].index)
           .slice(0, 4)
-      : []
+      : [];
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
@@ -42,17 +42,24 @@ export default function AngeboteTeaser() {
             Für jede Generation etwas – vom Kids-Treff bis zur Seniorenrunde.
           </p>
         </div>
-        <a href="/angebote" className="whitespace-nowrap font-display text-sm font-semibold text-kf-accent hover:underline">
+        <a
+          href="/angebote"
+          className="whitespace-nowrap font-display text-sm font-semibold text-kf-accent hover:underline"
+        >
           Alle Angebote ansehen →
         </a>
       </div>
 
       {state.status === 'loading' && <p className="mt-8 text-sm text-kf-ink-muted">Angebote werden geladen …</p>}
       {state.status === 'error' && (
-        <p className="mt-8 text-sm text-kf-ink-muted">Unsere Angebote werden gerade zusammengestellt – schau bald wieder vorbei.</p>
+        <p className="mt-8 text-sm text-kf-ink-muted">
+          Unsere Angebote werden gerade zusammengestellt – schau bald wieder vorbei.
+        </p>
       )}
       {state.status === 'ready' && featured.length === 0 && (
-        <p className="mt-8 text-sm text-kf-ink-muted">Unsere Angebote werden gerade zusammengestellt – schau bald wieder vorbei.</p>
+        <p className="mt-8 text-sm text-kf-ink-muted">
+          Unsere Angebote werden gerade zusammengestellt – schau bald wieder vorbei.
+        </p>
       )}
       {featured.length > 0 && (
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -76,5 +83,5 @@ export default function AngeboteTeaser() {
         </div>
       )}
     </section>
-  )
+  );
 }

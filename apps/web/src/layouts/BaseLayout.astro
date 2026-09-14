@@ -1,22 +1,22 @@
 ---
-import Header from '../components/Header.astro'
-import Footer from '../components/Footer.astro'
-import '../styles/global.css'
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
 
 interface Props {
-  title?: string
-  description?: string
+  title?: string;
+  description?: string;
   // Pages that render their own breadcrumb (a dynamic title only known client-side, like an
   // offer/episode detail page, or a client-rendered app like the admin dashboard) set this so
   // this layout doesn't also render a second, generic one above it.
-  hideBreadcrumbs?: boolean
+  hideBreadcrumbs?: boolean;
 }
 
 const {
   title = 'Kirche Felsengrund - Kirche, die verändert',
   description = 'Kirche Felsengrund in Oetwil am See: Gottesdienste, Angebote für Kinder, Jugend, Senioren und Gemeinschaft, sowie soziale Hilfsangebote.',
   hideBreadcrumbs = false,
-} = Astro.props
+} = Astro.props;
 
 // Every page except the homepage gets a small "Home / ..." breadcrumb derived from its URL —
 // pages with a dynamic title (offer/episode detail, admin) opt out via hideBreadcrumbs and
@@ -33,19 +33,19 @@ const SEGMENT_LABELS: Record<string, string> = {
   lebensberatung: 'Lebensberatung',
   'uber-uns': 'Über uns',
   wegbeschreibung: 'Wegbeschreibung',
-}
+};
 
-const segments = Astro.url.pathname.split('/').filter(Boolean)
-const showBreadcrumbs = !hideBreadcrumbs && segments.length > 0
+const segments = Astro.url.pathname.split('/').filter(Boolean);
+const showBreadcrumbs = !hideBreadcrumbs && segments.length > 0;
 
-let crumbHref = ''
+let crumbHref = '';
 const breadcrumbs = segments.map((segment, index) => {
-  crumbHref += `/${segment}`
+  crumbHref += `/${segment}`;
   return {
     label: SEGMENT_LABELS[segment] ?? segment,
     href: index === segments.length - 1 ? undefined : crumbHref,
-  }
-})
+  };
+});
 ---
 
 <!doctype html>
@@ -69,7 +69,9 @@ const breadcrumbs = segments.map((segment, index) => {
       {showBreadcrumbs && (
         <div class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
           <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-1.5 text-xs text-kf-ink-muted">
-            <a href="/" class="hover:text-kf-accent hover:underline underline-offset-2">Home</a>
+            <a href="/" class="hover:text-kf-accent hover:underline underline-offset-2">
+              Home
+            </a>
             {breadcrumbs.map((crumb) => (
               <span class="flex items-center gap-1.5">
                 <span aria-hidden="true">/</span>

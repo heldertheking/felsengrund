@@ -1,6 +1,6 @@
 export interface BreadcrumbItem {
-  label: string
-  href?: string
+  label: string;
+  href?: string;
 }
 
 export default function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
@@ -21,5 +21,5 @@ export default function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
         </span>
       ))}
     </nav>
-  )
+  );
 }

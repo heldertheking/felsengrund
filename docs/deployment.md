@@ -67,6 +67,7 @@ Manual: `npm run build:api` (workspace script) or `cd apps/api && wrangler deplo
 
 **Recommended for ongoing deploys**: connect this repo to Cloudflare **Workers Builds**
 (Cloudflare dashboard → Workers & Pages → this Worker → Settings → Builds) with:
+
 - Root directory: `apps/api`
 - Build command: `npm install` (Wrangler bundles the Worker directly on deploy — no separate
   compile step needed)
@@ -100,6 +101,7 @@ force-pushes the built `dist/` contents to a dedicated `deploy/webkeeper` branch
 host with no Node runtime of its own.
 
 Before this works:
+
 1. In the GitHub repo's **Settings → Secrets and variables → Actions → Variables**, add
    `PUBLIC_API_BASE_URL` set to the production `apps/api` URL.
 2. In Plesk (webkeeper.ch), for the `kirche-felsengrund.ch` subscription, add this GitHub

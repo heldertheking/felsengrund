@@ -1,24 +1,27 @@
 ---
 interface Option {
-  value: string
-  label: string
+  value: string;
+  label: string;
 }
 
 interface Props {
-  legend: string
-  name: string
-  options: Option[]
-  required?: boolean
+  legend: string;
+  name: string;
+  options: Option[];
+  required?: boolean;
 }
 
-const { legend, name, options, required = false } = Astro.props
+const { legend, name, options, required = false } = Astro.props;
 ---
 
 <fieldset class="flex flex-col gap-1.5">
   <legend class="font-display text-sm font-medium text-kf-ink">
     {legend}
     {required ? (
-      <span class="text-kf-accent" aria-hidden="true"> *</span>
+      <span class="text-kf-accent" aria-hidden="true">
+        {' '}
+        *
+      </span>
     ) : (
       <span class="text-xs font-normal text-kf-ink-muted"> (optional)</span>
     )}

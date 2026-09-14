@@ -1,35 +1,35 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { apiClient } from '../../lib/api'
+import { useState } from 'react';
+import type { FormEvent } from 'react';
+import { apiClient } from '../../lib/api';
 
-type Status = 'idle' | 'submitting' | 'success' | 'error'
+type Status = 'idle' | 'submitting' | 'success' | 'error';
 
 /**
  * "Parkplatz" sermon feedback form. POSTs to the Worker's /feedback endpoint.
  */
 export default function FeedbackForm() {
-  const [message, setMessage] = useState('')
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<Status>('idle')
+  const [message, setMessage] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<Status>('idle');
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setStatus('submitting')
+    event.preventDefault();
+    setStatus('submitting');
 
     try {
       await apiClient.forms.submitFeedback({
         message,
         name: name || undefined,
         email: email || undefined,
-      })
+      });
 
-      setStatus('success')
-      setMessage('')
-      setName('')
-      setEmail('')
+      setStatus('success');
+      setMessage('');
+      setName('');
+      setEmail('');
     } catch {
-      setStatus('error')
+      setStatus('error');
     }
   }
 
@@ -38,11 +38,14 @@ export default function FeedbackForm() {
       <p className="rounded-lg border border-kf-edge bg-kf-surface p-6 text-kf-ink" role="status">
         Danke für deine Rückmeldung – wir haben sie erhalten.
       </p>
-    )
+    );
   }
 
   return (
-    <form className="space-y-5 rounded-xl border border-kf-edge bg-kf-surface p-6 shadow-sm sm:p-8" onSubmit={handleSubmit}>
+    <form
+      className="space-y-5 rounded-xl border border-kf-edge bg-kf-surface p-6 shadow-sm sm:p-8"
+      onSubmit={handleSubmit}
+    >
       <div>
         <label htmlFor="pk-message" className="block text-sm font-medium text-kf-ink">
           Deine Frage, dein Anliegen oder Feedback *
@@ -99,5 +102,5 @@ export default function FeedbackForm() {
         {status === 'submitting' ? 'Wird gesendet…' : 'Feedback senden'}
       </button>
     </form>
-  )
+  );
 }

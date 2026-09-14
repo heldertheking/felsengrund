@@ -1,5 +1,5 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout
@@ -18,7 +18,9 @@ import BaseLayout from '../layouts/BaseLayout.astro'
 
         <form id="contact-form" class="mt-6 space-y-4" novalidate>
           <div>
-            <label for="name" class="block text-sm font-medium text-kf-ink">Name</label>
+            <label for="name" class="block text-sm font-medium text-kf-ink">
+              Name
+            </label>
             <input
               type="text"
               id="name"
@@ -29,7 +31,9 @@ import BaseLayout from '../layouts/BaseLayout.astro'
           </div>
 
           <div>
-            <label for="email" class="block text-sm font-medium text-kf-ink">E-Mail</label>
+            <label for="email" class="block text-sm font-medium text-kf-ink">
+              E-Mail
+            </label>
             <input
               type="email"
               id="email"
@@ -40,7 +44,9 @@ import BaseLayout from '../layouts/BaseLayout.astro'
           </div>
 
           <div>
-            <label for="subject" class="block text-sm font-medium text-kf-ink">Betreff</label>
+            <label for="subject" class="block text-sm font-medium text-kf-ink">
+              Betreff
+            </label>
             <input
               type="text"
               id="subject"
@@ -51,7 +57,9 @@ import BaseLayout from '../layouts/BaseLayout.astro'
           </div>
 
           <div>
-            <label for="message" class="block text-sm font-medium text-kf-ink">Nachricht</label>
+            <label for="message" class="block text-sm font-medium text-kf-ink">
+              Nachricht
+            </label>
             <textarea
               id="message"
               name="message"
@@ -79,10 +87,12 @@ import BaseLayout from '../layouts/BaseLayout.astro'
         <div>
           <h2 class="font-display text-xl font-semibold text-kf-ink">Ansprechperson</h2>
           <p class="mt-3 text-kf-ink-muted">
-            Oliver Lutz<br/>
+            Oliver Lutz
+            <br />
             <a href="tel:+41449291587" class="text-kf-accent underline underline-offset-2">
               044 929 15 87
-            </a><br/>
+            </a>
+            <br />
             <a href="mailto:oliver.lutz@kirche-felsengrund.ch" class="text-kf-accent underline underline-offset-2">
               oliver.lutz@kirche-felsengrund.ch
             </a>
@@ -92,7 +102,8 @@ import BaseLayout from '../layouts/BaseLayout.astro'
         <div>
           <h2 class="font-display text-xl font-semibold text-kf-ink">Adresse</h2>
           <p class="mt-3 text-kf-ink-muted">
-            Kirche Felsengrund<br />
+            Kirche Felsengrund
+            <br />
             Felsengrund 1<br />
             8618 Oetwil am See
           </p>
@@ -122,8 +133,8 @@ import BaseLayout from '../layouts/BaseLayout.astro'
               class="h-auto w-28 shrink-0"
             />
             <p class="text-sm text-kf-ink-muted">
-              Mit der Banking-App oder TWINT deines Kontos einscannen, um direkt mit den
-              hinterlegten Spendendaten zu bezahlen.
+              Mit der Banking-App oder TWINT deines Kontos einscannen, um direkt mit den hinterlegten Spendendaten zu
+              bezahlen.
             </p>
           </div>
         </div>
@@ -133,35 +144,35 @@ import BaseLayout from '../layouts/BaseLayout.astro'
 </BaseLayout>
 
 <script>
-  import { apiClient } from '../lib/api'
-  import type { ContactInput } from '@felsengrund/types'
+  import { apiClient } from '../lib/api';
+  import type { ContactInput } from '@felsengrund/types';
 
   const subjectParam = new URLSearchParams(window.location.search).get('subject'); // Gathers URL parameters
 
   if (subjectParam) {
     const subjectElement = document.querySelector('#subject') as HTMLInputElement | null;
     if (subjectElement) {
-      subjectElement.value = `${String(subjectParam).charAt(0).toUpperCase() + String(subjectParam).slice(1)}`
+      subjectElement.value = `${String(subjectParam).charAt(0).toUpperCase() + String(subjectParam).slice(1)}`;
     }
   }
 
-  const form = document.querySelector<HTMLFormElement>('#contact-form')
-  const status = document.querySelector<HTMLParagraphElement>('#contact-form-status')
+  const form = document.querySelector<HTMLFormElement>('#contact-form');
+  const status = document.querySelector<HTMLParagraphElement>('#contact-form-status');
 
   form?.addEventListener('submit', async (event) => {
-    event.preventDefault()
-    if (!status || !form) return
+    event.preventDefault();
+    if (!status || !form) return;
 
-    const data = Object.fromEntries(new FormData(form).entries())
-    status.textContent = 'Wird gesendet…'
+    const data = Object.fromEntries(new FormData(form).entries());
+    status.textContent = 'Wird gesendet…';
 
     try {
-      await apiClient.forms.submitContact(data as unknown as ContactInput)
-      status.textContent = 'Danke für deine Nachricht! Wir melden uns bei dir.'
-      form.reset()
+      await apiClient.forms.submitContact(data as unknown as ContactInput);
+      status.textContent = 'Danke für deine Nachricht! Wir melden uns bei dir.';
+      form.reset();
     } catch (error) {
-      console.error('Failed to submit contact form', error)
-      status.textContent = 'Da ist etwas schiefgelaufen. Bitte versuch es später erneut.'
+      console.error('Failed to submit contact form', error);
+      status.textContent = 'Da ist etwas schiefgelaufen. Bitte versuch es später erneut.';
     }
-  })
+  });
 </script>

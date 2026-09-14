@@ -27,25 +27,25 @@ directly, it only ever sees the JSON `apps/api` returns. Key shapes:
 
 ```ts
 interface OfferData {
-  title: string
-  intro?: string
-  cardImage?: string
-  category: 'gottesdienst' | 'kinder-jugend' | 'gemeinschaft' | 'senioren' | 'hilfe-service'
-  targetAudience?: string
-  schedule?: string
-  location?: string
-  mapsLink?: string
-  organizers?: { name: string; role?: string; contact?: string }[]
-  registration?: string
+  title: string;
+  intro?: string;
+  cardImage?: string;
+  category: 'gottesdienst' | 'kinder-jugend' | 'gemeinschaft' | 'senioren' | 'hilfe-service';
+  targetAudience?: string;
+  schedule?: string;
+  location?: string;
+  mapsLink?: string;
+  organizers?: { name: string; role?: string; contact?: string }[];
+  registration?: string;
 }
 
 interface PodcastData {
-  title: string
-  episodeNumber?: number
-  publishDate: string // ISO date (YYYY-MM-DD)
-  audioUrl: string
-  duration?: string
-  coverImage?: string
+  title: string;
+  episodeNumber?: number;
+  publishDate: string; // ISO date (YYYY-MM-DD)
+  audioUrl: string;
+  duration?: string;
+  coverImage?: string;
 }
 ```
 
@@ -81,7 +81,7 @@ trade-off against SEO/prerendering the team accepted for now):
   `GET /offers/:slug` from the API, mounted from the static shell at
   `apps/web/src/pages/angebote/detail.astro` (any `/angebote/<slug>` request is rewritten to
   this shell by `apps/web/public/.htaccess`, since the slug isn't known at build time — note
-  the shell file is *not* named with a leading underscore: Astro silently excludes
+  the shell file is _not_ named with a leading underscore: Astro silently excludes
   `_`-prefixed files from routing, which would make this page never build at all)
 - `apps/web/src/components/OffersGrid.tsx` — the full offers listing, grouped by category,
   fetching `GET /offers`, mounted at `apps/web/src/pages/angebote/index.astro`
@@ -119,14 +119,14 @@ boundary — the actual gate is the password login inside `AdminApp`.
 
 All requiring a valid bearer token except login:
 
-| Route | Method | Purpose |
-|---|---|---|
-| `/admin/login` | POST | Checks the submitted password against `ADMIN_UPLOAD_PASSWORD`; on success returns `{ token }` |
-| `/admin/logout` | POST | Stateless no-op (kept for symmetry/future revocation) — the frontend just discards its stored token |
-| `/admin/offers` | POST | Creates or updates an offer (multipart form; handles the optional `cardImage` upload) |
-| `/admin/offers/:slug` | DELETE | Deletes an offer |
-| `/admin/podcast` | POST | Creates or updates a podcast episode (multipart form; handles the required `audio` upload and optional `coverImage`) |
-| `/admin/podcast/:slug` | DELETE | Deletes a podcast episode |
+| Route                  | Method | Purpose                                                                                                              |
+| ---------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
+| `/admin/login`         | POST   | Checks the submitted password against `ADMIN_UPLOAD_PASSWORD`; on success returns `{ token }`                        |
+| `/admin/logout`        | POST   | Stateless no-op (kept for symmetry/future revocation) — the frontend just discards its stored token                  |
+| `/admin/offers`        | POST   | Creates or updates an offer (multipart form; handles the optional `cardImage` upload)                                |
+| `/admin/offers/:slug`  | DELETE | Deletes an offer                                                                                                     |
+| `/admin/podcast`       | POST   | Creates or updates a podcast episode (multipart form; handles the required `audio` upload and optional `coverImage`) |
+| `/admin/podcast/:slug` | DELETE | Deletes a podcast episode                                                                                            |
 
 `AdminApp.tsx`'s `OffersManager`/`PodcastManager` sub-components (in
 `apps/web/src/components/admin/`) are the React equivalents of the old
@@ -146,7 +146,7 @@ cross-origin client/API split. The flow:
 1. The admin submits the password to `POST /admin/login` on `apps/api`.
 2. The server compares it to the `ADMIN_UPLOAD_PASSWORD` secret. On success it returns a
    JSON body `{ token }`, where the token string is `<expiry-timestamp>.<HMAC-SHA256
-   signature>`, the signature computed over the expiry timestamp using
+signature>`, the signature computed over the expiry timestamp using
    `ADMIN_UPLOAD_PASSWORD` itself as the HMAC key (12-hour expiry).
 3. `AdminApp.tsx` stores that token in `localStorage` and sends it as
    `Authorization: Bearer <token>` on every subsequent `/admin/*` call. `apps/api`'s

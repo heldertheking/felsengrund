@@ -5,8 +5,8 @@
  * regardless of this flag.
  */
 interface PodcastSpeaker {
-    name: string;
-    main?: boolean;
+  name: string;
+  main?: boolean;
 }
 
 /**
@@ -21,13 +21,13 @@ interface PodcastSpeaker {
  * @property speakers List of {@link PodcastSpeaker} for this episode.
  */
 interface Frontmatter {
-    title: string;
-    episodeNumber?: number; // Prefilled with Nr. of files + 1
-    publishDate: string;
-    audioUrl: string;
-    duration?: string; // free text, e.g. "32:10" — never parsed/computed, just displayed
-    coverImage?: string;
-    speakers?: PodcastSpeaker[];
+  title: string;
+  episodeNumber?: number; // Prefilled with Nr. of files + 1
+  publishDate: string;
+  audioUrl: string;
+  duration?: string; // free text, e.g. "32:10" — never parsed/computed, just displayed
+  coverImage?: string;
+  speakers?: PodcastSpeaker[];
 }
 
 /**
@@ -36,13 +36,13 @@ interface Frontmatter {
  * @property body Markdown text, no images
  */
 interface Episode {
-    slug: string; // Composed of the original title
-    data: Frontmatter;
-    body: string;
+  slug: string; // Composed of the original title
+  data: Frontmatter;
+  body: string;
 }
 
 interface EpisodeDetailResponse extends Episode {
-    bodyHtml: string;
+  bodyHtml: string;
 }
 
 export type { EpisodeDetailResponse, Episode, Frontmatter as EpisodeFrontmatter, PodcastSpeaker };

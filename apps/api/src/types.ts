@@ -1,9 +1,9 @@
 export interface Env {
-  STORAGE: R2Bucket
-  N8N_WEBHOOK_URL: string
-  N8N_WEBHOOK_SECRET?: string
-  ADMIN_UPLOAD_PASSWORD?: string
-  PUBLIC_WORKER_ORIGIN: string
-  ALLOWED_ORIGINS: string
-  PUBLIC_WEB_URL: string
+  ENVIRONMENT: 'local' | 'production' | 'development';
+  KFA_WORKER_ORIGIN: string;
+  KFA_WEBPAGE_ORIGIN: string;
+  KFA_ALLOWED_ORIGINS: string;
+  KFA_NOTIFICATION_WEBHOOK: string;
+  ADMIN_UPLOAD_PASSWORD?: string;
+  STORAGE: R2Bucket;
 }

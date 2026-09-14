@@ -1,114 +1,127 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
-import { apiClient } from '../../lib/api'
-import { CATEGORY_DETAILS, UnauthorizedError, type Offer, type OfferFrontmatter, type OfferOrganizer } from '@felsengrund/types'
-import { downloadMdocExport } from '../../lib/export'
-import { filterMdocFiles } from '../../lib/mdoc'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { apiClient } from '../../lib/api';
+import {
+  CATEGORY_DETAILS,
+  UnauthorizedError,
+  type Offer,
+  type OfferFrontmatter,
+  type OfferOrganizer,
+} from '@felsengrund/types';
+import { downloadMdocExport } from '../../lib/export';
+import { filterMdocFiles } from '../../lib/mdoc';
 
 const CATEGORIES: { value: OfferFrontmatter['category']; label: string }[] = Object.entries(CATEGORY_DETAILS)
   .sort((a, b) => a[1].index - b[1].index)
-  .map(([value, details]) => ({ value: value as OfferFrontmatter['category'], label: details.label }))
+  .map(([value, details]) => ({
+    value: value as OfferFrontmatter['category'],
+    label: details.label,
+  }));
 
 const inputClass =
-  'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent'
-const labelClass = 'text-xs font-semibold uppercase tracking-wide text-kf-ink-muted'
+  'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent';
+const labelClass = 'text-xs font-semibold uppercase tracking-wide text-kf-ink-muted';
 
 interface Props {
-  onUnauthorized: () => void
+  onUnauthorized: () => void;
 }
 
-type Mode = { view: 'list' } | { view: 'form'; offer: Offer | null }
+type Mode = { view: 'list' } | { view: 'form'; offer: Offer | null };
 
 export default function OffersManager({ onUnauthorized }: Props) {
-  const [offers, setOffers] = useState<Offer[] | null>(null)
-  const [mode, setMode] = useState<Mode>({ view: 'list' })
-  const [listError, setListError] = useState<string | null>(null)
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [bulkBusy, setBulkBusy] = useState(false)
-  const [importing, setImporting] = useState(false)
-  const [importError, setImportError] = useState<string | null>(null)
-  const importInputRef = useRef<HTMLInputElement>(null)
+  const [offers, setOffers] = useState<Offer[] | null>(null);
+  const [mode, setMode] = useState<Mode>({ view: 'list' });
+  const [listError, setListError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   function reload() {
     apiClient.offers
       .list()
       .then((data) => {
-        setOffers(data)
-        setSelected((prev) => new Set([...prev].filter((slug) => data.some((o) => o.slug === slug))))
+        setOffers(data);
+        setSelected((prev) => new Set([...prev].filter((slug) => data.some((o) => o.slug === slug))));
       })
-      .catch(() => setListError('Angebote konnten nicht geladen werden.'))
+      .catch(() => setListError('Angebote konnten nicht geladen werden.'));
   }
 
   useEffect(() => {
-    reload()
-  }, [])
+    reload();
+  }, []);
 
   function toggleSelected(slug: string) {
     setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(slug)) next.delete(slug)
-      else next.add(slug)
-      return next
-    })
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
   }
 
   function toggleSelectAll() {
-    if (!offers) return
-    setSelected((prev) => (prev.size === offers.length ? new Set() : new Set(offers.map((o) => o.slug))))
+    if (!offers) return;
+    setSelected((prev) => (prev.size === offers.length ? new Set() : new Set(offers.map((o) => o.slug))));
   }
 
   async function handleBulkDelete() {
-    if (selected.size === 0) return
-    if (!confirm(`${selected.size} Angebot(e) wirklich löschen?`)) return
-    setBulkBusy(true)
+    if (selected.size === 0) return;
+    if (!confirm(`${selected.size} Angebot(e) wirklich löschen?`)) return;
+    setBulkBusy(true);
     try {
       for (const slug of selected) {
-        await apiClient.offers.delete(slug)
+        await apiClient.offers.delete(slug);
       }
-      setSelected(new Set())
-      reload()
+      setSelected(new Set());
+      reload();
     } catch (err) {
-      if (err instanceof UnauthorizedError) return onUnauthorized()
-      alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.')
+      if (err instanceof UnauthorizedError) return onUnauthorized();
+      alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.');
     } finally {
-      setBulkBusy(false)
+      setBulkBusy(false);
     }
   }
 
   function handleBulkExport() {
-    if (!offers) return
+    if (!offers) return;
     const rows = offers
       .filter((o) => selected.has(o.slug))
-      .map((o) => ({ slug: o.slug, data: o.data as unknown as Record<string, unknown>, body: o.body }))
-    downloadMdocExport('angebote-export', rows)
+      .map((o) => ({
+        slug: o.slug,
+        data: o.data as unknown as Record<string, unknown>,
+        body: o.body,
+      }));
+    downloadMdocExport('angebote-export', rows);
   }
 
   async function handleImportFiles(event: ChangeEvent<HTMLInputElement>) {
-    const picked = Array.from(event.target.files ?? [])
-    event.target.value = ''
-    if (picked.length === 0) return
+    const picked = Array.from(event.target.files ?? []);
+    event.target.value = '';
+    if (picked.length === 0) return;
 
-    const files = filterMdocFiles(picked)
+    const files = filterMdocFiles(picked);
     if (files.length === 0) {
-      setImportError('Keine .mdoc-Dateien gefunden.')
-      return
+      setImportError('Keine .mdoc-Dateien gefunden.');
+      return;
     }
 
-    setImporting(true)
-    setImportError(null)
-    const failures: string[] = []
+    setImporting(true);
+    setImportError(null);
+    const failures: string[] = [];
 
     for (const file of files) {
       try {
-        await apiClient.offers.importMdoc(file)
+        await apiClient.offers.importMdoc(file);
       } catch (err) {
-        if (err instanceof UnauthorizedError) return onUnauthorized()
-        failures.push(`${file.name}: ${err instanceof Error ? err.message : 'Import fehlgeschlagen.'}`)
+        if (err instanceof UnauthorizedError) return onUnauthorized();
+        failures.push(`${file.name}: ${err instanceof Error ? err.message : 'Import fehlgeschlagen.'}`);
       }
     }
 
-    setImporting(false)
-    setImportError(failures.length > 0 ? failures.join('\n') : null)
-    reload()
+    setImporting(false);
+    setImportError(failures.length > 0 ? failures.join('\n') : null);
+    reload();
   }
 
   if (mode.view === 'form') {
@@ -116,12 +129,12 @@ export default function OffersManager({ onUnauthorized }: Props) {
       <OfferForm
         offer={mode.offer}
         onDone={() => {
-          setMode({ view: 'list' })
-          reload()
+          setMode({ view: 'list' });
+          reload();
         }}
         onUnauthorized={onUnauthorized}
       />
-    )
+    );
   }
 
   return (
@@ -225,7 +238,7 @@ export default function OffersManager({ onUnauthorized }: Props) {
         </ul>
       )}
     </div>
-  )
+  );
 }
 
 function DeleteButton({
@@ -233,23 +246,23 @@ function DeleteButton({
   onDeleted,
   onUnauthorized,
 }: {
-  slug: string
-  onDeleted: () => void
-  onUnauthorized: () => void
+  slug: string;
+  onDeleted: () => void;
+  onUnauthorized: () => void;
 }) {
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState(false);
 
   async function handleClick() {
-    if (!confirm('Dieses Angebot wirklich löschen?')) return
-    setBusy(true)
+    if (!confirm('Dieses Angebot wirklich löschen?')) return;
+    setBusy(true);
     try {
-      await apiClient.offers.delete(slug)
-      onDeleted()
+      await apiClient.offers.delete(slug);
+      onDeleted();
     } catch (err) {
-      if (err instanceof UnauthorizedError) return onUnauthorized()
-      alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.')
+      if (err instanceof UnauthorizedError) return onUnauthorized();
+      alert(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.');
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
   }
 
@@ -262,7 +275,7 @@ function DeleteButton({
     >
       Löschen
     </button>
-  )
+  );
 }
 
 function OfferForm({
@@ -270,34 +283,34 @@ function OfferForm({
   onDone,
   onUnauthorized,
 }: {
-  offer: Offer | null
-  onDone: () => void
-  onUnauthorized: () => void
+  offer: Offer | null;
+  onDone: () => void;
+  onUnauthorized: () => void;
 }) {
-  const isEdit = offer !== null
-  const [title, setTitle] = useState(offer?.data.title ?? '')
-  const [intro, setIntro] = useState(offer?.data.intro ?? '')
-  const [category, setCategory] = useState<OfferFrontmatter['category']>(offer?.data.category ?? 'gottesdienst')
-  const [targetAudience, setTargetAudience] = useState(offer?.data.targetAudience ?? '')
-  const [schedule, setSchedule] = useState(offer?.data.schedule ?? '')
-  const [location, setLocation] = useState(offer?.data.location ?? '')
-  const [mapsLink, setMapsLink] = useState(offer?.data.mapsLink ?? '')
-  const [googleMapsIframeLink, setGoogleMapsIframeLink] = useState(offer?.data.googleMapsIframeLink ?? '')
-  const [registration, setRegistration] = useState(offer?.data.registration ?? '')
-  const [organizers, setOrganizers] = useState<OfferOrganizer[]>(offer?.data.organizers ?? [])
-  const [cardImage, setCardImage] = useState<File | null>(null)
-  const [body, setBody] = useState(offer?.body ?? '')
-  const [status, setStatus] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  const isEdit = offer !== null;
+  const [title, setTitle] = useState(offer?.data.title ?? '');
+  const [intro, setIntro] = useState(offer?.data.intro ?? '');
+  const [category, setCategory] = useState<OfferFrontmatter['category']>(offer?.data.category ?? 'gottesdienst');
+  const [targetAudience, setTargetAudience] = useState(offer?.data.targetAudience ?? '');
+  const [schedule, setSchedule] = useState(offer?.data.schedule ?? '');
+  const [location, setLocation] = useState(offer?.data.location ?? '');
+  const [mapsLink, setMapsLink] = useState(offer?.data.mapsLink ?? '');
+  const [googleMapsIframeLink, setGoogleMapsIframeLink] = useState(offer?.data.googleMapsIframeLink ?? '');
+  const [registration, setRegistration] = useState(offer?.data.registration ?? '');
+  const [organizers, setOrganizers] = useState<OfferOrganizer[]>(offer?.data.organizers ?? []);
+  const [cardImage, setCardImage] = useState<File | null>(null);
+  const [body, setBody] = useState(offer?.body ?? '');
+  const [status, setStatus] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   function updateOrganizer(index: number, field: keyof OfferOrganizer, value: string) {
-    setOrganizers((rows) => rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)))
+    setOrganizers((rows) => rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setStatus('Wird gespeichert …')
-    setSubmitting(true)
+    event.preventDefault();
+    setStatus('Wird gespeichert …');
+    setSubmitting(true);
 
     try {
       const input = {
@@ -313,18 +326,18 @@ function OfferForm({
         organizers: organizers.filter((o) => o.name.trim()),
         body,
         cardImage: cardImage ?? undefined,
-      }
+      };
 
       if (isEdit) {
-        await apiClient.offers.update(offer.slug, input)
+        await apiClient.offers.update(offer.slug, input);
       } else {
-        await apiClient.offers.create(input)
+        await apiClient.offers.create(input);
       }
-      onDone()
+      onDone();
     } catch (err) {
-      if (err instanceof UnauthorizedError) return onUnauthorized()
-      setStatus(err instanceof Error ? err.message : 'Da ist etwas schiefgelaufen.')
-      setSubmitting(false)
+      if (err instanceof UnauthorizedError) return onUnauthorized();
+      setStatus(err instanceof Error ? err.message : 'Da ist etwas schiefgelaufen.');
+      setSubmitting(false);
     }
   }
 
@@ -356,7 +369,11 @@ function OfferForm({
 
       <div>
         <label className={labelClass}>Kategorie</label>
-        <select value={category} onChange={(e) => setCategory(e.target.value as OfferFrontmatter['category'])} className={inputClass}>
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value as OfferFrontmatter['category'])}
+          className={inputClass}
+        >
           {CATEGORIES.map((c) => (
             <option key={c.value} value={c.value}>
               {c.label}
@@ -367,7 +384,12 @@ function OfferForm({
 
       <div>
         <label className={labelClass}>Zielgruppe</label>
-        <input type="text" value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} className={inputClass} />
+        <input
+          type="text"
+          value={targetAudience}
+          onChange={(e) => setTargetAudience(e.target.value)}
+          className={inputClass}
+        />
       </div>
 
       <div>
@@ -397,14 +419,22 @@ function OfferForm({
 
       <div>
         <label className={labelClass}>Anmeldung</label>
-        <input type="text" value={registration} onChange={(e) => setRegistration(e.target.value)} className={inputClass} />
+        <input
+          type="text"
+          value={registration}
+          onChange={(e) => setRegistration(e.target.value)}
+          className={inputClass}
+        />
       </div>
 
       <div>
         <span className={labelClass}>Ansprechpersonen</span>
         <div className="mt-2 flex flex-col gap-2">
           {organizers.map((organizer, index) => (
-            <div key={index} className="grid grid-cols-1 gap-2 rounded-lg border border-kf-edge p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-center">
+            <div
+              key={index}
+              className="grid grid-cols-1 gap-2 rounded-lg border border-kf-edge p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-center"
+            >
               <input
                 type="text"
                 placeholder="Name"
@@ -448,7 +478,11 @@ function OfferForm({
       <div>
         <label className={labelClass}>Kartenbild</label>
         {offer?.data.cardImage && (
-          <img src={offer.data.cardImage} alt="" className="mt-2 h-24 w-auto rounded-lg border border-kf-edge object-cover" />
+          <img
+            src={offer.data.cardImage}
+            alt=""
+            className="mt-2 h-24 w-auto rounded-lg border border-kf-edge object-cover"
+          />
         )}
         <input
           type="file"
@@ -460,7 +494,12 @@ function OfferForm({
 
       <div>
         <label className={labelClass}>Inhalt (Markdoc)</label>
-        <textarea rows={14} value={body} onChange={(e) => setBody(e.target.value)} className={`${inputClass} font-mono`} />
+        <textarea
+          rows={14}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          className={`${inputClass} font-mono`}
+        />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -474,5 +513,5 @@ function OfferForm({
         {status && <p className="text-sm text-kf-ink-muted">{status}</p>}
       </div>
     </form>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import { defineConfig } from 'astro/config'
-import react from '@astrojs/react'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+import tailwindcss from '@tailwindcss/vite';
 
 // Fully static site — no adapter, no server runtime. All content that used to be read
 // server-side from R2 (offers, podcast episodes, the nav dropdown) is now fetched client-side
@@ -10,4 +10,4 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-})
+});
