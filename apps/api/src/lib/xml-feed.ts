@@ -100,7 +100,7 @@ export function buildPodcastFeedXml(feed: PodcastFeedData): string {
   const items = feed.episodes.map(renderItemXml).join('')
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>${escapeXml(feed.title)}</title>
     <link>${escapeXml(feed.link)}</link>
@@ -121,4 +121,14 @@ export function buildPodcastFeedXml(feed: PodcastFeedData): string {
     ${items}
   </channel>
 </rss>`
+}
+
+export async function generateETag(xmlString: string): Promise<string> {
+  const msgUint8 = new TextEncoder().encode(xmlString);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+  // Get the first 16 characters for a short ETag string
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return `"${hashHex.substring(0, 16)}"`;
 }

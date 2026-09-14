@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { getPodcastEpisode, listPodcastEpisodes, renderMarkdoc } from '@felsengrund/api-core'
 import type { Env } from '../types'
 import { rewriteMediaUrls } from '../lib/media-url'
-import { buildPodcastFeedXml, episodeToXmlItem } from '../lib/xml-feed'
+import {buildPodcastFeedXml, episodeToXmlItem, generateETag} from '../lib/xml-feed'
 
 export const podcastRoute = new Hono<{ Bindings: Env }>()
 
@@ -32,7 +32,14 @@ podcastRoute.get('/podcast/feed.xml', async (c) => {
     episodes: items,
   })
 
-  return c.text(xml, 200, { 'Content-Type': 'application/rss+xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600, s-maxage=86400' })
+  const etag = await generateETag(xml)
+
+  return c.text(xml, 200, {
+    'Content-Type': 'application/rss+xml; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+    'ETag': etag,
+    'Last-Modified': new Date().toUTCString(),
+  })
 })
 
 podcastRoute.get('/podcast', async (c) => {
