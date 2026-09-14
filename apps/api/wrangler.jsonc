@@ -28,12 +28,20 @@
     "production": {
       "vars": {
         "ENVIRONMENT": "production",
+        "KFA_SESSION_TTL_MS": "43200000",
+        "KFA_WORKER_ORIGIN": "https://felsengrund.jroliveirahelder.workers.dev",
+        "KFA_WEBPAGE_ORIGIN": "https://kirche-felsengrund.ch",
+        "KFA_ALLOWED_ORIGINS": "https://kirche-felsengrund.ch",
         "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification"
       }
     },
     "development": {
       "vars": {
         "ENVIRONMENT": "development",
+        "KFA_SESSION_TTL_MS": "43200000",
+        "KFA_WORKER_ORIGIN": "https://felsengrund.jroliveirahelder.workers.dev",
+        "KFA_WEBPAGE_ORIGIN": "https://staging.kirche-felsengrund.ch",
+        "KFA_ALLOWED_ORIGINS": "http://localhost:4321,https://*.kirche-felsengrund.ch",
         "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification?env=development"
       }
     }
