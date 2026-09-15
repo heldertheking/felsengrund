@@ -5,9 +5,12 @@ import {
   listSortedPodcastEpisodes,
   renderMarkdoc,
 } from '@felsengrund/api-core';
+import { createLogger } from '@felsengrund/logger';
 import type { Env } from '../types';
 import { rewriteMediaUrls } from '../lib/media-url';
 import { buildPodcastFeedXml, episodeToXmlItem, generateETag } from '../lib/xml-feed';
+
+const logger = createLogger('podcast');
 
 export const podcastRoute = new Hono<{ Bindings: Env }>();
 
@@ -19,7 +22,24 @@ podcastRoute.get('/podcast/feed.xml', async (c) => {
   const episodes = (await listPodcastEpisodes(c.env.STORAGE)).sort(
     (a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf(),
   );
-  const items = await Promise.all(episodes.map((episode) => episodeToXmlItem(episode)));
+
+  // One malformed episode (bad frontmatter, missing audio, invalid date, ...) shouldn't take the
+  // whole feed down for every subscriber - log it with enough context to fix and drop it instead.
+  const items = (
+    await Promise.all(
+      episodes.map(async (episode) => {
+        try {
+          return await episodeToXmlItem(episode);
+        } catch (error) {
+          logger.error('failed to build feed item for episode - skipping it', {
+            slug: episode.slug,
+            error,
+          });
+          return null;
+        }
+      }),
+    )
+  ).filter((item) => item !== null);
 
   const xml = buildPodcastFeedXml({
     title: 'Kirche Felsengrund Podcast',

@@ -25,6 +25,7 @@
     "required": ["KFA_ADMIN_PASSWORD"]
   },
   "env": {
+    // Variables and bindings are not inherit
     "production": {
       "vars": {
         "ENVIRONMENT": "production",
@@ -33,7 +34,13 @@
         "KFA_WEBPAGE_ORIGIN": "https://kirche-felsengrund.ch",
         "KFA_ALLOWED_ORIGINS": "https://*.kirche-felsengrund.ch",
         "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification"
-      }
+      },
+      "r2_buckets": [
+        {
+          "binding": "STORAGE",
+          "bucket_name": "felsengrund-storage"
+        }
+      ]
     },
     "development": {
       "vars": {
@@ -43,7 +50,13 @@
         "KFA_WEBPAGE_ORIGIN": "https://staging.kirche-felsengrund.ch",
         "KFA_ALLOWED_ORIGINS": "http://localhost:4321,https://*.kirche-felsengrund.ch",
         "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification?env=development"
-      }
+      },
+      "r2_buckets": [
+        {
+          "binding": "STORAGE",
+          "bucket_name": "felsengrund-storage"
+        }
+      ]
     }
   }
 }

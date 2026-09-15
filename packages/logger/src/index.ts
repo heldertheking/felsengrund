@@ -13,6 +13,26 @@ export interface Logger {
 
 const LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 
+// `console.error(prefix, message, { error })` renders an `Error` as `{}` in Workers Logs (only
+// own enumerable properties survive), which is exactly the detail we need most. Unwrap any
+// `Error` values in `meta` (including nested `cause` chains) into plain `{ name, message, stack }`
+// so the interesting fields actually show up.
+function serializeValue(value: unknown): unknown {
+  if (value instanceof Error) {
+    return {
+      name: value.name,
+      message: value.message,
+      stack: value.stack,
+      ...(value.cause !== undefined ? { cause: serializeValue(value.cause) } : {}),
+    };
+  }
+  return value;
+}
+
+function serializeMeta(meta: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(meta).map(([key, value]) => [key, serializeValue(value)]));
+}
+
 export function createLogger(namespace: string, opts?: LoggerOptions): Logger {
   const minLevel = opts?.level ?? 'debug';
   const minIndex = LEVELS.indexOf(minLevel);
@@ -23,7 +43,7 @@ export function createLogger(namespace: string, opts?: LoggerOptions): Logger {
     }
     const prefix = `[${namespace}]`;
     if (meta !== undefined) {
-      console[level](prefix, message, meta);
+      console[level](prefix, message, serializeMeta(meta));
     } else {
       console[level](prefix, message);
     }

@@ -1,6 +1,9 @@
 import { renderMarkdoc } from '@felsengrund/api-core';
 import type { Episode } from '@felsengrund/types';
 import { env } from 'cloudflare:workers';
+import { createLogger } from '@felsengrund/logger';
+
+const logger = createLogger('xml-feed');
 
 export interface EpisodeItem {
   title: string;
@@ -57,6 +60,11 @@ async function resolveAudioMeta(mediaPath: string): Promise<{ byteLength: number
   // packages/api-core/src/admin-content.ts) - strip the prefix to get the R2 object key.
   const key = mediaPath.replace(/^\/media\//, '');
   const head = await env.STORAGE.head(key);
+  if (!head) {
+    // Not fatal (the enclosure still gets a valid, if size-0, entry) but a byteLength of 0 makes
+    // for a broken download in most podcast clients, so it's worth flagging loudly.
+    logger.warn('audio object not found in R2 - enclosure will report length 0', { key });
+  }
   return {
     byteLength: head?.size ?? 0,
     type: head?.httpMetadata?.contentType || 'audio/mpeg',
@@ -67,12 +75,19 @@ export async function episodeToXmlItem(episode: Episode): Promise<EpisodeItem> {
   const link = [env.KFA_WEBPAGE_ORIGIN, 'podcast', episode.slug].join('/');
   const { byteLength, type } = await resolveAudioMeta(episode.data.audioUrl);
 
+  const pubDate = new Date(episode.data.publishDate);
+  if (Number.isNaN(pubDate.valueOf())) {
+    throw new Error(
+      `episode "${episode.slug}" has an invalid publishDate (${JSON.stringify(episode.data.publishDate)})`,
+    );
+  }
+
   return {
     title: episode.data.title,
     description: `<![CDATA[${renderMarkdoc(episode.body)}]]>`,
     link,
     guid: link, // Stable per episode (slug-derived), so it's safe to use as an RSS permalink GUID
-    pubDate: toRfc2822(new Date(episode.data.publishDate)),
+    pubDate: toRfc2822(pubDate),
     audioUrl: `${env.KFA_WORKER_ORIGIN}${episode.data.audioUrl}`,
     audioByteLength: byteLength,
     audioType: type,

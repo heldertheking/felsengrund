@@ -1,16 +1,21 @@
 import { Hono } from 'hono';
+import { createLogger } from '@felsengrund/logger';
 import type { Env } from './types';
 import { corsMiddleware } from './middleware/cors';
 import { requestLogger } from './middleware/logger';
+import { checkRequiredBindings } from './middleware/env-check';
 import { formsRoute } from './routes/forms';
 import { offersRoute } from './routes/offers';
 import { podcastRoute } from './routes/podcast';
 import { mediaRoute } from './routes/media';
 import { adminRoute } from './routes/admin';
 
+const logger = createLogger('app');
+
 const app = new Hono<{ Bindings: Env }>();
 
 app.use('*', requestLogger);
+app.use('*', checkRequiredBindings);
 app.use('*', corsMiddleware);
 
 app.route('/', formsRoute);
@@ -28,11 +33,21 @@ app.notFound((c) => {
 });
 
 /**
- * Handles errors in a trackable way logging both a message and request ID for tracking.
+ * Handles errors in a trackable way, logging a requestId alongside the full request context and
+ * a properly serialized error (name/message/stack, see `@felsengrund/logger`) so a 500 can be
+ * diagnosed from Workers Logs alone, without needing a live `wrangler tail` session.
  */
 app.onError((error, c) => {
   const requestId = crypto.randomUUID();
-  console.error(`[error] requestId=${requestId} ${c.req.method} ${c.req.path}`, error);
+  logger.error('unhandled request error', {
+    requestId,
+    method: c.req.method,
+    path: c.req.path,
+    query: c.req.query(),
+    origin: c.req.header('origin') ?? '-',
+    environment: c.env.ENVIRONMENT,
+    error,
+  });
   return c.json({ error: 'Internal server error.', requestId }, 500);
 });
 
