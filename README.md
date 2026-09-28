@@ -98,6 +98,15 @@ For setting up the Cloudflare R2 bucket and secrets, deploying `apps/api` to Clo
 Workers, and deploying `apps/web` to webkeeper.ch (including the GitHub Actions + Plesk Git
 auto-deploy setup), see [`docs/deployment.md`](./docs/deployment.md).
 
+## Contributing
+
+Bug reports, feature suggestions, and translation help are welcome via GitHub
+issues — see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for how to get started,
+including how to reach us directly if you'd like to help translate the site
+into another language. This repository does not accept unsolicited pull
+requests or third-party code changes. See also [`CHANGELOG.md`](./CHANGELOG.md)
+for a history of releases.
+
 ## License
 
 This repository is source-available for transparency, not open source in the permissive

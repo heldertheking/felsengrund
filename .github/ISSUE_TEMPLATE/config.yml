@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Translation help (direct email)
+    url: mailto:kontakt@kirche-felsengrund.ch?subject=Translation%20assistance%20for%20%3Clanguage%3E
+    about: Prefer email? Send us a note at kontakt@kirche-felsengrund.ch with the subject "Translation assistance for <language>" and we'll get back to you.
+  - name: General contact
+    url: mailto:kontakt@kirche-felsengrund.ch
+    about: For anything that isn't a bug, feature request, or translation issue.
