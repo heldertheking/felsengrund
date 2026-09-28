@@ -36,6 +36,9 @@
         "KFA_ALLOWED_ORIGINS": "https://*.kirche-felsengrund.ch",
         "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification"
       },
+      "secrets": {
+        "required": ["KFA_ADMIN_PASSWORD", "KFA_MAIL_PASSWORD"]
+      },
       "r2_buckets": [
         {
           "binding": "STORAGE",
@@ -52,6 +55,9 @@
         "KFA_WEBPAGE_ORIGIN": "https://staging.kirche-felsengrund.ch",
         "KFA_ALLOWED_ORIGINS": "http://localhost:4321,https://*.kirche-felsengrund.ch",
         "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification?env=development"
+      },
+      "secrets": {
+        "required": ["KFA_ADMIN_PASSWORD", "KFA_MAIL_PASSWORD"]
       },
       "r2_buckets": [
         {
