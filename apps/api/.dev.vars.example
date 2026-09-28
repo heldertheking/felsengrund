@@ -2,8 +2,8 @@
 # ---
 # In production Secrets using 'wrangler secrets set <NAME>'
 
-# Used for the admin dashboard
-ADMIN_UPLOAD_PASSWORD=super-secret-password
+# Gates the /admin content panel (see docs/architecture.md for the token-based auth model)
+KFA_ADMIN_PASSWORD=super-secret-password
 
 # SMTP password for noreply@kirche-felsengrund.ch on mail.webkeeper.ch (used to send form
 # notification emails). Create this mailbox in Plesk and set its password there.

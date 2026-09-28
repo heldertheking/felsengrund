@@ -35,7 +35,7 @@ jobs:
             PUBLIC_API_BASE_URL
             GOOGLE_CALENDAR_EMBED_URL
           "
-          
+
           FAILED=0
           for VAR_NAME in $REQUIRED_VARS; do
             VALUE=$(echo "$VARS_JSON" | jq -r --arg key "$VAR_NAME" '.[$key] // empty')
@@ -44,7 +44,7 @@ jobs:
               FAILED=1
             fi
           done
-          
+
           if [ "$FAILED" -eq 1 ]; then
             exit 1
           fi

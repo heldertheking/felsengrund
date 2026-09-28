@@ -15,17 +15,18 @@ a traditional client/API split rather than a single server-rendered app:
   runtime of its own; it's deployed as plain files to webkeeper.ch. Public content (offers,
   podcast episodes) and the admin panel both talk to `apps/api` over `fetch()`.
 - **`apps/api`** — a plain [Cloudflare Worker](https://workers.cloudflare.com/) (no Astro),
-  using [Hono](https://hono.dev/) for routing. A pure JSON API: form relay to n8n, offers/
+  using [Hono](https://hono.dev/) for routing. A pure JSON API: form relay to offers/
   podcast content backed by [Cloudflare R2](https://developers.cloudflare.com/r2/), media
   streaming, and the admin CMS's backend (bearer-token auth, not cookies — see
   [`docs/architecture.md`](./docs/architecture.md)).
 - **`packages/types`** — shared TypeScript types (offers, podcast episodes, nav, admin,
   forms) used by both `apps/web` and `apps/api` so the two halves agree on shapes.
 - **`packages/api-core`** — plain TypeScript used by `apps/api`: R2-backed content access
-  (Markdoc-rendered offers/podcast episodes), the n8n webhook relay, and the admin
+  (Markdoc-rendered offers/podcast episodes) and the admin
   bearer-token auth.
-- **`packages/requestLoggerMiddleware`** — a tiny leveled console requestLoggerMiddleware shared by `apps/api` (and available
-  to `apps/web`) for consistent, namespaced log output.
+- **`packages/logger`** — a tiny leveled console logger (`createLogger()`) shared across
+  `apps/api`'s middleware, routes, and services (request logging, error logging, the mail
+  notification service) for consistent, namespaced log output.
 
 Tailwind CSS v4 and React (`@astrojs/react`) are used in `apps/web` for interactive islands
 — form components, and the client-fetch-driven offers/podcast/admin views — rather than for
@@ -47,18 +48,24 @@ npm run dev:web    # starts apps/web's Astro dev server
 two secrets (see `apps/api/.dev.vars.example` for the authoritative list and inline notes):
 
 - `KFA_ADMIN_PASSWORD` — the password that gates the `/admin` content panel locally.
-- `N8N_WEBHOOK_SECRET` — the HMAC signing secret used to authenticate the site's outgoing
-  form-submission webhook calls to n8n (see `packages/api-core/src/notify.ts`).
+- `KFA_MAIL_PASSWORD` — SMTP password for the `noreply@kirche-felsengrund.ch` mailbox that
+  form notification emails are sent from (see
+  [`docs/architecture.md`](./docs/architecture.md#forms--notification-emails)).
 
 ### npm scripts (run from the repo root)
 
-| Script              | What it does                                                                                  |
-| ------------------- | --------------------------------------------------------------------------------------------- |
-| `npm run dev:web`   | Starts `apps/web`'s Astro dev server                                                          |
-| `npm run dev:api`   | Starts `apps/api`'s Wrangler dev server                                                       |
-| `npm run build:web` | Type-checks and builds `apps/web` for production                                              |
-| `npm run build:api` | Builds `apps/api` (mainly useful as a pre-deploy check; `wrangler deploy` bundles on its own) |
-| `npm run lint`      | Runs ESLint across every workspace                                                            |
+| Script                 | What it does                                                                                  |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
+| `npm run dev`          | Starts `apps/web` and `apps/api` dev servers together (via `concurrently`)                    |
+| `npm run dev:web`      | Starts `apps/web`'s Astro dev server                                                          |
+| `npm run dev:api`      | Starts `apps/api`'s Wrangler dev server                                                       |
+| `npm run build:web`    | Type-checks and builds `apps/web` for production                                              |
+| `npm run build:api`    | Builds `apps/api` (mainly useful as a pre-deploy check; `wrangler deploy` bundles on its own) |
+| `npm run lint`         | Runs ESLint across every workspace                                                            |
+| `npm run typecheck`    | Runs each workspace's own typecheck (`astro check` for `apps/web`, `tsc --noEmit` elsewhere)  |
+| `npm run format:check` | Checks Prettier formatting across the repo                                                    |
+| `npm run format:write` | Applies Prettier formatting across the repo                                                   |
+| `npm run check`        | Runs `typecheck`, `lint`, and `format:check` together (what CI runs)                          |
 
 ## Content & Admin
 
@@ -73,6 +80,17 @@ link to it on the public site: click the top-right corner of the header 5 times 
 
 For the full content model, the admin panel's routes, and how the token-based auth works,
 see [`docs/architecture.md`](./docs/architecture.md).
+
+## Forms & notification emails
+
+The public contact, counseling, feedback, and prayer-request forms (`apps/api/src/routes/forms.ts`)
+each send a branded HTML notification email to the relevant church mailbox via a small,
+dependency-free email templating system (`apps/api/src/lib/email/`) — no external templating
+engine, just table-based HTML hardened for both Outlook and Gmail. In any non-`production`
+environment, every notification is redirected to a fixed test inbox instead of the real
+mailboxes, so local/staging testing never reaches the church's actual inboxes. See
+[`docs/architecture.md`](./docs/architecture.md#forms--notification-emails) for the full
+routing table and template details.
 
 ## Deployment
 

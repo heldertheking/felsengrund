@@ -16,7 +16,7 @@
     "lint": "eslint .",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
-    "typecheck": "tsc--build --noEmit",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "check": "npm run typecheck && npm run lint && npm run format:check"
   },
   "devDependencies": {

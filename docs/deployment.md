@@ -33,33 +33,52 @@ only thing that ever serves those bytes over HTTP, streaming straight off the bi
 
 ### Secrets
 
+`apps/api/wrangler.jsonc` declares `production` and `development` named environments plus an
+unnamed default — each has its **own separate secret store** in Cloudflare, so
+`wrangler secret put` warns if you don't pass `--env` and only sets the value for whichever
+environment you targeted (or the unnamed default, if you passed none). Set each secret once
+per environment you actually deploy to:
+
 ```sh
-wrangler secret put ADMIN_UPLOAD_PASSWORD
-wrangler secret put N8N_WEBHOOK_SECRET
+wrangler secret put KFA_ADMIN_PASSWORD --env production
+wrangler secret put KFA_ADMIN_PASSWORD --env development
+wrangler secret put KFA_MAIL_PASSWORD --env production
+wrangler secret put KFA_MAIL_PASSWORD --env development
 ```
 
 - **`KFA_ADMIN_PASSWORD`** — gates `/admin/login`, which returns a signed bearer token on
   success (see [`docs/architecture.md`](./architecture.md) for the token-based admin auth
   model — there is no cookie anymore, since the admin UI is served from a different origin
   than the API).
-- **`N8N_WEBHOOK_SECRET`** — HMAC-SHA256 key used to authenticate outgoing webhook calls to
-  n8n on form submission (`packages/api-core/src/notify.ts`).
+- **`KFA_MAIL_PASSWORD`** — SMTP password for the dedicated `noreply@kirche-felsengrund.ch`
+  mailbox that `apps/api` sends form notification emails from (see
+  [`docs/architecture.md`](./architecture.md#forms--notification-emails)). That mailbox must
+  already exist in Plesk (webkeeper.ch's mail hosting, `mail.webkeeper.ch`) with this exact
+  password set on it — `wrangler secret put` only stores the value Cloudflare-side, it
+  doesn't create or configure the mailbox itself. A `535 Authentication failed` error at
+  send time almost always means this mailbox doesn't exist yet or the passwords don't match.
 
 For local development, copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars`.
 
 ### Plain vars
 
-`apps/api/wrangler.jsonc` also declares:
+`apps/api/wrangler.jsonc` also declares, per environment:
 
-- **`N8N_WEBHOOK_URL`** — the target n8n webhook. Replace the committed placeholder
-  (`REPLACE-ME.n8n.cloud`) with the real workflow URL before forms will deliver anywhere.
-- **`PUBLIC_WORKER_ORIGIN`** — this Worker's own public URL (e.g. its `*.workers.dev`
+- **`KFA_WORKER_ORIGIN`** — this Worker's own public URL (e.g. its `*.workers.dev`
   address, or a custom domain if one is attached later). Used to rewrite relative
   `/media/<key>` references in API responses into absolute URLs the cross-origin frontend
-  can load directly.
-- **`ALLOWED_ORIGINS`** — comma-separated list of origins allowed to call this API
+  can load directly, and to build the podcast Atom feed's audio/link URLs.
+- **`KFA_WEBPAGE_ORIGIN`** — the deployed `apps/web` origin for this environment (e.g.
+  `https://kirche-felsengrund.ch` in production). Used for the podcast feed's website link
+  and cover image URL.
+- **`KFA_ALLOWED_ORIGINS`** — comma-separated list of origins allowed to call this API
   (CORS). Must include whatever origin `apps/web` is actually served from (webkeeper.ch's
   domain in production, `http://localhost:4321` for local dev).
+- **`KFA_NOTIFICATION_WEBHOOK`** — required by `apps/api/src/middleware/env-check.ts`, but
+  not currently read by any route or service. Reserved/leftover — don't go looking for where
+  it's consumed.
+- **`KFA_SESSION_TTL_MS`** — declared in `wrangler.jsonc` but neither required by
+  `env-check.ts` nor read anywhere in `apps/api`'s source. Also currently dead.
 
 ### Build & deploy
 

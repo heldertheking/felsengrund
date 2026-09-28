@@ -121,7 +121,7 @@ All requiring a valid bearer token except login:
 
 | Route                  | Method | Purpose                                                                                                              |
 | ---------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
-| `/admin/login`         | POST   | Checks the submitted password against `KFA_ADMIN_PASSWORD`; on success returns `{ token }`                        |
+| `/admin/login`         | POST   | Checks the submitted password against `KFA_ADMIN_PASSWORD`; on success returns `{ token }`                           |
 | `/admin/logout`        | POST   | Stateless no-op (kept for symmetry/future revocation) — the frontend just discards its stored token                  |
 | `/admin/offers`        | POST   | Creates or updates an offer (multipart form; handles the optional `cardImage` upload)                                |
 | `/admin/offers/:slug`  | DELETE | Deletes an offer                                                                                                     |
@@ -162,3 +162,71 @@ all existing sessions, with no separate revocation step needed.
 `KFA_ADMIN_PASSWORD` is the single password for the entire admin panel — it is not
 scoped separately per section, and (despite its name, a holdover from when it only gated
 audio upload) it now gates offers, podcast episodes, and all admin uploads together.
+
+## Forms & notification emails
+
+Four public forms post to `apps/api/src/routes/forms.ts`, each validating its required
+fields (returning `{ error }` with `400` if any are missing) and, on success, sending a
+notification email and returning `{ ok: true }`:
+
+| Route                  | Frontend                                                       | `FORMS` value    | Production recipient                                   |
+| ---------------------- | -------------------------------------------------------------- | ---------------- | ------------------------------------------------------ |
+| `POST /contact`        | `apps/web/src/pages/kontakt.astro`                             | `CONTACT`        | `kontakt@kirche-felsengrund.ch`                        |
+| `POST /counseling`     | `apps/web/src/pages/lebensberatung.astro`                      | `CONSOLING`      | `lebensberatung@kirche-felsengrund.ch`                 |
+| `POST /prayer-request` | `PrayerWallForm.tsx`, mounted on `jetzt-fuer-mich-beten.astro` | `PRAYER_REQUEST` | `gebetsanliegen@kirche-felsengrund.ch`                 |
+| `POST /feedback`       | `FeedbackForm.tsx`                                             | `UNSPECIFIED`    | `kontakt@kirche-felsengrund.ch` (no dedicated mailbox) |
+
+### `NotificationService` (`apps/api/src/lib/mail.ts`)
+
+`forms.ts` builds one `NotificationService` at module scope (its SMTP config doesn't depend
+on a request, so it's shared across all four routes rather than re-created per call).
+`send(subject, content, form, env, options)` then:
+
+- Sends over SMTP via [`worker-mailer`](https://www.npmjs.com/package/worker-mailer) to
+  `mail.webkeeper.ch:465` (implicit TLS), authenticating as a dedicated
+  `noreply@kirche-felsengrund.ch` mailbox — kept separate from the human-read `info@` inbox
+  specifically so its password can live in a Cloudflare secret without exposing the shared
+  inbox's credentials. `authType: ['plain', 'login']` is required explicitly: `worker-mailer`
+  only tries the auth methods it's told to, and throws "No supported auth method found"
+  otherwise even with valid credentials. See [`docs/deployment.md`](./deployment.md) for the
+  `KFA_MAIL_PASSWORD` secret setup.
+- **Redirects every notification in any non-`production` environment** (`local`,
+  `development`) to a fixed test inbox instead of the table above, so local dev and staging
+  never reach the church's real mailboxes. The redirected email also gets a
+  `[environment]` subject prefix and a visible banner naming the mailbox it would've gone to
+  in production.
+- Sets `reply` to the form submitter's name/email (where available), so staff can hit
+  "Reply" in their mail client and land directly on the person who submitted the form.
+
+### Email templates (`apps/api/src/lib/email/`)
+
+A small, dependency-free HTML templating system rather than a full templating engine:
+
+- `theme.ts` — brand tokens mirrored from `apps/web`'s Tailwind `@theme` block in
+  `src/styles/global.css` (colors, and the Raleway/Open Sans font pairing loaded via Google
+  Fonts), so notification emails look like they came from the same church.
+- `escape-html.ts` — escapes every user-submitted field value before it's interpolated into
+  HTML. Form input is untrusted; nothing from a submission is ever inserted raw.
+- `layout.ts` — the shared table-based email shell (logo-free, text-based header — images are
+  blocked by default in most mail clients, so nothing depends on one loading).
+- `notification-email.ts` — renders a heading, optional intro, a label/value fields table, and
+  a highlighted message card from structured content.
+
+The layout is hardened for the real differences between Outlook (desktop, Word rendering
+engine) and Gmail/Google Workspace rather than assuming one CSS approach works everywhere:
+
+- XHTML 1.0 Transitional doctype, which is what puts Outlook's Word engine into the box
+  model its table/padding code expects.
+- An MSO "ghost table" (`<!--[if mso]>...<![endif]-->`) wrapping the 600px card: Outlook
+  ignores `max-width` entirely, so it gets an explicit fixed-width table, while Gmail/Apple
+  Mail/mobile clients (which ignore MSO conditional comments) see the fluid, responsive one.
+- `bgcolor` HTML attributes alongside every CSS `background-color` — older Outlook reads the
+  legacy attribute more reliably than CSS for cell backgrounds.
+- `mso-line-height-rule: exactly` on custom-line-height text, so Outlook doesn't pad out line
+  spacing on its own.
+- `<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">` —
+  without it, iOS Mail and the Gmail Android app auto-detect the raw email/phone values in
+  the fields table and re-style them as blue underlined links, clashing with the design.
+- Inline styles are the source of truth on every element; the `<style>` block in `<head>` is
+  progressive enhancement only (fonts, the responsive media query), since Gmail strips
+  `<style>` blocks in some contexts — the layout still holds together without it.

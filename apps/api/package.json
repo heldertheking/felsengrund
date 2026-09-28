@@ -17,6 +17,7 @@
     "worker-mailer": "^1.2.1"
   },
   "devDependencies": {
+    "@types/node": "^26.6.3",
     "typescript": "~5.6.2",
     "wrangler": "^4.130.0"
   }
