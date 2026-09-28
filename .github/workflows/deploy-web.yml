@@ -36,6 +36,7 @@ jobs:
       - name: Build Webapp
         env:
           PUBLIC_API_BASE_URL: ${{ vars.PUBLIC_API_BASE_URL }}
+          GOOGLE_CALENDAR_EMBED_URL: ${{ vars.GOOGLE_CALENDAR_EMBED_URL }}
         run: npm run build -w @felsengrund/web
 
       - name: Upload Build Artifact
