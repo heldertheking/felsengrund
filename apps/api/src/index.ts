@@ -9,6 +9,7 @@ import { offersRoute } from './routes/offers';
 import { podcastRoute } from './routes/podcast';
 import { mediaRoute } from './routes/media';
 import { adminRoute } from './routes/admin';
+import pkg from '../package.json';
 
 const logger = createLogger('app');
 
@@ -17,6 +18,15 @@ const app = new Hono<{ Bindings: Env }>();
 app.use('*', requestLogger);
 app.use('*', checkRequiredBindings);
 app.use('*', corsMiddleware);
+
+app.get('/', (c) =>
+  c.json({
+    name: 'Kirche Felsengrund API',
+    version: pkg.version,
+    repository: pkg.repository,
+    environment: c.env.ENVIRONMENT,
+  })
+);
 
 app.route('/', formsRoute);
 app.route('/', offersRoute);
