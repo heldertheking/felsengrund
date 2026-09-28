@@ -52,7 +52,7 @@ two secrets (see `apps/api/.dev.vars.example` for the authoritative list and inl
   form notification emails are sent from (see
   [`docs/architecture.md`](./docs/architecture.md#forms--notification-emails)).
 
-### npm scripts (run from the repo root)
+### root npm scripts
 
 | Script                 | What it does                                                                                  |
 | ---------------------- | --------------------------------------------------------------------------------------------- |

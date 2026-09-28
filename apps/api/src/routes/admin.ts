@@ -48,7 +48,7 @@ adminRoute.post('/admin/login', async (c) => {
   return c.json({ token });
 });
 
-// Bearer tokens can't be revoked server-side; kept as a real endpoint for symmetry / future revocation.
+// Bearer tokens can't be revoked server-side; kept as a real endpoint for symmetry / future revocation logic.
 adminRoute.post('/admin/logout', async (c) => c.json({ ok: true }));
 
 adminRoute.use('/admin/offers', requireAuth);
