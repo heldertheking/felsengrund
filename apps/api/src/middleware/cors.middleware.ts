@@ -11,12 +11,7 @@ function originMatches(pattern: string, origin: string): boolean {
   return host === domain || host.endsWith(`.${domain}`);
 }
 
-/**
- * CORS for a bearer-token API: no cookies are ever involved (see packages/api-core/src/admin-auth.ts),
- * so there's no need for Access-Control-Allow-Credentials - just an explicit origin allowlist
- * (never `*`, since form/admin routes accept POST with user data) and the headers our clients
- * actually send.
- */
+/** Bearer-token API, no cookies - just an explicit origin allowlist (never `*`, since routes accept user POST data). */
 export const corsMiddleware: MiddlewareHandler<{ Bindings: Env }> = async (c, next) => {
   const allowedOrigins = c.env.KFA_ALLOWED_ORIGINS.split(',')
     .map((origin) => origin.trim())
@@ -28,8 +23,7 @@ export const corsMiddleware: MiddlewareHandler<{ Bindings: Env }> = async (c, ne
       : undefined;
 
   if (requestOrigin && !allowOrigin) {
-    // Logged (not just silently dropped) so a stale/missing ALLOWED_ORIGINS entry shows up in
-    // `wrangler tail` instead of only manifesting as an unexplained CORS error in the browser.
+    // Logged so a stale ALLOWED_ORIGINS entry shows in `wrangler tail`, not just a browser CORS error.
     console.warn(
       `[cors] Rejected origin "${requestOrigin}" - not in ALLOWED_ORIGINS (${allowedOrigins.join(', ') || '<empty>'})`,
     );

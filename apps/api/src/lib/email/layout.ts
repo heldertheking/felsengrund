@@ -10,10 +10,7 @@ export interface EmailLayoutOptions {
   bannerHtml?: string;
 }
 
-// Table-based, inline-styled layout so it survives Outlook (Word rendering engine), Gmail
-// (strips <style> in some clients, sanitizes <head>), and mobile mail apps alike. Keep it to
-// this one shared shell + a per-notification content fragment rather than pulling in a full
-// templating engine - the structure here is simple enough not to need one.
+// Table-based, inline-styled layout for cross-client compatibility (Outlook, Gmail, mobile).
 export function renderEmailLayout({ previewText, bodyHtml, bannerHtml = '' }: EmailLayoutOptions): string {
   const { colors, fonts, brand } = emailTheme;
 
@@ -25,8 +22,7 @@ export function renderEmailLayout({ previewText, bodyHtml, bannerHtml = '' }: Em
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
-<!-- Stops iOS Mail / Gmail Android from auto-linking the raw email and phone values in the
-     fields table with their own blue underlined style, which would clash with the design. -->
+<!-- Stops iOS Mail / Gmail Android from auto-linking emails/phone numbers in the fields table. -->
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
 <title>${escapeHtml(brand.name)}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">

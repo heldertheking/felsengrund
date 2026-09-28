@@ -48,9 +48,7 @@ adminRoute.post('/admin/login', async (c) => {
   return c.json({ token });
 });
 
-// Stateless bearer tokens can't be revoked server-side; the frontend just discards its stored
-// token. Kept as a real endpoint for symmetry with the old cookie-based flow and in case a
-// revocation list is added later.
+// Bearer tokens can't be revoked server-side; kept as a real endpoint for symmetry / future revocation.
 adminRoute.post('/admin/logout', async (c) => c.json({ ok: true }));
 
 adminRoute.use('/admin/offers', requireAuth);

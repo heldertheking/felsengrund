@@ -1,28 +1,12 @@
-/**
- * @property name Speaker's display name.
- * @property main Whether this speaker is the featured/main speaker for the episode — shown
- * first and with a special visual treatment. A single speaker is always treated as the main one
- * regardless of this flag.
- */
 interface PodcastSpeaker {
   name: string;
-  main?: boolean;
+  main?: boolean; // Featured speaker, shown first. A lone speaker is always treated as main.
 }
 
-/**
- * <p>Represents metadata stored in the mdoc files frontmatter</p>
- *
- * @property title Title displayed as <code>h1</code> on page.
- * @property episodeNumber The episode number we are currently on.
- * @property publishDate The date the episode was published.
- * @property audioUrl Link to the audio file.
- * @property duration Duration of the audio file.
- * @property coverImage Image used on the page.
- * @property speakers List of {@link PodcastSpeaker} for this episode.
- */
+/** Metadata stored in the mdoc file's frontmatter. */
 interface Frontmatter {
-  title: string;
-  episodeNumber?: number; // Prefilled with Nr. of files + 1
+  title: string; // Displayed as h1 on the page
+  episodeNumber?: number; // Prefilled with file count + 1
   publishDate: string;
   audioUrl: string;
   duration?: string; // free text, e.g. "32:10" — never parsed/computed, just displayed
@@ -30,15 +14,10 @@ interface Frontmatter {
   speakers?: PodcastSpeaker[];
 }
 
-/**
- * @property slug Slugified version of original Title - requires recreation to modify.
- * @property data {@link Frontmatter} parsed from mdoc file.
- * @property body Markdown text, no images
- */
 interface Episode {
-  slug: string; // Composed of the original title
+  slug: string; // Derived from the title; requires recreation to modify
   data: Frontmatter;
-  body: string;
+  body: string; // Markdown text, no images
 }
 
 interface EpisodeDetailResponse extends Episode {

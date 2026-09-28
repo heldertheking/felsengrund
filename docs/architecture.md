@@ -1,24 +1,22 @@
 # Architecture: content & admin
 
-This explains how content editing works after the Keystatic CMS was removed and replaced
-with a custom admin panel backed directly by Cloudflare R2, and how that panel now works
-now that the site is split into a static frontend (`apps/web`, deployed to webkeeper.ch) and
-a pure JSON API (`apps/api`, a Cloudflare Worker) — see [`docs/deployment.md`](./deployment.md)
-for the deploy-level view of that split.
+This explains how content editing works: a custom admin panel backed directly by Cloudflare
+R2, and how that panel works now that the site is split into a static frontend (`apps/web`,
+deployed to webkeeper.ch) and a pure JSON API (`apps/api`, a Cloudflare Worker) — see
+[`docs/deployment.md`](./deployment.md) for the deploy-level view of that split.
 
-## Why Keystatic was removed
+## Why content lives in R2, not the filesystem
 
-Keystatic's local-storage backend needs Node filesystem access to read/write content
-files. That breaks under `@astrojs/cloudflare`'s workerd-based dev server and runtime,
-which doesn't have a Node filesystem. Rather than work around that, content editing was
-rebuilt as a small first-party admin panel that reads and writes R2 objects directly
-through the Workers R2 API, which works the same in local dev and in production.
+A filesystem-backed CMS needs Node filesystem access to read/write content files, which
+breaks under `@astrojs/cloudflare`'s workerd-based dev server and runtime — it doesn't have
+a Node filesystem. Content editing is instead a small first-party admin panel that reads and
+writes R2 objects directly through the Workers R2 API, which works the same in local dev and
+in production.
 
 ## Content model
 
 Offers ("Angebote") and podcast episodes are stored as Markdoc documents: a YAML
-frontmatter block followed by a Markdoc body, in the same format the original
-Keystatic-managed `.mdoc` files used. There is no `src/content/` collection anymore —
+frontmatter block followed by a Markdoc body. There is no `src/content/` collection —
 these documents live as objects in the `STORAGE` R2 bucket, and are read at request time.
 
 All of this logic lives in `packages/api-core/src/admin-content.ts`, which every route in
@@ -128,7 +126,7 @@ All requiring a valid bearer token except login:
 | `/admin/podcast`       | POST   | Creates or updates a podcast episode (multipart form; handles the required `audio` upload and optional `coverImage`) |
 | `/admin/podcast/:slug` | DELETE | Deletes a podcast episode                                                                                            |
 
-`AdminApp.tsx`'s `OffersManager`/`PodcastManager` sub-components (in
+`AdminApp.tsx`'s `OffersManager`/`PodcastManager` subcomponents (in
 `apps/web/src/components/admin/`) are the React equivalents of the old
 `OfferForm.astro`/`PodcastForm.astro` — same fields and multipart upload behavior, just
 calling these absolute cross-origin URLs with `Authorization: Bearer <token>` instead of a
@@ -144,7 +142,7 @@ no real benefit, so a token the frontend attaches explicitly is the simpler fit 
 cross-origin client/API split. The flow:
 
 1. The admin submits the password to `POST /admin/login` on `apps/api`.
-2. The server compares it to the `KFA_ADMIN_PASSWORD` secret. On success it returns a
+2. The server compares it to the `KFA_ADMIN_PASSWORD` secret. On success, it returns a
    JSON body `{ token }`, where the token string is `<expiry-timestamp>.<HMAC-SHA256
 signature>`, the signature computed over the expiry timestamp using
    `KFA_ADMIN_PASSWORD` itself as the HMAC key (12-hour expiry).

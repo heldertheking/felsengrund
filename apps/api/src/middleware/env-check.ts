@@ -4,11 +4,9 @@ import type { Env } from '../types';
 
 const logger = createLogger('env-check');
 
-// Wrangler does NOT inherit top-level `vars`/`r2_buckets`/bound secrets into named environments
-// (`env.production`, `env.development` in wrangler.jsonc) - each env block has to repeat every
-// binding it needs. Missing one deploys fine but fails every request that touches it, surfacing
-// only as a generic "Cannot read properties of undefined" deep inside application code. Checking
-// upfront turns that into one clear log line naming exactly which binding is missing.
+// Wrangler doesn't inherit top-level vars/bindings into named environments - each env block
+// must repeat every one, or requests fail with an unhelpful generic error. This turns that
+// into one clear log line naming what's missing.
 const REQUIRED_VARS: (keyof Env)[] = [
   'ENVIRONMENT',
   'KFA_WORKER_ORIGIN',

@@ -1,9 +1,7 @@
 ---
-// Single SPA entry point for the whole /admin section — every /admin/* path is rewritten here
-// by apps/web/public/.htaccess, since this is internal tooling with its own client-side view
-// state (login / offers / podcast), not a set of statically-enumerable pages. Deliberately not
-// using BaseLayout — no public site header/nav/footer, matches the old AdminLayout.astro intent
-// (noindex, standalone chrome).
+// SPA entry for /admin - .htaccess rewrites every /admin/* path here since this is internal
+// tooling with client-side view state, not statically-enumerable pages. No BaseLayout: no
+// public header/nav/footer (noindex, standalone chrome).
 import '../../styles/global.css';
 import AdminApp from '../../components/admin/AdminApp';
 ---

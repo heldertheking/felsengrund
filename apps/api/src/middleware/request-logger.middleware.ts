@@ -4,12 +4,7 @@ import type { Env } from '../types';
 
 const logger = createLogger('Request');
 
-/**
- * Logs every request/repsonse with enough detail to reconstruct what happened from Workers Logs
- * <p>Applied before {@link corsMiddleware} to ensure cors rejected requests also get logged</p>
- * @param c
- * @param next
- */
+/** Logs every request/response; runs before corsMiddleware so rejected requests are logged too. */
 export const requestLogger: MiddlewareHandler<{ Bindings: Env }> = async (c, next) => {
   const start = Date.now();
   const { method } = c.req;

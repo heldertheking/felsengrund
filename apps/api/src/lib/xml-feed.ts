@@ -49,20 +49,17 @@ function escapeXml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => XML_ESCAPES[char]);
 }
 
-// RSS `pubDate` and iTunes feed dates use RFC 822/2822 format. `Date#toUTCString()` produces the
-// same "Www, dd Mmm yyyy HH:MM:SS GMT" shape and is what every podcast client/validator expects.
+// RSS/iTunes dates use RFC 822/2822; Date#toUTCString() already produces that exact shape.
 function toRfc2822(date: Date): string {
   return date.toUTCString();
 }
 
 async function resolveAudioMeta(mediaPath: string): Promise<{ byteLength: number; type: string }> {
-  // `mediaPath` is the relative `/media/<key>` path stored in frontmatter (see
-  // packages/api-core/src/admin-content.ts) - strip the prefix to get the R2 object key.
+  // mediaPath is the relative /media/<key> path from frontmatter; strip the prefix for the R2 key.
   const key = mediaPath.replace(/^\/media\//, '');
   const head = await env.STORAGE.head(key);
   if (!head) {
-    // Not fatal (the enclosure still gets a valid, if size-0, entry) but a byteLength of 0 makes
-    // for a broken download in most podcast clients, so it's worth flagging loudly.
+    // Not fatal, but a byteLength of 0 breaks downloads in most podcast clients - flag it loudly.
     logger.warn('audio object not found in R2 - enclosure will report length 0', { key });
   }
   return {
@@ -115,8 +112,7 @@ function renderItemXml(item: EpisodeItem): string {
     </item>`;
 }
 
-// Assembles a full RSS 2.0 + iTunes-namespace podcast feed document, ready to serve as-is with a
-// `application/rss+xml` content type.
+// Assembles a full RSS 2.0 + iTunes feed document, ready to serve with an application/rss+xml type.
 export function buildPodcastFeedXml(feed: PodcastFeedData): string {
   const items = feed.episodes.map(renderItemXml).join('');
 
@@ -149,7 +145,6 @@ export async function generateETag(xmlString: string): Promise<string> {
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
 
-  // Get the first 16 characters for a short ETag string
   const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   return `"${hashHex.substring(0, 16)}"`;
 }

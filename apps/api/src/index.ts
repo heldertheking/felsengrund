@@ -24,19 +24,13 @@ app.route('/', podcastRoute);
 app.route('/', mediaRoute);
 app.route('/', adminRoute);
 
-/**
- * API only worker, no UI served. Admin ui lives on main page
- */
+// API only worker - no UI served; the admin UI lives in apps/web.
 app.notFound((c) => {
   console.warn(`[404] ${c.req.method} ${c.req.path}`);
   return c.json({ error: 'Not found.' }, 404);
 });
 
-/**
- * Handles errors in a trackable way, logging a requestId alongside the full request context and
- * a properly serialized error (name/message/stack, see `@felsengrund/logger`) so a 500 can be
- * diagnosed from Workers Logs alone, without needing a live `wrangler tail` session.
- */
+// Logs full context + a requestId so a 500 can be diagnosed from Workers Logs alone.
 app.onError((error, c) => {
   const requestId = crypto.randomUUID();
   logger.error('unhandled request error', {

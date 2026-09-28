@@ -10,10 +10,8 @@ type State =
   | { status: 'ready'; offer: OfferDetailResponse };
 
 function currentSlug(): string {
-  // This component always renders via a client:load island, but Astro still server-renders an
-  // initial HTML snapshot at build time — window isn't available there. That snapshot briefly
-  // shows the "not found" state (slug === ''); hydration on the client re-runs this with the
-  // real URL and replaces it immediately.
+  // Astro's server-rendered snapshot has no `window`, briefly showing "not found" until
+  // client hydration re-runs this with the real URL.
   if (typeof window === 'undefined') return '';
   const segments = window.location.pathname.split('/').filter(Boolean);
   return segments[segments.length - 1] ?? '';

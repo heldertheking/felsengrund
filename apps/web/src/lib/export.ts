@@ -18,11 +18,8 @@ function downloadBlob(filename: string, blob: Blob): void {
   URL.revokeObjectURL(url);
 }
 
-// Triggers a browser download of the selected admin-dashboard rows as .mdoc — the same format
-// the import button reads, so an export can be re-imported directly. A single selected row
-// downloads as `<slug>.mdoc`; multiple rows are bundled into one `<prefix>-<date>.zip` (each
-// entry still a plain `<slug>.mdoc`) since browsers can't reliably fire several downloads from
-// one click.
+// Downloads selected rows as .mdoc (same format the import button reads). A single row
+// downloads directly; multiple are zipped, since browsers can't fire several downloads at once.
 export function downloadMdocExport(filenamePrefix: string, entries: ExportableEntry[]): void {
   if (entries.length === 0) return;
 

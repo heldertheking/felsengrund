@@ -2,41 +2,12 @@ import { Hono } from 'hono';
 import type { Env } from '../types';
 import { createLogger } from '@felsengrund/logger';
 
-/**
- * Route for fetching media.
- * <p>Uses <code>c.req.path</code> for media path because using <code>c.req.param('*')</code> will result in <code>undefined</code> in Hono version 4.13.7</p>
- */
+// Uses c.req.path (not c.req.param('*'), which returns undefined in Hono 4.13.7) for the media key.
 export const mediaRoute = new Hono<{ Bindings: Env }>();
 
 type ParsedRange = { offset: number; length?: number } | { suffix: number };
 
-/**
- * Parses a standard HTTP `Range` request header string into a structured object.
- *
- * Supports byte range specifiers conforming to RFC 7233 (e.g., `bytes=200-499`,
- * `bytes=500-`, `bytes=-500`).
- *
- * @param header - The raw HTTP `Range` header value, or `null`/`undefined`.
- * @returns A {@link ParsedRange} object representing the requested byte range, or `undefined` if:
- * - The header is missing, empty, or invalid.
- * - The syntax does not match `bytes=<start>-<end>`.
- * - The requested byte positions are negative or out of order (`end < start`).
- *
- * @example
- * // Bounded range: bytes 200 through 499 (300 total bytes)
- * parseRangeHeader('bytes=200-499');
- * // => { offset: 200, length: 300 }
- *
- * @example
- * // Open-ended range: starting from byte 500 to the end of the file
- * parseRangeHeader('bytes=500-');
- * // => { offset: 500 }
- *
- * @example
- * // Suffix byte range: requesting the last 500 bytes of the file
- * parseRangeHeader('bytes=-500');
- * // => { suffix: 500 }
- */
+/** Parses an HTTP Range header (RFC 7233: `bytes=200-499`, `bytes=500-`, `bytes=-500`). Undefined if missing/malformed. */
 function parseRangeHeader(header: string | null): ParsedRange | undefined {
   if (!header) return undefined;
   const match = /^bytes=(\d*)-(\d*)$/.exec(header.trim());

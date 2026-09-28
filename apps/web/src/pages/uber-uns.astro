@@ -31,7 +31,6 @@ interface LeadershipMember {
   role: string;
   detail: string;
 }
-// TODO: Update images & Other Members
 const leadershipTeam: LeadershipMember[] = [
   {
     image: '/images/portraits/oliver_lutz.png',
@@ -101,7 +100,6 @@ const leadershipTeam: LeadershipMember[] = [
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
     <h2 class="font-display text-2xl font-bold text-kf-ink">Leitungsteam</h2>
     <p class="mt-2 max-w-2xl text-kf-ink-muted">Diese Menschen tragen die Leitung unserer Gemeinde.</p>
-    <!-- TODO: Bild muss erstellt werder-->
     <img
       src="/images/gemeindes_leitung.jpg"
       alt="Das Gemeindeleitungsteam vor dem Felsengrund Gebäude"
@@ -113,8 +111,7 @@ const leadershipTeam: LeadershipMember[] = [
         <li class="rounded-xl border border-kf-edge bg-kf-surface p-5">
           <div class="flex flex-row gap-5">
             <img
-              src={member.image}
-              onerror="this.src = '/images/portraits/placeholder.png'"
+              src={member.image ?? '/images/portraits/placeholder.png'}
               alt={`Bild von ${member.name}`}
               class="aspect-square w-25 rounded-full border-kf-edge"
             />

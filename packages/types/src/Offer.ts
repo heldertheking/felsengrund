@@ -5,9 +5,6 @@ interface CategoryDetails {
 
 type Category = 'gottesdienst' | 'kinder-jugend' | 'gemeinschaft' | 'senioren' | 'hilfe-service' | 'sonstiges';
 
-/**
- * Map containing all Categories with index and label.
- */
 const CATEGORY_DETAILS: Record<Category, CategoryDetails> = {
   gottesdienst: { label: 'Gottesdienst', index: 1 },
   'kinder-jugend': { label: 'Kinder & Jugend', index: 2 },
@@ -23,44 +20,25 @@ interface OfferOrganizer {
   contact?: string;
 }
 
-/**
- * <p>Represents metadata stored in the mdoc files frontmatter.</p>
- *
- * @property title Title displayed as <code>h1</code> on page.
- * @property intro Text used as subtitle and on card.
- * @property cardImage Image used on card in list page or section.
- * @property category {@link Category} used to Identify where Offer belongs.
- * @property targetAudience Target Audience for Offer e.g. All, Kids, Teenies, etc.
- * @property schedule Schedule when Offer happens, e.g. Every second sunday
- * @property location Where the Offer takes place
- * @property mapsLink Google Maps link the "Ort" section's location text links out to.
- * @property googleMapsIframeLink Google Maps embed URL rendered as an <iframe> on the page.
- * @property organizers List of {@link OfferOrganizer}.
- * @property registration What kind of registration process is needed, e.g. Send email to <code>xxx@mail.com</code>
- */
+/** Metadata stored in the mdoc file's frontmatter. */
 interface Frontmatter {
-  title: string;
-  intro?: string;
+  title: string; // Displayed as h1 on the page
+  intro?: string; // Subtitle / card text
   cardImage?: string;
   category: Category;
-  targetAudience?: string;
-  schedule?: string;
+  targetAudience?: string; // e.g. All, Kids, Teenies
+  schedule?: string; // e.g. "Every second Sunday"
   location?: string;
-  mapsLink?: string;
-  googleMapsIframeLink?: string;
+  mapsLink?: string; // Google Maps link the "Ort" section links out to
+  googleMapsIframeLink?: string; // Google Maps embed URL rendered as an <iframe>
   organizers?: OfferOrganizer[];
-  registration?: string;
+  registration?: string; // e.g. "Send email to xxx@mail.com"
 }
 
-/**
- * @property slug Slugified version of original Title - requires recreation to modify.
- * @property data {@link Frontmatter} parsed from mdoc file.
- * @property body Markdown text, no images
- */
 interface Offer {
-  slug: string;
+  slug: string; // Derived from the title; requires recreation to modify
   data: Frontmatter;
-  body: string;
+  body: string; // Markdown text, no images
 }
 
 interface OfferDetailResponse extends Offer {

@@ -2,12 +2,9 @@ import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import Markdoc from '@markdoc/markdoc';
 import type { OfferFrontmatter, Offer, EpisodeFrontmatter, Episode } from '@felsengrund/types';
 
-// Shared R2-backed content store for offers and podcast episodes. Each entry is a single R2
-// object at `<offers|podcast>/<slug>.mdoc`: YAML frontmatter followed by the Markdoc body.
-//
-// Images live at `images/offers/<slug>.<ext>` / `images/podcast/<slug>.<ext>`, and podcast audio
-// at `podcast/<slug>.<ext>` — sharing the entry's slug as the filename (minus extension) so an
-// episode's mdoc, audio, and cover image are easy to spot together in the bucket.
+// R2-backed content store: each entry is `<offers|podcast>/<slug>.mdoc` (YAML frontmatter +
+// markdoc body), with media alongside at `images/<offers|podcast>/<slug>.<ext>` and
+// `podcast/<slug>.<ext>` for audio.
 
 const OFFERS_PREFIX = 'offers/';
 const PODCAST_PREFIX = 'podcast/';
@@ -97,10 +94,8 @@ export async function deletePodcastEpisode(storage: R2Bucket, slug: string): Pro
   await storage.delete(`${PODCAST_PREFIX}${slug}.mdoc`);
 }
 
-// Podcast audio lives alongside the mdoc under the same prefix, e.g. `podcast/<slug>.mp3`.
-// Served through apps/api's /media/* route, which reads the same STORAGE binding — so the
-// returned key is a relative `/media/...` path that the API layer rewrites to an absolute URL
-// before it reaches the frontend (see apps/api/src/lib/media-url.ts).
+// Returns a relative /media/<key> path; apps/api/src/lib/media-url.ts rewrites it to an
+// absolute URL before it reaches the frontend.
 export async function putPodcastAudio(storage: R2Bucket, slug: string, file: File): Promise<string> {
   const ext =
     file.name
@@ -143,7 +138,8 @@ export function renderMarkdoc(source: string): string {
   return Markdoc.renderers.html(content);
 }
 
-const UMLAUTS: Record<string, string> = { ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss' };
+// Keys use single-quotes to prevent Internationalization warnings
+const UMLAUTS: Record<string, string> = { ß: 'ss', ä: 'ae', ö: 'oe', ü: 'ue' };
 
 export function slugify(input: string): string {
   return input

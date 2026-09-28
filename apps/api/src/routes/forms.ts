@@ -1,5 +1,12 @@
 import { Hono } from 'hono';
-import type { ContactInput, CounselingInput, FeedbackInput, OkResponse, PrayerRequestInput } from '@felsengrund/types';
+import type {
+  ContactInput,
+  CounselingInput,
+  ErrorResponse,
+  FeedbackInput,
+  OkResponse,
+  PrayerRequestInput,
+} from '@felsengrund/types';
 import type { Env } from '../types';
 import { FORMS, NotificationService } from '../lib/mail';
 
@@ -12,7 +19,7 @@ formsRoute.post('/contact', async (c) => {
   const body = (await c.req.json()) as Partial<ContactInput>;
 
   if (!body.name || !body.email || !body.subject || !body.message) {
-    return c.json({ error: 'Fehlende Angaben.' }, 400);
+    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
   }
 
   await notificationService.send(
@@ -39,7 +46,7 @@ formsRoute.post('/counseling', async (c) => {
   const body = (await c.req.json()) as Partial<CounselingInput>;
 
   if (!body.name || !body.email || !body.subject || !body.message) {
-    return c.json({ error: 'Fehlende Angaben.' }, 400);
+    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
   }
 
   await notificationService.send(
@@ -69,7 +76,7 @@ formsRoute.post('/feedback', async (c) => {
   const body = (await c.req.json()) as Partial<FeedbackInput>;
 
   if (!body.message) {
-    return c.json({ error: 'Fehlende Angaben.' }, 400);
+    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
   }
 
   await notificationService.send(
@@ -96,7 +103,7 @@ formsRoute.post('/prayer-request', async (c) => {
   const body = (await c.req.json()) as Partial<PrayerRequestInput>;
 
   if (!body.topic || !body.description) {
-    return c.json({ error: 'Fehlende Angaben.' }, 400);
+    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
   }
 
   await notificationService.send(

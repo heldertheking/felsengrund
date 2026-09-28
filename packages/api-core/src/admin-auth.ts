@@ -1,14 +1,7 @@
-// Stateless admin session, signed with the same ADMIN_UPLOAD_PASSWORD secret used previously for
-// the single audio-upload page. No KV/session storage — this project deliberately avoids
-// Cloudflare KV, so the session is a signed, expiring bearer token instead: the frontend proves
-// it knows the password once via POST /admin/login, receives a token, and attaches it as
-// `Authorization: Bearer <token>` on every subsequent /admin/* call. The Worker verifies the
-// signature (and expiry) without storing anything server-side.
-//
-// This used to be a same-origin HttpOnly cookie, but the admin UI and the API are now served
-// from different origins (frontend on webkeeper.ch, API on Cloudflare) — cookies with
-// SameSite=Strict/Lax aren't sent cross-site at all, and SameSite=None reintroduces
-// third-party-cookie fragility for no benefit, so a bearer token is the simpler fit here.
+// Stateless, signed bearer-token auth (no KV/session storage): POST /admin/login proves the
+// KFA_ADMIN_PASSWORD once and returns a token; every later /admin/* call sends it as
+// `Authorization: Bearer <token>`, verified by signature + expiry alone. Not a cookie, since
+// the admin UI and API are different origins where SameSite cookies don't work well cross-site.
 
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12h
 

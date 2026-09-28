@@ -1,9 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
 
-// Mirrors the rewrites in apps/web/public/.htaccess, which only apply on the Apache-hosted
-// production build. `astro dev` never reads .htaccess, so without this, any /angebote/<slug> or
-// /podcast/<slug> URL — freshly created offers/episodes included — hits Astro's own 404 instead
-// of the client-rendered detail shell that fetches the content from the API.
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
 

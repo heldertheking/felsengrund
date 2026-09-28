@@ -1,5 +1,4 @@
-// Mirrors the `--color-kf-*` tokens and font choices from apps/web/src/styles/global.css so
-// notification emails look like they came from the same church, not a generic system alert.
+// Mirrors apps/web's --color-kf-* tokens and fonts, so emails match the site's branding.
 export const emailTheme = {
   colors: {
     accent: '#a31366',

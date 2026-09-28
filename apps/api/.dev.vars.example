@@ -1,4 +1,4 @@
-# Copy this file to .dev.vars for local dev (gitignored).
+# Copy this file to .dev.vars for local dev (gitignore).
 # ---
 # In production Secrets using 'wrangler secrets set <NAME>'
 

@@ -13,16 +13,14 @@ export enum FORMS {
 }
 
 export interface SendOptions {
-  /** Lets staff hit "reply" and land directly on the person who submitted the form. */
+  /** Let's staff hit "reply" and land directly on the person who submitted the form. */
   replyTo?: string | { name?: string; email: string };
 }
 
-// Dedicated mailbox for automated sending only - keeps its SMTP password separate from the
-// info@ inbox staff actually read/reply from.
+// Dedicated sending mailbox, separate from the human-read info@ inbox.
 const MAIL_FROM_ADDRESS = 'noreply@kirche-felsengrund.ch';
 
-// Any non-production environment redirects notification mail here instead of the real
-// church mailboxes, so testing never spams contacts/prayer requests/counseling inboxes.
+// Non-production environments redirect all notification mail here.
 const DEV_NOTIFICATION_RECIPIENT = 'jroliveirahelder+kf-test@gmail.com';
 
 export class NotificationService {
@@ -34,9 +32,8 @@ export class NotificationService {
       host: 'mail.webkeeper.ch',
       port: 465,
       secure: true,
-      // mail.webkeeper.ch (Plesk) requires SMTP auth on its outgoing server - without an
-      // authType, worker-mailer's auth() throws "No supported auth method found" even with
-      // credentials set, since it only tries methods explicitly listed here.
+      // worker-mailer only tries auth methods listed here - omit this and it fails with
+      // "No supported auth method found" even with valid credentials.
       authType: ['plain', 'login'],
       logLevel: LogLevel.INFO,
     };

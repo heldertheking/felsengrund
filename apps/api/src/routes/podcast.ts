@@ -14,17 +14,13 @@ const logger = createLogger('podcast');
 
 export const podcastRoute = new Hono<{ Bindings: Env }>();
 
-/**
- * Returns an RSS 2.0 Feed ready to be used on YouTube music, Spotify, etc. for podcast.
- * <p>Registered before /podcast/:slug to ensure static path is not shadowd.</p>
- */
+/** RSS 2.0 feed for podcast apps. Registered before /podcast/:slug so this static path isn't shadowed. */
 podcastRoute.get('/podcast/feed.xml', async (c) => {
   const episodes = (await listPodcastEpisodes(c.env.STORAGE)).sort(
     (a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf(),
   );
 
-  // One malformed episode (bad frontmatter, missing audio, invalid date, ...) shouldn't take the
-  // whole feed down for every subscriber - log it with enough context to fix and drop it instead.
+  // Isolate failures per episode so one malformed one doesn't take down the whole feed.
   const items = (
     await Promise.all(
       episodes.map(async (episode) => {

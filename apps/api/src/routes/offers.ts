@@ -6,9 +6,8 @@ import { rewriteMediaUrls } from '../lib/media-url';
 
 export const offersRoute = new Hono<{ Bindings: Env }>();
 
-// Powers the frontend header's "Angebote" dropdown/mobile panel. Grouping mirrors the offers
-// list page exactly, including the static "Ich brauche Hilfe" entry hand-added to
-// hilfe-service (that page is a standalone static page, not an R2-managed offer).
+// Powers the header's "Angebote" dropdown. Mirrors the offers list grouping, plus a
+// hand-added static "Ich brauche Hilfe" entry (not an R2-managed offer).
 const categoryOrder = (Object.keys(CATEGORY_DETAILS) as (keyof typeof CATEGORY_DETAILS)[]).sort(
   (a, b) => CATEGORY_DETAILS[a].index - CATEGORY_DETAILS[b].index,
 );

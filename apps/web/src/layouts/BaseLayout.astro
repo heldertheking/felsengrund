@@ -6,9 +6,7 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
-  // Pages that render their own breadcrumb (a dynamic title only known client-side, like an
-  // offer/episode detail page, or a client-rendered app like the admin dashboard) set this so
-  // this layout doesn't also render a second, generic one above it.
+  // Set by pages with a client-only dynamic title (offer/episode detail, admin) that render their own breadcrumb.
   hideBreadcrumbs?: boolean;
 }
 
@@ -18,9 +16,7 @@ const {
   hideBreadcrumbs = false,
 } = Astro.props;
 
-// Every page except the homepage gets a small "Home / ..." breadcrumb derived from its URL —
-// pages with a dynamic title (offer/episode detail, admin) opt out via hideBreadcrumbs and
-// render their own instead.
+// Every page gets a "Home / ..." breadcrumb derived from its URL, unless it opts out via hideBreadcrumbs.
 const SEGMENT_LABELS: Record<string, string> = {
   agenda: 'Agenda',
   angebote: 'Angebote',

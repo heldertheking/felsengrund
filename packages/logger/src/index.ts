@@ -13,10 +13,8 @@ export interface Logger {
 
 const LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 
-// `console.error(prefix, message, { error })` renders an `Error` as `{}` in Workers Logs (only
-// own enumerable properties survive), which is exactly the detail we need most. Unwrap any
-// `Error` values in `meta` (including nested `cause` chains) into plain `{ name, message, stack }`
-// so the interesting fields actually show up.
+// Workers Logs renders an Error as `{}` (only own enumerable props survive) - unwrap Error
+// values (including nested `cause` chains) into plain objects instead.
 function serializeValue(value: unknown): unknown {
   if (value instanceof Error) {
     return {

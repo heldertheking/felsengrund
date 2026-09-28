@@ -1,7 +1,5 @@
 ---
-// The "Angebote" dropdown groups reflect live content managed via /admin, so they're fetched
-// client-side from the Worker API rather than baked into the page at build time — see the
-// inline <script> below.
+// Angebote groups are live /admin content, fetched client-side (see the <script> below).
 const primaryLinks = [
   { label: 'Über uns', href: '/uber-uns' },
   { label: 'Agenda', href: '/agenda' },
@@ -14,11 +12,8 @@ const secondaryLinks = [
 ---
 
 <header class="relative sticky top-0 z-50 border-b border-kf-edge bg-kf-surface/90 backdrop-blur">
-  <!--
-    Discreet admin entry point: click 5x within ~2s to reveal a link to /admin. A plain invisible
-    button (not the logo) so it never interferes with normal navigation, and not part of the tab
-    order / not exposed to assistive tech, since it's deliberately not meant to be discoverable.
-  -->
+  <!-- Discreet admin entry: click 5x within ~2s to reveal a link to /admin. Untabbable and
+       hidden from assistive tech since it's deliberately not meant to be discoverable. -->
   <button
     type="button"
     class="hidden lg:block absolute right-0 top-0 h-20 w-12"
@@ -118,11 +113,8 @@ const secondaryLinks = [
           </a>
         ))}
 
-        <!--
-          Unlike the desktop dropdown, the mobile menu deliberately only links to the "Angebote"
-          overview page instead of expanding every individual offer inline — with a growing,
-          admin-managed offer list that would make the mobile menu unreasonably long and messy.
-        -->
+        <!-- Mobile links to the Angebote overview only, not each offer - a growing,
+             admin-managed list would make this menu unreasonably long. -->
         <a href="/angebote" class="mobile-nav-link">
           Angebote
         </a>
@@ -154,7 +146,7 @@ const secondaryLinks = [
       opacity 0.2s ease;
   }
   [data-mobile-trigger][aria-expanded='true'] .mobile-trigger-bar-top {
-    transform: translateY(5.25px) rotate(45deg);
+    transform: translateY(5px) rotate(45deg);
   }
   [data-mobile-trigger][aria-expanded='true'] .mobile-trigger-bar-middle {
     opacity: 0;
@@ -197,8 +189,6 @@ const secondaryLinks = [
   dropdownGroup?.addEventListener('mouseenter', () => dropdownTrigger?.setAttribute('aria-expanded', 'true'));
   dropdownGroup?.addEventListener('mouseleave', () => dropdownTrigger?.setAttribute('aria-expanded', 'false'));
 
-  // The "Angebote" groups reflect live content, so they're fetched client-side from the
-  // Worker API (cross-origin) rather than baked into the page at build time.
   const desktopOfferGroups = document.querySelector<HTMLElement>('[data-offer-groups]');
 
   const escapeHtml = (value: string) =>

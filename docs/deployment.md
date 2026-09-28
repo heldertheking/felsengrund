@@ -78,7 +78,7 @@ For local development, copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars`
   not currently read by any route or service. Reserved/leftover — don't go looking for where
   it's consumed.
 - **`KFA_SESSION_TTL_MS`** — declared in `wrangler.jsonc` but neither required by
-  `env-check.ts` nor read anywhere in `apps/api`'s source. Also currently dead.
+  `env-check.ts` nor read anywhere in `apps/api`'s source. Also, currently dead.
 
 ### Build & deploy
 
