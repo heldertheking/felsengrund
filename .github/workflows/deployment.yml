@@ -226,3 +226,23 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: apps/api
           command: deploy -e production
+
+  check-all:
+    name: Check deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-api, deploy-web]
+    if: |
+      always() &&
+      (needs.deploy-api.result == 'success' || needs.deploy-web.result == 'success') &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    steps:
+      - name: Verify API is reachable
+        run: |
+          echo "Pinging API endpoint"
+          curl --fail --retry 5 --retry-delay 5 -s -o /dev/null -w "API HTTP: %{http_code}\n" https://felsengrund.jroliveirahelder.workers.dev/
+
+      - name: Verify Web is reachable
+        run: |
+          echo "Pinging Web endpoint"
+          curl --fail --retry 5 --retry-delay 5 -s -o /dev/null -w "Web HTTP: %{http_code}\n" https://staging.kirche-felsengrund.ch/
