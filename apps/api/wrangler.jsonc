@@ -27,6 +27,7 @@
   "env": {
     // Variables and bindings are not inherit
     "production": {
+      "name": "felsengrund",
       "vars": {
         "ENVIRONMENT": "production",
         "KFA_SESSION_TTL_MS": "43200000",
@@ -43,6 +44,7 @@
       ]
     },
     "development": {
+      "name": "felsengrund",
       "vars": {
         "ENVIRONMENT": "development",
         "KFA_SESSION_TTL_MS": "43200000",
