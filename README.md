@@ -24,7 +24,7 @@ a traditional client/API split rather than a single server-rendered app:
 - **`packages/api-core`** — plain TypeScript used by `apps/api`: R2-backed content access
   (Markdoc-rendered offers/podcast episodes), the n8n webhook relay, and the admin
   bearer-token auth.
-- **`packages/logger`** — a tiny leveled console logger shared by `apps/api` (and available
+- **`packages/requestLoggerMiddleware`** — a tiny leveled console requestLoggerMiddleware shared by `apps/api` (and available
   to `apps/web`) for consistent, namespaced log output.
 
 Tailwind CSS v4 and React (`@astrojs/react`) are used in `apps/web` for interactive islands

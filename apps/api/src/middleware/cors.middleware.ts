@@ -1,9 +1,6 @@
 import type { MiddlewareHandler } from 'hono';
 import type { Env } from '../types';
 
-// An ALLOWED_ORIGINS entry of the form "https://*.example.com" matches "https://example.com"
-// itself and any single- or multi-label subdomain of it (e.g. "https://staging.example.com").
-// A plain entry (no "*.") must match the request Origin exactly.
 function originMatches(pattern: string, origin: string): boolean {
   if (pattern === origin) return true;
   const wildcard = pattern.match(/^(https?:\/\/)\*\.(.+)$/);

@@ -5,13 +5,13 @@
   "compatibility_date": "2026-09-07",
   "compatibility_flags": ["nodejs_compat"],
   "observability": {
-    "enabled": true // Enable log persistence in cloudflare dashboard
+    "enabled": true, // Enable log persistence in cloudflare dashboard
   },
   "r2_buckets": [
     {
       "binding": "STORAGE",
-      "bucket_name": "felsengrund-storage"
-    }
+      "bucket_name": "felsengrund-storage",
+    },
   ],
   "vars": {
     "ENVIRONMENT": "local",
@@ -19,10 +19,10 @@
     "KFA_WORKER_ORIGIN": "https://felsengrund.jroliveirahelder.workers.dev",
     "KFA_WEBPAGE_ORIGIN": "https://staging.kirche-felsengrund.ch",
     "KFA_ALLOWED_ORIGINS": "http://localhost:4321,https://*.kirche-felsengrund.ch",
-    "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification?env=local"
+    "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification?env=local",
   },
   "secrets": {
-    "required": ["KFA_ADMIN_PASSWORD"]
+    "required": ["KFA_ADMIN_PASSWORD", "KFA_MAIL_PASSWORD"],
   },
   "env": {
     // Variables and bindings are not inherit
@@ -33,14 +33,14 @@
         "KFA_WORKER_ORIGIN": "https://felsengrund.jroliveirahelder.workers.dev",
         "KFA_WEBPAGE_ORIGIN": "https://kirche-felsengrund.ch",
         "KFA_ALLOWED_ORIGINS": "https://*.kirche-felsengrund.ch",
-        "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification"
+        "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification",
       },
       "r2_buckets": [
         {
           "binding": "STORAGE",
-          "bucket_name": "felsengrund-storage"
-        }
-      ]
+          "bucket_name": "felsengrund-storage",
+        },
+      ],
     },
     "development": {
       "vars": {
@@ -49,14 +49,14 @@
         "KFA_WORKER_ORIGIN": "https://felsengrund.jroliveirahelder.workers.dev",
         "KFA_WEBPAGE_ORIGIN": "https://staging.kirche-felsengrund.ch",
         "KFA_ALLOWED_ORIGINS": "http://localhost:4321,https://*.kirche-felsengrund.ch",
-        "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification?env=development"
+        "KFA_NOTIFICATION_WEBHOOK": "https://automation.heldertheking.com/webhook/felsengrund-notification?env=development",
       },
       "r2_buckets": [
         {
           "binding": "STORAGE",
-          "bucket_name": "felsengrund-storage"
-        }
-      ]
-    }
-  }
+          "bucket_name": "felsengrund-storage",
+        },
+      ],
+    },
+  },
 }

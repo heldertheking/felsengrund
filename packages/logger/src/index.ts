@@ -43,9 +43,9 @@ export function createLogger(namespace: string, opts?: LoggerOptions): Logger {
     }
     const prefix = `[${namespace}]`;
     if (meta !== undefined) {
-      console[level](prefix, message, serializeMeta(meta));
+      console[level](new Date().toISOString(), prefix, message, serializeMeta(meta));
     } else {
-      console[level](prefix, message);
+      console[level](new Date().toISOString(), prefix, message);
     }
   };
 

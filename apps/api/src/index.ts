@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { createLogger } from '@felsengrund/logger';
 import type { Env } from './types';
-import { corsMiddleware } from './middleware/cors';
-import { requestLogger } from './middleware/logger';
+import { corsMiddleware } from './middleware/cors.middleware';
+import { requestLogger } from './middleware/request-logger.middleware';
 import { checkRequiredBindings } from './middleware/env-check';
 import { formsRoute } from './routes/forms';
 import { offersRoute } from './routes/offers';

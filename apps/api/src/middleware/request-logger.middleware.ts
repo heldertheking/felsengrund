@@ -2,7 +2,7 @@ import type { MiddlewareHandler } from 'hono';
 import { createLogger } from '@felsengrund/logger';
 import type { Env } from '../types';
 
-const logger = createLogger('http');
+const logger = createLogger('Request');
 
 /**
  * Logs every request/repsonse with enough detail to reconstruct what happened from Workers Logs

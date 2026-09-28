@@ -9,6 +9,12 @@ export default {
         parser: 'astro',
       },
     },
+    {
+      files: ['*.json', '.prettierrc', '.eslintrc'],
+      options: {
+        trailingComma: 'none',
+      },
+    },
   ],
   singleQuote: true,
   semi: true,

@@ -4,3 +4,7 @@
 
 # Used for the admin dashboard
 ADMIN_UPLOAD_PASSWORD=super-secret-password
+
+# SMTP password for noreply@kirche-felsengrund.ch on mail.webkeeper.ch (used to send form
+# notification emails). Create this mailbox in Plesk and set its password there.
+KFA_MAIL_PASSWORD=changeme

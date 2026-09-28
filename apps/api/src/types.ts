@@ -5,5 +5,6 @@ export interface Env {
   KFA_ALLOWED_ORIGINS: string;
   KFA_NOTIFICATION_WEBHOOK: string;
   KFA_ADMIN_PASSWORD?: string;
+  KFA_MAIL_PASSWORD?: string;
   STORAGE: R2Bucket;
 }
