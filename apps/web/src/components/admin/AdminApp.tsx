@@ -59,6 +59,7 @@ function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
           {submitting ? 'Wird geprüft …' : 'Anmelden'}
         </button>
       </form>
+      <p className="mt-3 text-center text-xs text-kf-ink-muted">Version {__APP_VERSION__}</p>
     </div>
   );
 }
@@ -122,6 +123,7 @@ export default function AdminApp() {
           <PodcastManager onUnauthorized={handleUnauthorized} />
         )}
       </div>
+      <p className="mt-3 text-center text-xs text-kf-ink-muted">Version {__APP_VERSION__}</p>
     </div>
   );
 }
