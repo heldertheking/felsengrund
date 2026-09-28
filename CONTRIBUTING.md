@@ -5,6 +5,12 @@ Thanks for taking the time to help out. This repository is
 the [README](./README.md#license) for what that means in practice — but bug
 reports, feature suggestions, and translation help are all very welcome.
 
+**We do not accept unsolicited pull requests or third-party code changes.**
+Issues (bug reports, feature requests, translation requests) are the way to
+contribute here. The one exception is translators, who may be given a
+separate, explicitly-arranged way to contribute content directly — see
+[Translations](#translations) below.
+
 ## Reporting bugs or suggesting features
 
 Please open an issue using the appropriate template:
@@ -25,13 +31,11 @@ like to help with), and we'll follow up with what's needed. You can also open
 an issue using the [translation request template](./.github/ISSUE_TEMPLATE/translation_request.md)
 if you'd rather start there.
 
-## Submitting changes
+Note that translation contributions happen through a separate arrangement we
+set up with you directly (not a public pull request), since we don't accept
+unsolicited code/content changes in general — see the note at the top of
+this file.
 
-1. Fork the repository and create a branch off `master`.
-2. Make your change. Run `npm run check` (typecheck + lint + format check)
-   before opening a pull request.
-3. Open a pull request using the provided template, describing what changed
-   and how you tested it.
-
-For local setup and the overall project structure, see the
-[README](./README.md#local-development) and [`docs/architecture.md`](./docs/architecture.md).
+For local setup and the overall project structure, if you're working with us
+directly, see the [README](./README.md#local-development) and
+[`docs/architecture.md`](./docs/architecture.md).

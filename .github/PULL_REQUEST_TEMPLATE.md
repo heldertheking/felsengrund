@@ -1,3 +1,8 @@
+> This repository doesn't accept unsolicited pull requests from third
+> parties — see [`CONTRIBUTING.md`](../CONTRIBUTING.md). If you weren't asked
+> to open this (e.g. as an invited translator or maintainer), please open an
+> issue instead.
+
 ## What does this change?
 
 A short description of what this PR does and why.

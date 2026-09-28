@@ -100,10 +100,12 @@ auto-deploy setup), see [`docs/deployment.md`](./docs/deployment.md).
 
 ## Contributing
 
-Bug reports, feature suggestions, and translation help are welcome — see
-[`CONTRIBUTING.md`](./CONTRIBUTING.md) for how to get started, including how
-to reach us directly if you'd like to help translate the site into another
-language. See also [`CHANGELOG.md`](./CHANGELOG.md) for a history of releases.
+Bug reports, feature suggestions, and translation help are welcome via GitHub
+issues — see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for how to get started,
+including how to reach us directly if you'd like to help translate the site
+into another language. This repository does not accept unsolicited pull
+requests or third-party code changes. See also [`CHANGELOG.md`](./CHANGELOG.md)
+for a history of releases.
 
 ## License
 
