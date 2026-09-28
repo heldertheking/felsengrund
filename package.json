@@ -1,5 +1,6 @@
 {
   "name": "felsengrund",
+  "description": "Public website and self-service admin panel for Kirche Felsengrund, a church in Oetwil am See, Switzerland — an Astro static site plus a Cloudflare Worker API.",
   "private": true,
   "version": "1.0.0",
   "type": "module",
