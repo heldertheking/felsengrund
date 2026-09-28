@@ -1,0 +1,200 @@
+name: Deployment
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+               - 'apps/web/**'
+            backend:
+               - 'apps/api/**'
+
+  build-web:
+    name: Build Webpage
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify required variables
+        env:
+          VARS_JSON: ${{ toJson(vars) }}
+        run: |
+          # List required variable names separated by spaces or newlines:
+          REQUIRED_VARS="
+            PUBLIC_API_BASE_URL
+            GOOGLE_CALENDAR_EMBED_URL
+          "
+
+          FAILED=0
+          for VAR_NAME in $REQUIRED_VARS; do
+            VALUE=$(echo "$VARS_JSON" | jq -r --arg key "$VAR_NAME" '.[$key] // empty')
+            if [ -z "$VALUE" ]; then
+              echo "::error::${VAR_NAME} repo variable is not set (Settings -> Secrets and variables -> Actions -> Variables). The build would silently bake in an empty value, breaking production functionality."
+              FAILED=1
+            fi
+          done
+
+          if [ "$FAILED" -eq 1 ]; then
+            exit 1
+          fi
+
+      - name: Build
+        env:
+          PUBLIC_API_BASE_URL: ${{ vars.PUBLIC_API_BASE_URL }}
+          GOOGLE_CALENDAR_EMBED_URL: ${{ vars.GOOGLE_CALENDAR_EMBED_URL }}
+        run: npm run build -w @felsengrund/web
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: astro-dist
+          path: apps/web/dist/
+          # actions/upload-artifact@v4 silently drops dotfiles (.htaccess included) unless told
+          # otherwise — without this, .htaccess never reaches the deployment job at all, every time,
+          # regardless of how the FTP step itself behaves.
+          include-hidden-files: true
+
+  test-web:
+    name: Test Webpage
+    needs: build-web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: |
+          if node -e "process.exit(require('./apps/web/package.json').scripts?.test ? 0 : 1)"; then
+            npm run test -w @felsengrund/web
+          else
+            echo "::warning::No test script defined for @felsengrund/web yet — skipping."
+          fi
+
+  deploy-web:
+    name: Deploy Webpage
+    needs: test-web
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: astro-dist
+          path: ./dist
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: ./
+
+  build-api:
+    name: Build Worker
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # wrangler bundles the Worker directly at deploy time (see docs/deployment.md) — there is
+      # no separate compile step, so this job just typechecks as the PR-time correctness gate.
+      - name: Typecheck
+        run: npm run typecheck -w @felsengrund/api
+
+  test-api:
+    name: Test Worker
+    needs: build-api
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: |
+          if node -e "process.exit(require('./apps/api/package.json').scripts?.test ? 0 : 1)"; then
+            npm run test -w @felsengrund/api
+          else
+            echo "::warning::No test script defined for @felsengrund/api yet — skipping."
+          fi
+
+  deploy-api:
+    name: Deploy Worker
+    needs: test-api
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: apps/api
+          command: deploy -e production

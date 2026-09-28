@@ -82,18 +82,21 @@ For local development, copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars`
 
 ### Build & deploy
 
-Manual: `npm run build:api` (workspace script) or `cd apps/api && wrangler deploy`.
+Manual: `cd apps/api && wrangler deploy -e production` (Wrangler bundles the Worker directly
+on deploy — no separate compile step needed).
 
-**Recommended for ongoing deploys**: connect this repo to Cloudflare **Workers Builds**
-(Cloudflare dashboard → Workers & Pages → this Worker → Settings → Builds) with:
+**Ongoing deploys** go through `.github/workflows/deployment.yml`'s `deploy-api` job: on every
+push to `master` that touches `apps/api/**`, it runs `wrangler deploy -e production` via
+`cloudflare/wrangler-action`, authenticating with the `CLOUDFLARE_API_TOKEN` repo secret
+(Settings → Secrets and variables → Actions → Secrets — needs Workers Scripts:Edit permission
+on the token). It's gated behind `build-api` (typechecks via
+`npm run typecheck -w @felsengrund/api`) and `test-api` (runs `npm run test -w @felsengrund/api`
+if that script exists yet — otherwise it just warns and passes), which also run on PRs touching
+`apps/api/**` as the correctness check.
 
-- Root directory: `apps/api`
-- Build command: `npm install` (Wrangler bundles the Worker directly on deploy — no separate
-  compile step needed)
-- Deploy command: `npx wrangler deploy`
-
-This auto-deploys on every push to the configured branch, with no `CLOUDFLARE_API_TOKEN`
-needing to live in GitHub.
+This replaced the Worker's Cloudflare **Workers Builds** dashboard integration (Workers &
+Pages → this Worker → Settings → Builds) — disable/disconnect that if it's still configured,
+otherwise both it and this workflow will deploy on the same push.
 
 ## `apps/web` — static site on webkeeper.ch
 
@@ -114,7 +117,7 @@ entire deployable artifact: upload/sync it as-is to webkeeper.ch's document root
 
 ### Auto-deploy via GitHub Actions + Plesk Git
 
-`.github/workflows/deploy-web.yml` builds `apps/web` on every push to `master` and
+`.github/workflows/deployment.yml` builds `apps/web` on every push to `master` and
 force-pushes the built `dist/` contents to a dedicated `deploy/webkeeper` branch (via
 `peaceiris/actions-gh-pages`), so that branch's root **is** the static site — ready for a
 host with no Node runtime of its own.

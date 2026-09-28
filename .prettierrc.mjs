@@ -10,7 +10,7 @@ export default {
       },
     },
     {
-      files: ['*.json', '.prettierrc', '.eslintrc'],
+      files: ['*.json', '*.jsonc', '.prettierrc', '.eslintrc'],
       options: {
         trailingComma: 'none',
       },
