@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "repository": "https://github.com/heldertheking/felsengrund",
   "scripts": {
     "dev:local": "wrangler dev",
     "dev:develop": "wrangler dev -e=development",
