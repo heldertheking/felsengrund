@@ -117,4 +117,6 @@ prohibited outright) requires the copyright holder's explicit written permission
 
 ---
 
-[<img alt="Deployed with FTP Deploy Action" src="https://img.shields.io/badge/Deployed With-FTP DEPLOY ACTION-%3CCOLOR%3E?style=for-the-badge&color=0077b6">](https://github.com/SamKirkland/FTP-Deploy-Action) [![Deployment](https://github.com/heldertheking/felsengrund/actions/workflows/deployment.yml/badge.svg)](https://github.com/heldertheking/felsengrund/actions/workflows/deployment.yml)
+[![Deployment](https://github.com/heldertheking/felsengrund/actions/workflows/deployment.yml/badge.svg)](https://github.com/heldertheking/felsengrund/actions/workflows/deployment.yml) [![CodeQL Analysis](https://github.com/heldertheking/felsengrund/actions/workflows/codeql.yml/badge.svg)](https://github.com/heldertheking/felsengrund/actions/workflows/codeql.yml) [![Gitleaks Secret Scan](https://github.com/heldertheking/felsengrund/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/heldertheking/felsengrund/actions/workflows/gitleaks.yml)
+
+[<img alt="Deployed with FTP Deploy Action" src="https://img.shields.io/badge/Deployed With-FTP DEPLOY ACTION-%3CCOLOR%3E?style=for-the-badge&color=0077b6">](https://github.com/SamKirkland/FTP-Deploy-Action)
