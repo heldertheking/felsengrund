@@ -3,6 +3,22 @@
   <component name="JsonSchemaMappingsProjectConfiguration">
     <state>
       <map>
+        <entry key="Gitleaks">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="Gitleaks" />
+              <option name="relativePathToSchema" value="https://www.schemastore.org/gitleaks.json" />
+              <option name="applicationDefined" value="true" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value=".github/.gitleaks.toml" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
         <entry key="Wrangler CLI">
           <value>
             <SchemaInfo>

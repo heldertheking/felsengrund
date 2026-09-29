@@ -1,0 +1,45 @@
+name: "CodeQL Analysis"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 3 * * 0'
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: CodeQL Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          # security-extended pulls React DOM XSS, prototype pollution, and SSR sink queries
+          queries: +security-extended
+          config: |
+            paths:
+              - apps
+              - packages
+            paths-ignore:
+              - '**/dist/**'
+              - '**/.astro/**'
+              - '**/.wrangler/**'
+              - '**/node_modules/**'
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:javascript-typescript"

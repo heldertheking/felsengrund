@@ -1,0 +1,24 @@
+title = "Monorepo Gitleaks Configuration"
+
+[allowlist]
+description = "Ignore build caches, lockfiles, and React UI mock fixtures"
+paths = [
+    # Lockfiles
+    '''pnpm-lock\.yaml''',
+    '''package-lock\.json''',
+    '''bun\.lockb''',
+
+    # Build outputs & generated Astro client bundles
+    '''(^|/)dist/''',
+    '''(^|/)\.astro/''',
+    '''(^|/)\.wrangler/''',
+    '''(^|/)node_modules/''',
+
+    # Local dev environment examples
+    '''\.dev\.vars\.example''',
+    '''\.env\.example''',
+
+    # UI Mock data / Storybook fixtures (if used)
+    '''(^|/)src/stories/.*''',
+    '''(^|/)src/mocks/.*'''
+]
