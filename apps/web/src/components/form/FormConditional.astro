@@ -4,10 +4,15 @@
  * (comma-separated). BaseForm's script does the toggling: hidden content is removed from the
  * accessibility tree and all its controls are disabled, so they are neither validated nor sent.
  * Works for radios, selects, text inputs and checkboxes (checked value; unchecked = no value).
+ * Prefix a value with `!` to negate it: `is="!on"` shows the content while the field does NOT have
+ * that value, including when it has no value at all (e.g. an unchecked checkbox, whose checked value is `on`).
  * Conditionals can be nested.
  *
  *   <FormConditional when="contact" is="phone">
  *     <FormField label="Telefon" name="phone" type="tel" required />
+ *   </FormConditional>
+ *   <FormConditional when="anonymous" is="!on">
+ *     <FormField label="Name" name="fullname" required />
  *   </FormConditional>
  */
 interface Props {

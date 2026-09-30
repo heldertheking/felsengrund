@@ -1,18 +1,21 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HilfeHero from '../components/hilfe/HilfeHero.astro';
-import FormField from '../components/hilfe/FormField.astro';
-import FormStatus from '../components/hilfe/FormStatus.astro';
+import FormField from '../components/form/FormField.astro';
+import BaseForm from '../components/form/BaseForm.astro';
+import FormCheckbox from '../components/form/FormCheckbox.astro';
+import FormRow from '../components/form/FormRow.astro';
+import FormConditional from '../components/form/FormConditional.astro';
 ---
 
 <BaseLayout
-  title="Betet für mich – Kirche Felsengrund"
-  description="Reiche ein Gebetsanliegen ein – unser Gebetsteam betet vertraulich für dich."
+  title="Betet für mich - Kirche Felsengrund"
+  description="Reiche ein Gebetsanliegen ein - unser Gebetsteam betet vertraulich für dich."
 >
   <HilfeHero
     eyebrow="Hilfe & Service"
     title="Betet für mich"
-    lead="Wir glauben, dass Gebet wirkt. Reiche dein Anliegen ein – unser Gebetsteam nimmt es vertraulich entgegen und betet für dich, solange du es brauchst."
+    lead="Wir glauben, dass Gebet wirkt. Reiche dein Anliegen ein - unser Gebetsteam nimmt es vertraulich entgegen und betet für dich, solange du es brauchst."
     image="/images/gebet.jpg"
     imageAlt="Menschen im Gebet"
   />
@@ -25,96 +28,20 @@ import FormStatus from '../components/hilfe/FormStatus.astro';
         Gebetsteam gelesen.
       </p>
 
-      <form id="prayer-request-form" class="mt-8 flex flex-col gap-6">
-        <FormField label="Um welches Thema geht es?" name="topic" required>
-          <input
-            type="text"
-            id="topic"
-            name="topic"
-            required
-            class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 lg:py-2 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-          />
-        </FormField>
-
-        <FormField
-          label="Wie möchtest du genannt werden?"
-          name="displayName"
-          hint="Lass das Feld leer, um anonym zu bleiben."
-        >
-          <input
-            type="text"
-            id="displayName"
-            name="displayName"
-            placeholder="z. B. dein Vorname oder anonym"
-            class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 lg:py-2 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-          />
-        </FormField>
-
-        <FormField label="Dein Gebetsanliegen" name="description" required>
-          <textarea
-            id="description"
-            name="description"
-            required
-            rows={5}
-            class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 lg:py-2 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-          ></textarea>
-        </FormField>
-
-        <FormField label="E-Mail" name="email" hint="Nur falls du über dein Anliegen benachrichtigt werden möchtest.">
-          <input
-            type="email"
-            id="email"
-            name="email"
-            autocomplete="email"
-            class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 lg:py-2 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-          />
-        </FormField>
-
-        <div class="flex flex-col gap-2 pt-2">
-          <button
-            type="submit"
-            class="inline-flex items-center justify-center rounded-lg bg-kf-accent px-5 py-3 lg:py-2.5 font-display text-sm font-semibold text-white transition hover:opacity-90"
-          >
-            Anliegen senden
-          </button>
-          <FormStatus id="prayer-request-status" />
-        </div>
-      </form>
+      <BaseForm formId="prayer" submitLabel="Gebetsanliegen senden" class="mt-8">
+        <FormField name="topic" required autocomplete="off" label="Um welches Thema geht es?"/>
+        <FormField name="description" required as="textarea" label="Erzähle uns mehr" />
+        <FormRow>
+          <FormCheckbox id="pr-anonymous" name="anonymous" checked>Ich möchte anonym bleiben.</FormCheckbox>
+          <FormCheckbox id="pr-answer" name="answer">Ich möchte eine rückmeldung erhalten.</FormCheckbox>
+        </FormRow>
+        <FormConditional when="anonymous" is="!on">
+          <FormField name="displayName" required autocomplete="name" label="Wie sollen wir dich nennen?" />
+        </FormConditional>
+        <FormConditional when="answer" is="on">
+          <FormField name="email" required autocomplete="email" label="E-mail Adresse"/>
+        </FormConditional>
+      </BaseForm>
     </div>
   </section>
 </BaseLayout>
-
-<script>
-  import { apiClient } from '../lib/api';
-  import type { PrayerRequestInput } from '@felsengrund/types';
-
-  const form = document.querySelector('#prayer-request-form');
-  const status = document.querySelector('#prayer-request-status');
-
-  form?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!(form instanceof HTMLFormElement) || !(status instanceof HTMLElement)) return;
-
-    const submitButton = form.querySelector('button[type="submit"]');
-    const payload = Object.fromEntries(new FormData(form).entries());
-
-    status.textContent = 'Wird gesendet …';
-    status.dataset.state = 'pending';
-    if (submitButton instanceof HTMLButtonElement) submitButton.disabled = true;
-
-    try {
-      await apiClient.forms.submitPrayerRequest(payload as unknown as PrayerRequestInput);
-
-      status.textContent = 'Danke! Dein Anliegen ist bei uns angekommen – wir beten für dich.';
-      status.dataset.state = 'success';
-      form.reset();
-    } catch (error) {
-      console.error('Failed to submit prayer request', error);
-      status.textContent =
-        'Das hat leider nicht geklappt. Bitte versuche es später erneut oder schreib uns direkt an oliver.lutz@kirche-felsengrund.ch.';
-      status.dataset.state = 'error';
-    } finally {
-      if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
-    }
-  });
-</script>

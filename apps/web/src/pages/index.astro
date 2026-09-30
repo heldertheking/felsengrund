@@ -2,13 +2,11 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroReveal from '../components/home/HeroReveal';
 import AngeboteTeaser from '../components/home/AngeboteTeaser';
-import PrayerWallForm from '../components/home/PrayerWallForm';
-import FeedbackForm from '../components/home/FeedbackForm';
 import BaseForm from '../components/form/BaseForm.astro';
 import FormConditional from '../components/form/FormConditional.astro';
 import FormField from '../components/form/FormField.astro';
-import FormRadioGroup from '../components/form/FormRadioGroup.astro';
 import FormCheckbox from '../components/form/FormCheckbox.astro';
+import FormRow from '../components/form/FormRow.astro';
 ---
 
 <BaseLayout>
@@ -64,12 +62,12 @@ import FormCheckbox from '../components/form/FormCheckbox.astro';
         <dl class="mt-4 space-y-4">
           <div>
             <dt class="font-display text-sm font-semibold text-kf-accent">Sonntags</dt>
-            <dd class="mt-1 text-sm text-kf-ink-muted">09:45 – 11:15 Uhr, Gottesdienst</dd>
+            <dd class="mt-1 text-sm text-kf-ink-muted">09:45 - 11:15 Uhr, Gottesdienst</dd>
           </div>
           <div>
             <dt class="font-display text-sm font-semibold text-kf-accent">Monatlich</dt>
             <dd class="mt-1 text-sm text-kf-ink-muted">
-              18:00 Uhr, Dinner Church – Essen, Gemeinschaft und Impuls in lockerer Atmosphäre
+              18:00 Uhr, Dinner Church - Essen, Gemeinschaft und Impuls in lockerer Atmosphäre
             </dd>
           </div>
         </dl>
@@ -82,23 +80,6 @@ import FormCheckbox from '../components/form/FormCheckbox.astro';
     <AngeboteTeaser client:visible />
   </div>
 
-  <section id="test-form" class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-    <div class="mx-auto max-w-2xl">
-      <BaseForm formId="test-form" submitLabel="Testen">
-        <FormField label="Name" name="name" required autocomplete="name" />
-        <FormRadioGroup legend="Kontaktart" name="contact" required options={[{ value: 'mail', label: 'E-Mail' }, { value: 'phone', label: 'Telefon' }]} />
-        <FormConditional when="contact" is="mail">
-          <FormField label="E-Mail" name="email" type="email" required autocomplete="email" hint="Für Rückfragen." />
-        </FormConditional>
-        <FormConditional when="contact" is="phone">
-          <FormField label="Telefon" name="phone" type="tel" required autocomplete="tel" />
-        </FormConditional>
-        <FormField as="textarea" label="Nachricht" name="message" required minlength={10} />
-        <FormCheckbox name="privacy" required>Ich stimme der Datenschutzerklärung zu.</FormCheckbox>
-      </BaseForm>
-    </div>
-  </section>
-
   <!-- 4. Gebetsanliegen -->
   <section id="Gebetsanliegen" class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
     <div class="mx-auto max-w-2xl">
@@ -108,8 +89,21 @@ import FormCheckbox from '../components/form/FormCheckbox.astro';
         entscheidest selbst, ob dein Anliegen anonym oder mit Namen zu uns kommt.
       </p>
 
-      <div class="mt-8">
-        <PrayerWallForm client:visible />
+      <div class="mt-8 rounded-xl border border-kf-edge bg-kf-surface p-5 shadow-sm sm:p-8">
+        <BaseForm formId="prayer" submitLabel="Gebetsanliegen senden">
+          <FormField name="topic" required autocomplete="off" label="Um welches Thema geht es?"/>
+          <FormField name="description" required as="textarea" label="Erzähle uns mehr" />
+          <FormRow>
+            <FormCheckbox id="pr-anonymous" name="anonymous" checked>Ich möchte anonym bleiben.</FormCheckbox>
+            <FormCheckbox id="pr-answer" name="answer">Ich möchte eine rückmeldung erhalten.</FormCheckbox>
+          </FormRow>
+          <FormConditional when="anonymous" is="!on">
+            <FormField name="displayName" required autocomplete="name" label="Wie sollen wir dich nennen?" />
+          </FormConditional>
+          <FormConditional when="answer" is="on">
+            <FormField name="email" required autocomplete="email" label="E-mail Adresse"/>
+          </FormConditional>
+        </BaseForm>
       </div>
     </div>
   </section>
@@ -125,8 +119,17 @@ import FormCheckbox from '../components/form/FormCheckbox.astro';
           deine Rückmeldung.
         </p>
 
-        <div class="mt-8">
-          <FeedbackForm client:visible />
+        <div class="mt-8 rounded-xl border border-kf-edge bg-kf-surface p-5 shadow-sm sm:p-8">
+          <BaseForm formId="feedback" submitLabel="Rückmeldung Absenden." successMessage="Danke für deine Rückmeldung">
+            <FormField label="Dein(e) Fragen, Anliegen oder Feedback" name="message" required autocomplete="off" as="textarea" />
+            <FormCheckbox id="fb-anonymous" name="anonymous" checked>Ich möchte anonym bleiben.</FormCheckbox>
+            <FormConditional when="anonymous" is="!on">
+              <FormRow>
+                <FormField name="displayName" required autocomplete="name" label="Wie sollen wir dich nennen?" />
+                <FormField name="email" required autocomplete="email" label="E-mail Adresse"/>
+              </FormRow>
+            </FormConditional>
+          </BaseForm>
         </div>
       </div>
     </div>
@@ -173,7 +176,7 @@ import FormCheckbox from '../components/form/FormCheckbox.astro';
         >
           <p class="font-display font-semibold text-kf-ink">Ich brauche Hilfe</p>
           <p class="mt-1.5 text-sm text-kf-ink-muted">
-            Ob Gebet oder ein persönliches Gespräch – wir sind für dich da.
+            Ob Gebet oder ein persönliches Gespräch - wir sind für dich da.
           </p>
         </a>
       </div>
