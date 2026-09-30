@@ -1,0 +1,89 @@
+---
+/**
+ * Label + control + hint + error slot for a text-like field.
+ * Wires up label[for], aria-describedby (hint + error) so BaseForm's script can report errors.
+ * Extra attributes (min, max, pattern, inputmode, ...) are passed through to the control.
+ */
+interface Option {
+  value: string;
+  label: string;
+}
+
+interface Props extends Omit<astroHTML.JSX.InputHTMLAttributes, 'type' | 'name' | 'id' | 'label' | 'placeholder'> {
+  label: string;
+  name: string;
+  as?: 'input' | 'textarea' | 'select';
+  type?: astroHTML.JSX.InputHTMLAttributes['type'];
+  required?: boolean;
+  hint?: string;
+  id?: string;
+  autocomplete?: string;
+  rows?: number;
+  /** Only for `as="select"`. */
+  options?: Option[];
+  /** Only for `as="select"`: text of the empty first option. */
+  placeholder?: string;
+}
+
+const {
+  label,
+  name,
+  as: control = 'input',
+  type = 'text',
+  required = false,
+  hint,
+  id = `field-${name}`,
+  autocomplete,
+  rows = 5,
+  options = [],
+  placeholder,
+  ...rest
+} = Astro.props;
+
+const hintId = hint ? `${id}-hint` : undefined;
+const errorId = `${id}-error`;
+const controlClass =
+  'block w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink placeholder:text-kf-ink-muted ' +
+  'focus:border-kf-accent focus:outline-none focus:ring-2 focus:ring-kf-accent/40 ' +
+  'aria-[invalid=true]:border-red-700 aria-[invalid=true]:focus:ring-red-700/40 disabled:opacity-60';
+const common = {
+  id,
+  name,
+  required,
+  autocomplete,
+  class: controlClass,
+  'aria-describedby': hintId,
+  'data-base-describedby': hintId,
+  ...rest,
+};
+---
+
+<div class="flex flex-col gap-1.5" data-field>
+  <label for={id} class="font-display text-sm font-medium text-kf-ink">
+    {label}
+    {
+      required ? (
+        <span class="text-kf-accent" aria-hidden="true">
+          {' '}
+          *
+        </span>
+      ) : (
+        <span class="text-xs font-normal text-kf-ink-muted"> (optional)</span>
+      )
+    }
+  </label>
+  {control === 'textarea' && <textarea {...common} rows={rows} />}
+  {
+    control === 'select' && (
+      <select {...common}>
+        <option value="">{placeholder ?? 'Bitte auswählen'}</option>
+        {options.map((o) => (
+          <option value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    )
+  }
+  {control === 'input' && <input {...common} type={type} />}
+  {hint && <p id={hintId} class="text-xs text-kf-ink-muted">{hint}</p>}
+  <p id={errorId} data-field-error hidden class="text-sm text-red-700"></p>
+</div>
