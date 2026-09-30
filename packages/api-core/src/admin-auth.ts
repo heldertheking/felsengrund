@@ -45,6 +45,6 @@ export async function verifySessionToken(token: string | undefined | null, passw
 /** Pulls the token out of a standard `Authorization: Bearer <token>` header value. */
 export function parseBearerToken(authorizationHeader: string | null | undefined): string | undefined {
   if (!authorizationHeader) return undefined;
-  const match = /^Bearer\s+(.+)$/i.exec(authorizationHeader.trim());
-  return match?.[1];
+  const match = /^Bearer\s+(\S.*)$/i.exec(authorizationHeader.trim());
+  return match?.[1]?.trimEnd();
 }
