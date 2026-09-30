@@ -7,7 +7,7 @@ const calendarEmbedUrl = import.meta.env.GOOGLE_CALENDAR_EMBED_URL as string | u
 const agenda: AgendaItem[] = [
   {
     title: 'Gottesdienst',
-    cadence: 'Sonntags, 09:45 – ca. 11:15 Uhr',
+    cadence: 'Sonntags, 09:45 - ca. 11:15 Uhr',
   },
   {
     title: 'Dinner Church',
@@ -22,7 +22,7 @@ const agenda: AgendaItem[] = [
   {
     title: 'Jungschar',
     cadence: 'Jeden zweiten Samstagnachmittag',
-    note: 'Für Kinder der 1.–8. Klasse. Treffpunkt "der Storch" vor dem Schulhaus Blattenacher.',
+    note: 'Für Kinder der 1.-8. Klasse. Treffpunkt "der Storch" vor dem Schulhaus Blattenacher.',
   },
   {
     title: 'Highlight',
@@ -52,13 +52,13 @@ const agenda: AgendaItem[] = [
   },
   {
     title: 'Lebensmittelabgabe',
-    cadence: 'Wöchentlich, montags, 16:30–17:15 Uhr',
+    cadence: 'Wöchentlich, montags, 16:30-17:15 Uhr',
   },
 ];
 ---
 
 <BaseLayout
-  title="Agenda – Kirche Felsengrund"
+  title="Agenda - Kirche Felsengrund"
   description="Wiederkehrende Termine und Angebote der Kirche Felsengrund im Überblick."
 >
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
@@ -80,7 +80,7 @@ const agenda: AgendaItem[] = [
         <iframe
           src={calendarEmbedUrl}
           loading="lazy"
-          title="Kirche Felsengrund – Kalender"
+          title="Kirche Felsengrund - Kalender"
           class="h-105 w-full border-0 sm:h-162.5"
         ></iframe>
       </div>

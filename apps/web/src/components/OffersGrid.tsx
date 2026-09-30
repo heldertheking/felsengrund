@@ -76,7 +76,7 @@ export default function OffersGrid() {
                   >
                     <p className="font-display font-semibold text-kf-ink">Ich brauche Hilfe</p>
                     <p className="mt-1.5 text-sm text-kf-ink-muted">
-                      Gebet und vertrauliche Lebensberatung – wir sind für dich da, wenn du Unterstützung brauchst.
+                      Gebet und vertrauliche Lebensberatung - wir sind für dich da, wenn du Unterstützung brauchst.
                     </p>
                   </a>
                 )}

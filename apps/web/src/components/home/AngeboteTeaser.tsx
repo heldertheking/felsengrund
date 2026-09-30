@@ -39,7 +39,7 @@ export default function AngeboteTeaser() {
         <div>
           <h2 className="font-display text-3xl font-bold text-kf-ink">Aktuelle Angebote</h2>
           <p className="mt-2 text-lg text-kf-ink-muted">
-            Für jede Generation etwas – vom Kids-Treff bis zur Seniorenrunde.
+            Für jede Generation etwas - vom Kids-Treff bis zur Seniorenrunde.
           </p>
         </div>
         <a
@@ -53,12 +53,12 @@ export default function AngeboteTeaser() {
       {state.status === 'loading' && <p className="mt-8 text-sm text-kf-ink-muted">Angebote werden geladen …</p>}
       {state.status === 'error' && (
         <p className="mt-8 text-sm text-kf-ink-muted">
-          Unsere Angebote werden gerade zusammengestellt – schau bald wieder vorbei.
+          Unsere Angebote werden gerade zusammengestellt - schau bald wieder vorbei.
         </p>
       )}
       {state.status === 'ready' && featured.length === 0 && (
         <p className="mt-8 text-sm text-kf-ink-muted">
-          Unsere Angebote werden gerade zusammengestellt – schau bald wieder vorbei.
+          Unsere Angebote werden gerade zusammengestellt - schau bald wieder vorbei.
         </p>
       )}
       {featured.length > 0 && (
