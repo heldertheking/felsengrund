@@ -44,6 +44,7 @@ wrangler secret put KFA_ADMIN_PASSWORD --env production
 wrangler secret put KFA_ADMIN_PASSWORD --env development
 wrangler secret put KFA_MAIL_PASSWORD --env production
 wrangler secret put KFA_MAIL_PASSWORD --env development
+wrangler secret put KFA_DEV_NOTIFICATION_RECIPIENT --env development
 ```
 
 - **`KFA_ADMIN_PASSWORD`** — gates `/admin/login`, which returns a signed bearer token on
@@ -58,6 +59,10 @@ wrangler secret put KFA_MAIL_PASSWORD --env development
   doesn't create or configure the mailbox itself. A `535 Authentication failed` error at
   send time almost always means this mailbox doesn't exist yet or the passwords don't match.
 
+- **`KFA_DEV_NOTIFICATION_RECIPIENT`** — optional; the inbox that receives all form notification
+  emails in non-`production` environments. Not needed in `production`. If it's unset elsewhere,
+  notification emails are skipped with a warning.
+
 For local development, copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars`.
 
 ### Plain vars
@@ -67,18 +72,16 @@ For local development, copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars`
 - **`KFA_WORKER_ORIGIN`** — this Worker's own public URL (e.g. its `*.workers.dev`
   address, or a custom domain if one is attached later). Used to rewrite relative
   `/media/<key>` references in API responses into absolute URLs the cross-origin frontend
-  can load directly, and to build the podcast Atom feed's audio/link URLs.
+  can load directly, and to build the podcast RSS feed's (`/podcast/feed.xml`) audio, cover image and self-link URLs.
 - **`KFA_WEBPAGE_ORIGIN`** — the deployed `apps/web` origin for this environment (e.g.
   `https://kirche-felsengrund.ch` in production). Used for the podcast feed's website link
   and cover image URL.
 - **`KFA_ALLOWED_ORIGINS`** — comma-separated list of origins allowed to call this API
   (CORS). Must include whatever origin `apps/web` is actually served from (webkeeper.ch's
   domain in production, `http://localhost:4321` for local dev).
-- **`KFA_NOTIFICATION_WEBHOOK`** — required by `apps/api/src/middleware/env-check.ts`, but
-  not currently read by any route or service. Reserved/leftover — don't go looking for where
-  it's consumed.
-- **`KFA_SESSION_TTL_MS`** — declared in `wrangler.jsonc` but neither required by
-  `env-check.ts` nor read anywhere in `apps/api`'s source. Also, currently dead.
+- **`KFA_SESSION_TTL_MS`** — admin bearer-token lifetime in milliseconds (`43200000` = 12
+  hours), read by `POST /admin/login`. Optional: not checked by `env-check.ts`, and login falls
+  back to 12 hours if it's missing.
 
 ### Build & deploy
 
@@ -138,7 +141,7 @@ Before this works:
 
 ## CORS
 
-`apps/api`'s `ALLOWED_ORIGINS` var must list every origin that's allowed to call it —
+`apps/api`'s `KFA_ALLOWED_ORIGINS` var must list every origin that's allowed to call it —
 production webkeeper.ch domain, plus any staging subdomain used during testing, plus
 `http://localhost:4321` for local `astro dev`. A mismatch here shows up as CORS errors in the
 browser console, not as a server-side error — check this first if requests from `apps/web`

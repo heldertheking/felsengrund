@@ -23,9 +23,9 @@ export class UnauthorizedError extends ApiError {
 
 async function readErrorMessage(response: Response): Promise<string> {
   const data = (await response.json().catch(() => null)) as {
-    error?: string;
+    message?: string;
   } | null;
-  return data?.error ?? `Fehler ${response.status}`;
+  return data?.message ?? `Fehler ${response.status}`;
 }
 
 export abstract class BaseClient {

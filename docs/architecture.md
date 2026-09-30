@@ -19,9 +19,19 @@ Offers ("Angebote") and podcast episodes are stored as Markdoc documents: a YAML
 frontmatter block followed by a Markdoc body. There is no `src/content/` collection —
 these documents live as objects in the `STORAGE` R2 bucket, and are read at request time.
 
-All of this logic lives in `packages/api-core/src/admin-content.ts`, which every route in
-`apps/api` uses to read/write offers and podcast episodes — `apps/web` never touches R2
-directly, it only ever sees the JSON `apps/api` returns. Key shapes:
+All of this logic lives in `apps/api/src/lib/storage/` (the former `packages/api-core` package
+was folded into `apps/api`): `OffersRepository` (`offers.ts`) and `PodcastRepository`
+(`podcast.ts`) expose `list`/`get`/`put`/`delete` (plus `putImage`, and `putAudio` for podcast)
+and are what every route in `apps/api` uses to read/write offers and podcast episodes — `apps/web`
+never touches R2 directly, it only ever sees the JSON `apps/api` returns. The shared helpers
+(`formatMarkdocFile`, `serializeMdocFile`, `listSlugs`, key prefixes) live in `storage/shared.ts`
+(so the repositories don't import each other's parent module); `storage/index.ts` assembles
+`StorageUtils` (`renderMarkdoc`, `slugify`, `formatMarkdocFile`, `deleteMedia`). Deleting an offer or
+episode also deletes its image/audio objects, and replacing a media file with a different extension
+removes the old object. Routes
+import all of this through the `apps/api/src/lib/index.ts` barrel (`AuthUtils`, `FeedUtils`,
+`MediaUtils`, `StorageUtils`, `OffersRepository`, `PodcastRepository`, `NotificationService`, `FORMS`). The offer/episode types
+(`Offer`, `Episode`, `OfferFrontmatter`, `EpisodeFrontmatter`) come from `packages/types`. Key shapes:
 
 ```ts
 interface OfferData {
@@ -48,7 +58,7 @@ interface PodcastData {
 ```
 
 Each entry also has a `slug` (derived from the title via `slugify()`, umlaut-aware) and a
-`body` (the Markdoc source, rendered to HTML with `renderMarkdoc()` using `@markdoc/markdoc`).
+`body` (the Markdoc source, rendered to HTML with `StorageUtils.renderMarkdoc()` using `@markdoc/markdoc`).
 
 R2 key layout (see [`docs/deployment.md`](./deployment.md) for the bucket-level view):
 
@@ -58,16 +68,18 @@ R2 key layout (see [`docs/deployment.md`](./deployment.md) for the bucket-level 
 - `images/offers/<slug>.<ext>` — an offer's card image
 - `images/podcast/<slug>.<ext>` — an episode's cover image
 
-`putOfferImage`/`putPodcastImage`/`putPodcastAudio` (also in `admin-content.ts`) write these
+`OffersRepository.putImage`/`PodcastRepository.putImage`/`PodcastRepository.putAudio` write these
 media objects and return the URL stored in `cardImage`/`coverImage`/`audioUrl`: a relative
 `/media/<key>` path (e.g. `/media/podcast/<slug>.mp3`), not an absolute URL. Since `apps/web`
 and `apps/api` are different origins, `apps/api`'s offers/podcast/nav routes rewrite these to
-absolute URLs (`${PUBLIC_WORKER_ORIGIN}/media/<key>`, see `apps/api/src/lib/media-url.ts`)
+absolute URLs (`${KFA_WORKER_ORIGIN}/media/<key>`, via `MediaUtils.rewriteMediaUrls()` in
+`apps/api/src/lib/media/index.ts`)
 before returning JSON, so the frontend never needs its own origin-joining logic — it just
 renders whatever URL it's given. The actual bytes are served by `apps/api/src/routes/media.ts`
 (`GET /media/*`), which streams the object straight off the `STORAGE` binding, with `Range`
-request support (parses the `Range` header, returns `206 Partial Content` with
-`Content-Range`) for podcast audio scrubbing.
+request support for podcast audio scrubbing: `parseRangeHeader()`/`toR2Range()` (in
+`lib/media/index.ts`) parse the header, and the route returns `206 Partial Content` with
+`Content-Range`, falling back to the full object if R2 rejects the range.
 
 ## Public pages fetch from the API client-side
 
@@ -119,9 +131,10 @@ All requiring a valid bearer token except login:
 
 | Route                  | Method | Purpose                                                                                                              |
 | ---------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
-| `/admin/login`         | POST   | Checks the submitted password against `KFA_ADMIN_PASSWORD`; on success returns `{ token }`                           |
+| `/admin/login`         | POST   | Checks the submitted password against `KFA_ADMIN_PASSWORD` (constant-time); on success returns `{ token }`                           |
 | `/admin/logout`        | POST   | Stateless no-op (kept for symmetry/future revocation) — the frontend just discards its stored token                  |
 | `/admin/offers`        | POST   | Creates or updates an offer (multipart form; handles the optional `cardImage` upload)                                |
+| `/admin/offers/import` | POST   | Imports an offer from an uploaded `.mdoc` file (frontmatter + body); 409 if the slug already exists                  |
 | `/admin/offers/:slug`  | DELETE | Deletes an offer                                                                                                     |
 | `/admin/podcast`       | POST   | Creates or updates a podcast episode (multipart form; handles the required `audio` upload and optional `coverImage`) |
 | `/admin/podcast/:slug` | DELETE | Deletes a podcast episode                                                                                            |
@@ -134,7 +147,7 @@ relative same-origin `fetch` with `credentials: 'same-origin'`.
 
 ### Auth model
 
-`packages/api-core/src/admin-auth.ts` implements a stateless, signed **bearer token** — no KV,
+`apps/api/src/lib/authentication/index.ts` (`AuthUtils`) implements a stateless, signed **bearer token** — no KV,
 no database. This replaced the original signed-cookie session once the admin UI and the API
 became different origins: cookies scoped `SameSite=Strict`/`Lax` are never sent cross-site at
 all, and relaxing to `SameSite=None` would trade that for third-party-cookie fragility with
@@ -145,13 +158,14 @@ cross-origin client/API split. The flow:
 2. The server compares it to the `KFA_ADMIN_PASSWORD` secret. On success, it returns a
    JSON body `{ token }`, where the token string is `<expiry-timestamp>.<HMAC-SHA256
 signature>`, the signature computed over the expiry timestamp using
-   `KFA_ADMIN_PASSWORD` itself as the HMAC key (12-hour expiry).
+   `KFA_ADMIN_PASSWORD` itself as the HMAC key. Expiry comes from the `KFA_SESSION_TTL_MS` var
+   (`43200000` ms = 12 hours in `wrangler.jsonc`; login falls back to 12 hours if it's unset).
 3. `AdminApp.tsx` stores that token in `localStorage` and sends it as
    `Authorization: Bearer <token>` on every subsequent `/admin/*` call. `apps/api`'s
    `requireAuth` middleware re-verifies it by recomputing the HMAC and comparing it (in
    constant time) against the signature, and checking the expiry. Nothing is stored
    server-side — the token is self-contained proof that the holder once knew the password,
-   within the last 12 hours.
+   within the TTL window.
 
 Because the signing key is the password itself, rotating `KFA_ADMIN_PASSWORD` (via
 `wrangler secret put`, see [`docs/deployment.md`](./deployment.md)) immediately invalidates
@@ -160,6 +174,32 @@ all existing sessions, with no separate revocation step needed.
 `KFA_ADMIN_PASSWORD` is the single password for the entire admin panel — it is not
 scoped separately per section, and (despite its name, a holdover from when it only gated
 audio upload) it now gates offers, podcast episodes, and all admin uploads together.
+
+## Podcast RSS feed
+
+`GET /podcast/feed.xml` (`apps/api/src/routes/podcast.ts`) serves an RSS 2.0 feed with iTunes
+and `content:encoded` extensions for podcast apps. It is registered before `/podcast/:slug` so the
+static path isn't shadowed. The XML is built by `FeedUtils` (`apps/api/src/lib/feed/index.ts`):
+`episodeToXmlItem()` maps an episode to a feed item — looking up the audio's size and content type
+with `STORAGE.head()`, building absolute audio/cover URLs from `KFA_WORKER_ORIGIN` and episode links
+from `KFA_WEBPAGE_ORIGIN` — and `buildPodcastFeedXml()` renders the channel. A malformed episode
+(e.g. an invalid `publishDate`) is logged and skipped instead of failing the whole feed. The
+response carries a SHA-256-derived `ETag` and `Cache-Control: public, max-age=3600, s-maxage=86400`.
+`Last-Modified` is the newest episode's publish date. Channel metadata (title, owner, category, cover image at `${KFA_WEBPAGE_ORIGIN}/images/podcast-cover.png`)
+is hardcoded in the route.
+
+## Error responses
+
+Every route returns errors as `createApiError(message, meta?)` (`apps/api/src/types.ts`):
+`{ status: 'error' | 'fail', message, meta? }`. `packages/types`' `ErrorResponse` and the shared
+API client (`BaseClient`/`AdminClient`) read `message` and surface it in the UI. Form routes use
+`createFormError`, which adds `type` and `validationErrors`:
+
+- Validation failure: `400` with `{ status: 'error', type: 'validation', message: 'Missing fields',
+  validationErrors: { missing: [...] }, meta: { submittedAt } }`.
+- Email delivery failure: `502` with `{ status: 'fail', type: 'sending', message }` (logged server-side).
+- Unhandled errors: `500` via `onError`, with `meta.requestId` matching the log line.
+- Admin messages are German, since they're shown to the editor.
 
 ## Forms & notification emails
 
@@ -174,7 +214,7 @@ notification email and returning `{ ok: true }`:
 | `POST /prayer-request` | `PrayerWallForm.tsx`, mounted on `jetzt-fuer-mich-beten.astro` | `PRAYER_REQUEST` | `gebetsanliegen@kirche-felsengrund.ch`                 |
 | `POST /feedback`       | `FeedbackForm.tsx`                                             | `UNSPECIFIED`    | `kontakt@kirche-felsengrund.ch` (no dedicated mailbox) |
 
-### `NotificationService` (`apps/api/src/lib/mail.ts`)
+### `NotificationService` (`apps/api/src/lib/notification/mail.ts`)
 
 `forms.ts` builds one `NotificationService` at module scope (its SMTP config doesn't depend
 on a request, so it's shared across all four routes rather than re-created per call).
@@ -189,14 +229,15 @@ on a request, so it's shared across all four routes rather than re-created per c
   otherwise even with valid credentials. See [`docs/deployment.md`](./deployment.md) for the
   `KFA_MAIL_PASSWORD` secret setup.
 - **Redirects every notification in any non-`production` environment** (`local`,
-  `development`) to a fixed test inbox instead of the table above, so local dev and staging
+  `development`) to the inbox in the `KFA_DEV_NOTIFICATION_RECIPIENT` secret instead of the table above
+  (if it isn't set, non-production sends are skipped with a warning — they never fall back to a real mailbox), so local dev and staging
   never reach the church's real mailboxes. The redirected email also gets a
   `[environment]` subject prefix and a visible banner naming the mailbox it would've gone to
   in production.
 - Sets `reply` to the form submitter's name/email (where available), so staff can hit
   "Reply" in their mail client and land directly on the person who submitted the form.
 
-### Email templates (`apps/api/src/lib/email/`)
+### Email templates (`apps/api/src/lib/notification/email/`)
 
 A small, dependency-free HTML templating system rather than a full templating engine:
 

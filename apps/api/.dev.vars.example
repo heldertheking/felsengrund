@@ -8,3 +8,7 @@ KFA_ADMIN_PASSWORD=super-secret-password
 # SMTP password for noreply@kirche-felsengrund.ch on mail.webkeeper.ch (used to send form
 # notification emails). Create this mailbox in Plesk and set its password there.
 KFA_MAIL_PASSWORD=changeme
+
+# Inbox that receives form notification emails locally (non-production never mails the real church inboxes;
+# without this, notification emails are skipped).
+KFA_DEV_NOTIFICATION_RECIPIENT=you@example.com

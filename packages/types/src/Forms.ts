@@ -32,6 +32,9 @@ export interface OkResponse {
   ok: true;
 }
 
+/** Error body returned by every `apps/api` route. */
 export interface ErrorResponse {
-  error: string;
+  status: 'error' | 'fail';
+  message: string;
+  meta?: Record<string, unknown>;
 }

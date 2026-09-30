@@ -1,10 +1,3 @@
-// Stateless, signed bearer-token auth (no KV/session storage): POST /admin/login proves the
-// KFA_ADMIN_PASSWORD once and returns a token; every later /admin/* call sends it as
-// `Authorization: Bearer <token>`, verified by signature + expiry alone. Not a cookie, since
-// the admin UI and API are different origins where SameSite cookies don't work well cross-site.
-
-const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12h
-
 async function hmac(secret: string, message: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     'raw',
@@ -27,7 +20,15 @@ function timingSafeEqual(a: string, b: string): boolean {
   return mismatch === 0;
 }
 
-export async function createSessionToken(password: string): Promise<string> {
+/** Constant-time password check (both sides are HMAC'd first so length differences don't leak either). */
+export async function verifyPassword(input: unknown, expected: string | undefined): Promise<boolean> {
+  if (typeof input !== 'string' || !expected) return false;
+  const [a, b] = await Promise.all([hmac(expected, input), hmac(expected, expected)]);
+  return timingSafeEqual(a, b);
+}
+
+/** Session TTL needs to be passed because it's read from cloudflare environment. */
+export async function createSessionToken(password: string, SESSION_TTL_MS: number): Promise<string> {
   const expires = Date.now() + SESSION_TTL_MS;
   const signature = await hmac(password, String(expires));
   return `${expires}.${signature}`;

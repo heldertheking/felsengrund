@@ -8,6 +8,7 @@ labels: task
 ## What needs to be done?
 
 Describe what thing(s) need to be done (e.g. "Cleanup documentation after major update")
+
 - [ ] Task 1
 - [ ] Task 2
 - [ ] Task 3

@@ -1,28 +1,57 @@
-import { Hono } from 'hono';
-import type {
-  ContactInput,
-  CounselingInput,
-  ErrorResponse,
-  FeedbackInput,
-  OkResponse,
-  PrayerRequestInput,
-} from '@felsengrund/types';
-import type { Env } from '../types';
-import { FORMS, NotificationService } from '../lib/mail';
+import { Hono, type Context } from 'hono';
+import type { ContactInput, CounselingInput, FeedbackInput, OkResponse, PrayerRequestInput } from '@felsengrund/types';
+import { createFormError, Env } from '../types';
+import { FORMS, NotificationService } from '../lib';
+import type { SendOptions } from '../lib/notification';
+import type { NotificationEmailContent } from '../lib/notification/email/notification-email';
+import { createLogger } from '@felsengrund/logger';
+
+// === Setup ===
 
 export const formsRoute = new Hono<{ Bindings: Env }>();
-
-// Built once, shared by every route below - the mailer config doesn't depend on a request.
+const logger = createLogger('Forms Route');
 const notificationService = new NotificationService();
+
+// === Helpers ===
+
+/** Sends the notification; returns an error response (to return from the route) if delivery fails, otherwise null. */
+const deliver = async (
+  c: Context<{ Bindings: Env }>,
+  subject: string,
+  content: NotificationEmailContent,
+  form: FORMS,
+  options?: SendOptions,
+): Promise<Response | null> => {
+  try {
+    await notificationService.send(subject, content, form, c.env, options);
+    return null;
+  } catch (error) {
+    logger.error('failed to send notification email', { form: FORMS[form], error });
+    return c.json(createFormError('sending', 'Failed to send notification'), 502);
+  }
+};
+
+// === Routes ===
 
 formsRoute.post('/contact', async (c) => {
   const body = (await c.req.json()) as Partial<ContactInput>;
 
-  if (!body.name || !body.email || !body.subject || !body.message) {
-    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
+  const requiredFields = ['name', 'email', 'subject', 'message'] as const;
+
+  const missing = requiredFields.filter(
+    (key) => !body?.[key] || (typeof body[key] === 'string' && body[key].trim() === ''),
+  );
+
+  if (missing.length > 0) {
+    logger.warn('Missing fields in contact form', { missing });
+    return c.json(
+      createFormError('validation', 'Missing fields', { missing }, { submittedAt: new Date().toISOString() }),
+      400,
+    );
   }
 
-  await notificationService.send(
+  const failure = await deliver(
+    c,
     `Kontaktformular: ${body.subject}`,
     {
       heading: 'Neue Kontaktanfrage',
@@ -35,9 +64,9 @@ formsRoute.post('/contact', async (c) => {
       message: { label: 'Nachricht', value: body.message },
     },
     FORMS.CONTACT,
-    c.env,
-    { replyTo: { name: body.name, email: body.email } },
+    { replyTo: { name: body.name, email: body.email! } },
   );
+  if (failure) return failure;
 
   return c.json<OkResponse>({ ok: true });
 });
@@ -45,11 +74,22 @@ formsRoute.post('/contact', async (c) => {
 formsRoute.post('/counseling', async (c) => {
   const body = (await c.req.json()) as Partial<CounselingInput>;
 
-  if (!body.name || !body.email || !body.subject || !body.message) {
-    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
+  const requiredFields = ['name', 'email', 'subject', 'message'] as const;
+
+  const missing = requiredFields.filter(
+    (key) => !body?.[key] || (typeof body[key] === 'string' && body[key].trim() === ''),
+  );
+
+  if (missing.length > 0) {
+    logger.warn('Missing fields in counseling form', { missing });
+    return c.json(
+      createFormError('validation', 'Missing fields', { missing }, { submittedAt: new Date().toISOString() }),
+      400,
+    );
   }
 
-  await notificationService.send(
+  const failure = await deliver(
+    c,
     `Lebensberatung: ${body.subject}`,
     {
       heading: 'Neue Anfrage für Lebensberatung',
@@ -65,9 +105,9 @@ formsRoute.post('/counseling', async (c) => {
       message: { label: 'Nachricht', value: body.message },
     },
     FORMS.CONSOLING,
-    c.env,
-    { replyTo: { name: body.name, email: body.email } },
+    { replyTo: { name: body.name, email: body.email! } },
   );
+  if (failure) return failure;
 
   return c.json<OkResponse>({ ok: true });
 });
@@ -75,11 +115,22 @@ formsRoute.post('/counseling', async (c) => {
 formsRoute.post('/feedback', async (c) => {
   const body = (await c.req.json()) as Partial<FeedbackInput>;
 
-  if (!body.message) {
-    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
+  const requiredFields = ['message'] as const;
+
+  const missing = requiredFields.filter(
+    (key) => !body?.[key] || (typeof body[key] === 'string' && body[key].trim() === ''),
+  );
+
+  if (missing.length > 0) {
+    logger.warn('Missing fields in feedback form', { missing });
+    return c.json(
+      createFormError('validation', 'Missing fields', { missing }, { submittedAt: new Date().toISOString() }),
+      400,
+    );
   }
 
-  await notificationService.send(
+  const failure = await deliver(
+    c,
     'Feedback zur Website',
     {
       heading: 'Neues Feedback',
@@ -92,9 +143,9 @@ formsRoute.post('/feedback', async (c) => {
     },
     // Feedback has no dedicated mailbox - falls back to the general kontakt@ inbox.
     FORMS.UNSPECIFIED,
-    c.env,
-    body.email ? { replyTo: { name: body.name, email: body.email } } : undefined,
+    body.email ? { replyTo: { name: body.name, email: body.email! } } : undefined,
   );
+  if (failure) return failure;
 
   return c.json<OkResponse>({ ok: true });
 });
@@ -102,11 +153,22 @@ formsRoute.post('/feedback', async (c) => {
 formsRoute.post('/prayer-request', async (c) => {
   const body = (await c.req.json()) as Partial<PrayerRequestInput>;
 
-  if (!body.topic || !body.description) {
-    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
+  const requiredFields = ['topic', 'description'] as const;
+
+  const missing = requiredFields.filter(
+    (key) => !body?.[key] || (typeof body[key] === 'string' && body[key].trim() === ''),
+  );
+
+  if (missing.length > 0) {
+    logger.warn('Missing fields in prayer-request form', { missing });
+    return c.json(
+      createFormError('validation', 'Missing fields', { missing }, { submittedAt: new Date().toISOString() }),
+      400,
+    );
   }
 
-  await notificationService.send(
+  const failure = await deliver(
+    c,
     `Gebetsanliegen: ${body.topic}`,
     {
       heading: 'Neues Gebetsanliegen',
@@ -119,9 +181,9 @@ formsRoute.post('/prayer-request', async (c) => {
       message: { label: 'Anliegen', value: body.description },
     },
     FORMS.PRAYER_REQUEST,
-    c.env,
-    body.email ? { replyTo: { name: body.displayName, email: body.email } } : undefined,
+    body.email ? { replyTo: { name: body.displayName, email: body.email! } } : undefined,
   );
+  if (failure) return failure;
 
   return c.json<OkResponse>({ ok: true });
 });

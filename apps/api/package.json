@@ -1,7 +1,7 @@
 {
   "name": "@felsengrund/api",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "module",
   "repository": "https://github.com/heldertheking/felsengrund",
   "scripts": {
@@ -11,11 +11,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@felsengrund/api-core": "*",
     "@felsengrund/logger": "*",
     "@felsengrund/types": "*",
+    "@markdoc/markdoc": "^0.5.9",
     "hono": "^4.6.14",
-    "worker-mailer": "^1.2.1"
+    "worker-mailer": "^1.2.1",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
