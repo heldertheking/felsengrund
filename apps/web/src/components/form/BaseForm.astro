@@ -1,0 +1,15 @@
+---
+interface Props {
+  formId: string;
+  onSubmit: () => void;
+}
+
+const { formId, onSubmit } = Astro.props;
+---
+
+<div class="flex flex-col">
+  <form class="mt-06 gap-6" onsubmit="onSubmit()">
+    <input type="hidden" name="id" disabled value={formId} />
+    <slot />
+  </form>
+</div>
