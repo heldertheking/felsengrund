@@ -223,6 +223,36 @@ const {
     return true;
   }
 
+  /**
+   * Conditional sections (<FormConditional>): show/hide by the controlling field's value.
+   * Hidden sections get `hidden` and their controls are disabled (=> not validated, not sent).
+   * We only re-enable controls we disabled ourselves, and evaluate in document order so
+   * nested sections see their parent's final state.
+   */
+  function applyConditionals(form: HTMLFormElement): void {
+    for (const section of form.querySelectorAll<HTMLElement>('[data-show-when]')) {
+      const wanted = section.dataset.showIs!.split(',').map((v) => v.trim());
+      const values = new FormData(form).getAll(section.dataset.showWhen!);
+      const parentHidden = section.parentElement?.closest<HTMLElement>('[data-show-when]')?.hidden ?? false;
+      const show = !parentHidden && values.some((v) => typeof v === 'string' && wanted.includes(v));
+
+      section.hidden = !show;
+      for (const el of section.querySelectorAll('input, textarea, select')) {
+        if (!isControl(el)) continue;
+        if (!show) {
+          if (!el.disabled) {
+            el.disabled = true;
+            el.dataset.condDisabled = '';
+          }
+          clearError(el);
+        } else if (el.dataset.condDisabled !== undefined && el.closest('[data-show-when]') === section) {
+          el.disabled = false;
+          delete el.dataset.condDisabled;
+        }
+      }
+    }
+  }
+
   const submitting = new WeakSet<HTMLFormElement>();
 
   document.addEventListener('submit', async (event) => {
@@ -270,10 +300,22 @@ const {
     else setError(el, messageFor(el));
   }
   document.addEventListener('input', revalidate);
-  document.addEventListener('change', revalidate);
+  document.addEventListener('change', (event) => {
+    const form = event.target instanceof Element ? event.target.closest<HTMLFormElement>('[data-base-form]') : null;
+    if (form) applyConditionals(form);
+    revalidate(event);
+  });
+  // `reset` fires before the values are restored, so wait a tick.
+  document.addEventListener('reset', (event) => {
+    const form = event.target;
+    if (form instanceof HTMLFormElement && form.hasAttribute('data-base-form')) {
+      setTimeout(() => applyConditionals(form), 0);
+    }
+  });
 
-  // Show the "* Pflichtfeld" legend only on forms that actually have required fields.
   document.querySelectorAll<HTMLFormElement>('[data-base-form]').forEach((form) => {
+    applyConditionals(form);
+    // Show the "* Pflichtfeld" legend only on forms that actually have required fields.
     if (form.querySelector('[required]')) form.querySelector<HTMLElement>('[data-required-note]')!.hidden = false;
   });
 </script>

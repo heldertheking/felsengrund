@@ -5,7 +5,7 @@ import AngeboteTeaser from '../components/home/AngeboteTeaser';
 import PrayerWallForm from '../components/home/PrayerWallForm';
 import FeedbackForm from '../components/home/FeedbackForm';
 import BaseForm from '../components/form/BaseForm.astro';
-import FormRow from '../components/form/FormRow.astro';
+import FormConditional from '../components/form/FormConditional.astro';
 import FormField from '../components/form/FormField.astro';
 import FormRadioGroup from '../components/form/FormRadioGroup.astro';
 import FormCheckbox from '../components/form/FormCheckbox.astro';
@@ -85,11 +85,14 @@ import FormCheckbox from '../components/form/FormCheckbox.astro';
   <section id="test-form" class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
     <div class="mx-auto max-w-2xl">
       <BaseForm formId="test-form" submitLabel="Testen">
-        <FormRow>
-          <FormField label="Name" name="name" required autocomplete="name" />
-          <FormField label="E-Mail" name="email" type="email" required autocomplete="email" hint="Für Rückfragen." />
-        </FormRow>
+        <FormField label="Name" name="name" required autocomplete="name" />
         <FormRadioGroup legend="Kontaktart" name="contact" required options={[{ value: 'mail', label: 'E-Mail' }, { value: 'phone', label: 'Telefon' }]} />
+        <FormConditional when="contact" is="mail">
+          <FormField label="E-Mail" name="email" type="email" required autocomplete="email" hint="Für Rückfragen." />
+        </FormConditional>
+        <FormConditional when="contact" is="phone">
+          <FormField label="Telefon" name="phone" type="tel" required autocomplete="tel" />
+        </FormConditional>
         <FormField as="textarea" label="Nachricht" name="message" required minlength={10} />
         <FormCheckbox name="privacy" required>Ich stimme der Datenschutzerklärung zu.</FormCheckbox>
       </BaseForm>
