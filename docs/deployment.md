@@ -147,6 +147,27 @@ Before this works:
    is available on webkeeper.ch's specific Plesk version** — this is the one piece of the
    pipeline that depends on infrastructure only reachable from the Plesk control panel.
 
+## Releases
+
+`.github/workflows/release.yml` publishes a GitHub Release when a release lands on `master`
+(normally by merging `release/x.y.z` into `master`).
+
+- **Version:** the root `package.json` `version` is the source of truth. The tag is `vX.Y.Z`.
+- **Notes:** `CHANGELOG.md` must contain a `## [X.Y.Z]` heading (optionally ` - date`) for that
+  version with some content. Everything up to the next `## [` heading becomes the release notes.
+  If the section is missing or empty the workflow fails instead of publishing empty notes.
+  Versions with a `-` suffix (e.g. `1.2.0-rc.1`) are marked as pre-releases.
+- **Re-runs:** if the tag already exists, the run is a no-op, so pushes to `master` that do not
+  bump the version publish nothing.
+- **Milestone:** after publishing, the open milestone `Release X.Y.Z` is closed, if there is one.
+- **Dry run:** PRs (any base branch) that change `release.yml` or `CHANGELOG.md`, and manual runs
+  with `dry_run` enabled (the default), only print the extracted notes in the log and job
+  summary. Nothing is tagged, published or closed.
+- **Subscribing:** on GitHub use **Watch → Custom → Releases**, or follow
+  `https://github.com/heldertheking/felsengrund/releases.atom`.
+
+The extraction can be tried locally: `bash .github/scripts/changelog-section.sh 1.1.0`.
+
 ## CORS
 
 `apps/api`'s `KFA_ALLOWED_ORIGINS` var must list every origin that's allowed to call it —
