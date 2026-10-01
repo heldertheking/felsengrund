@@ -1,7 +1,7 @@
 # Felsengrund
 
 The public website for [Kirche Felsengrund](https://www.google.com/maps/search/Kirche+Felsengrund+Oetwil+am+See),
-a church in Oetwil am See, Switzerland — plus a small self-service admin panel the church
+a church in Oetwil am See, Switzerland, plus a small self-service admin panel the church
 team uses to manage its own content (offers/"Angebote" and podcast episodes) without
 needing a developer for every update.
 
@@ -10,26 +10,26 @@ needing a developer for every update.
 The project is a monorepo (npm workspaces) split into two independently deployed halves,
 a traditional client/API split rather than a single server-rendered app:
 
-- **`apps/web`** — a fully static [Astro 7](https://astro.build/) site (`output: 'static'`,
+- **`apps/web`**: a fully static [Astro 7](https://astro.build/) site (`output: 'static'`,
   no adapter) covering both the public pages and the `/admin` CMS UI. It has no server
   runtime of its own; it's deployed as plain files to webkeeper.ch. Public content (offers,
   podcast episodes) and the admin panel both talk to `apps/api` over `fetch()`.
-- **`apps/api`** — a plain [Cloudflare Worker](https://workers.cloudflare.com/) (no Astro),
+- **`apps/api`**: a plain [Cloudflare Worker](https://workers.cloudflare.com/) (no Astro),
   using [Hono](https://hono.dev/) for routing. A pure JSON API: form relay to offers/
   podcast content backed by [Cloudflare R2](https://developers.cloudflare.com/r2/), media
-  streaming, and the admin CMS's backend (bearer-token auth, not cookies — see
+  streaming, and the admin CMS's backend (bearer-token auth, not cookies; see
   [`docs/architecture.md`](./docs/architecture.md)).
-- **`packages/types`** — shared TypeScript types (offers, podcast episodes, nav, admin,
+- **`packages/types`**: shared TypeScript types (offers, podcast episodes, nav, admin,
   forms) used by both `apps/web` and `apps/api`, plus the form registry. `apps/web` calls the
   API through a Hono RPC client typed from the API's routes (see
   [`docs/architecture.md`](./docs/architecture.md#typed-api-client-hono-rpc)), so the two halves
   can't drift apart.
-- **`packages/logger`** — a tiny leveled console logger (`createLogger()`) shared across
+- **`packages/logger`**: a tiny leveled console logger (`createLogger()`) shared across
   `apps/api`'s middleware, routes, and services (request logging, error logging, the mail
   notification service) for consistent, namespaced log output.
 
-Tailwind CSS v4 and React (`@astrojs/react`) are used in `apps/web` for interactive islands
-— form components, and the client-fetch-driven offers/podcast/admin views — rather than for
+Tailwind CSS v4 and React (`@astrojs/react`) are used in `apps/web` for interactive islands,
+form components, and the client-fetch-driven offers/podcast/admin views, rather than for
 the whole UI.
 
 ## Local development
@@ -47,8 +47,8 @@ npm run dev:web    # starts apps/web's Astro dev server
 `apps/api/.dev.vars` is gitignored and read automatically by Wrangler's dev server. It holds
 two secrets (see `apps/api/.dev.vars.example` for the authoritative list and inline notes):
 
-- `KFA_ADMIN_PASSWORD` — the password that gates the `/admin` content panel locally.
-- `KFA_MAIL_PASSWORD` — SMTP password for the `noreply@kirche-felsengrund.ch` mailbox that
+- `KFA_ADMIN_PASSWORD`: the password that gates the `/admin` content panel locally.
+- `KFA_MAIL_PASSWORD`: SMTP password for the `noreply@kirche-felsengrund.ch` mailbox that
   form notification emails are sent from (see
   [`docs/architecture.md`](./docs/architecture.md#forms--notification-emails)).
 
@@ -71,7 +71,7 @@ two secrets (see `apps/api/.dev.vars.example` for the authoritative list and inl
 
 Offers and podcast episodes are **not** stored as files in this repo. They live as Markdoc
 documents in `apps/api`'s `STORAGE` R2 bucket, fetched by `apps/web` client-side on every
-page load — so an edit goes live immediately, with no frontend redeploy.
+page load; so an edit goes live immediately, with no frontend redeploy.
 
 Content is edited through a password-gated `/admin` panel (a client-rendered React app in
 `apps/web`, calling `apps/api`'s `/admin/*` routes with a bearer token). There's no visible
@@ -86,7 +86,7 @@ see [`docs/architecture.md`](./docs/architecture.md).
 The public contact, counseling, feedback, and prayer-request forms all post to a single
 `POST /forms` endpoint (`apps/api/src/routes/forms.ts`); each form is registered in
 `packages/types/src/Forms.ts` and sends a branded HTML notification email to the relevant church mailbox via a small,
-dependency-free email templating system (`apps/api/src/lib/notification/email/`) — no external templating
+dependency-free email templating system (`apps/api/src/lib/notification/email/`); no external templating
 engine, just table-based HTML hardened for both Outlook and Gmail. In any non-`production`
 environment, every notification is redirected to a fixed test inbox instead of the real
 mailboxes, so local/staging testing never reaches the church's actual inboxes. See
@@ -102,7 +102,7 @@ auto-deploy setup), see [`docs/deployment.md`](./docs/deployment.md).
 ## Contributing
 
 Bug reports, feature suggestions, and translation help are welcome via GitHub
-issues — see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for how to get started,
+issues; see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for how to get started,
 including how to reach us directly if you'd like to help translate the site
 into another language. This repository does not accept unsolicited pull
 requests or third-party code changes. See also [`CHANGELOG.md`](./CHANGELOG.md)

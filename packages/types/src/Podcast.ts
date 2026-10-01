@@ -9,7 +9,7 @@ interface Frontmatter {
   episodeNumber?: number; // Prefilled with file count + 1
   publishDate: string;
   audioUrl: string;
-  duration?: string; // free text, e.g. "32:10" — never parsed/computed, just displayed
+  duration?: string; // free text, e.g. "32:10"; never parsed/computed, just displayed
   coverImage?: string;
   speakers?: PodcastSpeaker[];
 }

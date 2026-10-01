@@ -5,7 +5,7 @@ export const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL;
 
 if (!API_BASE_URL) {
   console.error(
-    '[api] PUBLIC_API_BASE_URL is not set — every API request will be sent to the wrong origin. ' +
+    '[api] PUBLIC_API_BASE_URL is not set; every API request will be sent to the wrong origin. ' +
       'Local dev: copy apps/web/.env.example to apps/web/.env. ' +
       'CI/prod build: set the PUBLIC_API_BASE_URL repo variable in GitHub Actions.',
   );
@@ -25,7 +25,7 @@ export function setAdminToken(token: string): void {
   try {
     localStorage.setItem(TOKEN_STORAGE_KEY, token);
   } catch {
-    // localStorage unavailable (private browsing, etc.) — admin session just won't persist.
+    // localStorage unavailable (private browsing, etc.); admin session just won't persist.
   }
 }
 
