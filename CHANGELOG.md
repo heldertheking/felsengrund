@@ -12,21 +12,32 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [1.1.0] - 2026-09-30
+## [1.1.0] - 2026-10-01
 
 ### Changed
 
+- All public forms now go through one `POST /forms` endpoint (`{ id, payload }`) instead of
+  one route per form. The API validates the payload and hands it to a notification layer
+  (`apps/api/src/lib/form-notifications.ts`) that translates it into the notification email.
+- Forms are registered in a single place, `packages/types/src/Forms.ts` (`FormInputs` +
+  `formValidators`); adding a form means one entry there and one in the notification layer.
+- Form validation failures and unknown form ids return a `createFormError` body; a failed
+  notification email returns a `502` form error.
+- Counseling form fields `contact-preference` / `counselor-preference` renamed to
+  `contactPreference` / `counselorPreference`. The counseling mail now shows readable labels
+  and includes the contact method.
+- `BaseForm`'s `formId` is typed as `FormId`.
 - Refactored `apps/api`: `packages/api-core` was folded into `apps/api/src/lib/`, split into
   `authentication`, `feed`, `media`, `storage` (`OffersRepository`/`PodcastRepository`) and
   `notification` (mail + email templates) modules, exported through a single `lib` barrel.
 - Media URL rewriting and Range parsing moved to `lib/media`; the podcast RSS feed builder moved to `lib/feed`.
-- Form, media, offers and podcast routes now return structured errors (`createApiError`/`createFormError`).
+- Media, offers, podcast and admin routes now return structured errors (`createApiError`).
 - `KFA_SESSION_TTL_MS` now controls the admin token lifetime.
 - All API errors now use one `{ status, message, meta? }` shape; the shared client in `packages/types` reads `message`.
-- Failed notification emails now return a `502` form error instead of an unhandled `500`.
 - Non-production notification recipient moved from source to the optional `KFA_DEV_NOTIFICATION_RECIPIENT` secret.
 - Podcast feed `Last-Modified` is now the newest episode's publish date.
 - Admin password check is now constant-time; noisy upload debug logging removed.
+- Version bumps: `apps/api` 1.1.0, `apps/web` 1.1.0, `packages/types` 1.1.0.
 
 ### Fixed
 
@@ -36,6 +47,8 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
+- `FormsClient` and `ApiClient.forms` from `@felsengrund/types`, and the `POST /contact`,
+  `/counseling`, `/feedback` and `/prayer-request` routes.
 - `packages/api-core` workspace package.
 - Unused `KFA_NOTIFICATION_WEBHOOK` variable (notifications go out through the email worker now).
 

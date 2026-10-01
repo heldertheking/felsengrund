@@ -31,7 +31,7 @@ function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4">
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Admin' }]} />
       <form onSubmit={handleSubmit} className="w-full rounded-2xl border border-kf-edge bg-kf-surface p-8 shadow-md">
-        <h1 className="font-display text-lg font-bold text-kf-ink">Kirche Felsengrund – Admin</h1>
+        <h1 className="font-display text-lg font-bold text-kf-ink">Kirche Felsengrund - Admin</h1>
         <div className="mt-6">
           <label htmlFor="admin-password" className="text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">
             Passwort
@@ -91,7 +91,7 @@ export default function AdminApp() {
       />
       <div className="rounded-2xl border border-kf-edge bg-kf-surface p-8 shadow-md">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <span className="font-display text-lg font-bold text-kf-ink">Kirche Felsengrund – Admin</span>
+          <span className="font-display text-lg font-bold text-kf-ink">Kirche Felsengrund - Admin</span>
           <nav className="flex items-center gap-4 text-sm">
             <button
               type="button"

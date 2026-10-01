@@ -1,0 +1,330 @@
+---
+import type { FormId } from '@felsengrund/types';
+
+/**
+ * Shell for every form. Responsibilities:
+ *  - validation (native constraints, German messages) with inline errors, aria-invalid and
+ *    aria-describedby, focus on the first invalid field
+ *  - submit state (button disabled + aria-busy, double-submit guard)
+ *  - polite/assertive status messages for success and failure
+ *  - honeypot spam trap
+ *  - collecting the values and sending them via `sendForm` (src/lib/forms.ts), which is where
+ *    the API client gets connected
+ *
+ * Usage:
+ *   <BaseForm formId="contact" submitLabel="Senden" successMessage="Danke!">
+ *     <FormRow>
+ *       <FormField label="Name" name="name" required autocomplete="name" />
+ *       <FormField label="E-Mail" name="email" type="email" required autocomplete="email" />
+ *     </FormRow>
+ *     <FormField as="textarea" label="Nachricht" name="message" required />
+ *   </BaseForm>
+ */
+interface Props {
+  /** Form id registered in `@felsengrund/types` (Forms.ts). */
+  formId: FormId;
+  submitLabel?: string;
+  submittingLabel?: string;
+  successMessage?: string;
+  errorMessage?: string;
+  /** Accessible name of the form landmark. Defaults to no landmark (use for standalone forms). */
+  label?: string;
+  class?: string;
+}
+
+const {
+  formId,
+  submitLabel = 'Absenden',
+  submittingLabel = 'Wird gesendet…',
+  successMessage = 'Danke - wir haben deine Nachricht erhalten.',
+  errorMessage = 'Das hat leider nicht geklappt. Bitte versuche es später erneut.',
+  label,
+  class: className = '',
+} = Astro.props;
+---
+
+<form
+  novalidate
+  data-base-form
+  data-form-id={formId}
+  data-submit-label={submitLabel}
+  data-submitting-label={submittingLabel}
+  data-success-message={successMessage}
+  data-error-message={errorMessage}
+  aria-label={label}
+  class:list={['flex flex-col gap-6', className]}
+>
+  <slot />
+
+  <!-- Honeypot: invisible to people and assistive tech, bots fill it in. -->
+  <div class="absolute left-[-9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
+    <label>
+      Website
+      <input type="text" name="website" tabindex="-1" autocomplete="off" data-honeypot />
+    </label>
+  </div>
+
+  <p class="text-xs text-kf-ink-muted" data-required-note hidden>
+    <span class="text-kf-accent" aria-hidden="true">*</span> Pflichtfeld
+  </p>
+
+  <div class="flex flex-col">
+    <div>
+      <button
+        type="submit"
+        data-submit
+        class="min-h-11 w-full rounded-lg sm:w-auto bg-kf-accent px-5 py-3 font-display text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kf-accent disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {submitLabel}
+      </button>
+    </div>
+    <!-- Always in the DOM so screen readers register it before the message arrives. -->
+    <p
+      data-status
+      role="status"
+      aria-live="polite"
+      tabindex="-1"
+      class="mt-3 rounded text-sm empty:mt-0 focus:outline-none data-[state=success]:text-emerald-700 data-[state=error]:text-red-700"
+    >
+    </p>
+  </div>
+</form>
+
+<script>
+  import type { FormId } from '@felsengrund/types';
+  import { sendForm, type FormPayload } from '../../lib/forms';
+
+  const MESSAGES = {
+    valueMissing: 'Bitte fülle dieses Feld aus.',
+    valueMissingChoice: 'Bitte wähle eine Option aus.',
+    valueMissingCheckbox: 'Bitte bestätige dieses Feld.',
+    typeMismatchEmail: 'Bitte gib eine gültige E-Mail-Adresse ein.',
+    typeMismatchUrl: 'Bitte gib eine gültige Web-Adresse ein.',
+    tooShort: (min: number) => `Bitte gib mindestens ${min} Zeichen ein.`,
+    tooLong: (max: number) => `Bitte gib höchstens ${max} Zeichen ein.`,
+    patternMismatch: 'Bitte überprüfe das Format deiner Eingabe.',
+    rangeUnderflow: 'Der Wert ist zu klein.',
+    rangeOverflow: 'Der Wert ist zu groß.',
+  };
+
+  type Control = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+
+  function isControl(el: Element): el is Control {
+    return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement;
+  }
+
+  function messageFor(control: Control): string {
+    const v = control.validity;
+    if (v.valueMissing) {
+      if (control instanceof HTMLInputElement && control.type === 'radio') return MESSAGES.valueMissingChoice;
+      if (control instanceof HTMLInputElement && control.type === 'checkbox') return MESSAGES.valueMissingCheckbox;
+      if (control instanceof HTMLSelectElement) return MESSAGES.valueMissingChoice;
+      return MESSAGES.valueMissing;
+    }
+    if (v.typeMismatch) {
+      return control instanceof HTMLInputElement && control.type === 'url'
+        ? MESSAGES.typeMismatchUrl
+        : MESSAGES.typeMismatchEmail;
+    }
+    if (!(control instanceof HTMLSelectElement)) {
+      if (v.tooShort) return MESSAGES.tooShort(control.minLength);
+      if (v.tooLong) return MESSAGES.tooLong(control.maxLength);
+    }
+    if (v.patternMismatch) return control.title || MESSAGES.patternMismatch;
+    if (v.rangeUnderflow) return MESSAGES.rangeUnderflow;
+    if (v.rangeOverflow) return MESSAGES.rangeOverflow;
+    return control.validationMessage;
+  }
+
+  /** The element that carries aria-invalid / aria-describedby: the fieldset for groups. */
+  function targetOf(wrapper: HTMLElement, control: Control): HTMLElement {
+    return wrapper.hasAttribute('data-group') ? wrapper : control;
+  }
+
+  function setError(control: Control, message: string): void {
+    const wrapper = control.closest<HTMLElement>('[data-field]');
+    const errorEl = wrapper?.querySelector<HTMLElement>('[data-field-error]');
+    if (!wrapper || !errorEl) return;
+    const target = targetOf(wrapper, control);
+    errorEl.textContent = message;
+    errorEl.hidden = false;
+    target.setAttribute('aria-invalid', 'true');
+    target.setAttribute('aria-describedby', [target.dataset.baseDescribedby, errorEl.id].filter(Boolean).join(' '));
+  }
+
+  function clearError(control: Control): void {
+    const wrapper = control.closest<HTMLElement>('[data-field]');
+    const errorEl = wrapper?.querySelector<HTMLElement>('[data-field-error]');
+    if (!wrapper || !errorEl) return;
+    const target = targetOf(wrapper, control);
+    errorEl.textContent = '';
+    errorEl.hidden = true;
+    target.removeAttribute('aria-invalid');
+    const base = target.dataset.baseDescribedby;
+    if (base) target.setAttribute('aria-describedby', base);
+    else target.removeAttribute('aria-describedby');
+  }
+
+  function setStatus(form: HTMLFormElement, state: 'success' | 'error' | '', text: string): void {
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+    status.dataset.state = state;
+    // Errors interrupt (assertive), success/neutral text stays polite.
+    status.setAttribute('role', state === 'error' ? 'alert' : 'status');
+    status.setAttribute('aria-live', state === 'error' ? 'assertive' : 'polite');
+    status.textContent = text;
+  }
+
+  function setBusy(form: HTMLFormElement, busy: boolean): void {
+    const button = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+    // aria-disabled (not disabled) keeps focus on the button while sending.
+    button.setAttribute('aria-disabled', String(busy));
+    button.classList.toggle('opacity-60', busy);
+    button.classList.toggle('cursor-not-allowed', busy);
+    button.textContent = busy ? form.dataset.submittingLabel! : form.dataset.submitLabel!;
+    form.setAttribute('aria-busy', String(busy));
+  }
+
+  function collect(form: HTMLFormElement): FormPayload {
+    const payload: FormPayload = {};
+    for (const [key, value] of new FormData(form).entries()) {
+      if (typeof value !== 'string' || key === 'website') continue;
+      const text = value.trim();
+      if (!text) continue;
+      const existing = payload[key];
+      if (existing === undefined) payload[key] = text;
+      else payload[key] = Array.isArray(existing) ? [...existing, text] : [existing, text];
+    }
+    return payload;
+  }
+
+  function validate(form: HTMLFormElement): boolean {
+    let firstInvalid: Control | null = null;
+    const seenGroups = new Set<string>();
+    for (const el of Array.from(form.elements)) {
+      if (!isControl(el) || el.hasAttribute('data-honeypot')) continue;
+      // Radios share one error: only report once per group.
+      if (el instanceof HTMLInputElement && el.type === 'radio') {
+        if (seenGroups.has(el.name)) continue;
+        seenGroups.add(el.name);
+      }
+      if (el.checkValidity()) {
+        clearError(el);
+      } else {
+        setError(el, messageFor(el));
+        firstInvalid ??= el;
+      }
+    }
+    if (firstInvalid) {
+      const wrapper = firstInvalid.closest<HTMLElement>('[data-field]');
+      const focusTarget = wrapper?.hasAttribute('data-group')
+        ? (wrapper.querySelector<HTMLElement>('input') ?? firstInvalid)
+        : firstInvalid;
+      focusTarget.focus();
+      setStatus(form, 'error', 'Bitte überprüfe die markierten Felder.');
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Conditional sections (<FormConditional>): show/hide by the controlling field's value.
+   * Hidden sections get `hidden` and their controls are disabled (=> not validated, not sent).
+   * We only re-enable controls we disabled ourselves, and evaluate in document order so
+   * nested sections see their parent's final state.
+   */
+  function applyConditionals(form: HTMLFormElement): void {
+    for (const section of form.querySelectorAll<HTMLElement>('[data-show-when]')) {
+      const tokens = section.dataset.showIs!.split(',').map((v) => v.trim());
+      const wanted = tokens.filter((v) => !v.startsWith('!'));
+      const unwanted = tokens.filter((v) => v.startsWith('!')).map((v) => v.slice(1));
+      const values = new FormData(form).getAll(section.dataset.showWhen!).filter((v) => typeof v === 'string');
+      const parentHidden = section.parentElement?.closest<HTMLElement>('[data-show-when]')?.hidden ?? false;
+      // Positive tokens: show if any value matches. Negated tokens ("!on"): show if no value matches
+      // any of them, which includes the field having no value at all (e.g. an unchecked checkbox).
+      const matches = values.some((v) => wanted.includes(v as string));
+      const avoided = unwanted.length > 0 && !values.some((v) => unwanted.includes(v as string));
+      const show = !parentHidden && (matches || avoided);
+
+      section.hidden = !show;
+      for (const el of section.querySelectorAll('input, textarea, select')) {
+        if (!isControl(el)) continue;
+        if (!show) {
+          if (!el.disabled) {
+            el.disabled = true;
+            el.dataset.condDisabled = '';
+          }
+          clearError(el);
+        } else if (el.dataset.condDisabled !== undefined && el.closest('[data-show-when]') === section) {
+          el.disabled = false;
+          delete el.dataset.condDisabled;
+        }
+      }
+    }
+  }
+
+  const submitting = new WeakSet<HTMLFormElement>();
+
+  document.addEventListener('submit', async (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-base-form')) return;
+    event.preventDefault();
+    if (submitting.has(form)) return;
+
+    setStatus(form, '', '');
+    if (!validate(form)) return;
+
+    // Honeypot filled -> a bot. Pretend success, send nothing.
+    const trap = form.querySelector<HTMLInputElement>('[data-honeypot]');
+    if (trap?.value) {
+      form.reset();
+      setStatus(form, 'success', form.dataset.successMessage!);
+      return;
+    }
+
+    submitting.add(form);
+    setBusy(form, true);
+    try {
+      await sendForm(form.dataset.formId as FormId, collect(form));
+      form.reset();
+      setStatus(form, 'success', form.dataset.successMessage!);
+      form.querySelector<HTMLElement>('[data-status]')!.focus();
+    } catch (error) {
+      console.error(`[forms] "${form.dataset.formId}" failed to send`, error);
+      // Keep everything the user typed so they can retry.
+      setStatus(form, 'error', form.dataset.errorMessage!);
+    } finally {
+      submitting.delete(form);
+      setBusy(form, false);
+    }
+  });
+
+  // Live re-validation: once a field is flagged, update it as the user fixes it.
+  function revalidate(event: Event): void {
+    const el = event.target;
+    if (!(el instanceof Element) || !isControl(el) || !el.closest('[data-base-form]')) return;
+    const wrapper = el.closest<HTMLElement>('[data-field]');
+    const flagged = wrapper && targetOf(wrapper, el).getAttribute('aria-invalid') === 'true';
+    if (!flagged) return;
+    if (el.checkValidity()) clearError(el);
+    else setError(el, messageFor(el));
+  }
+  document.addEventListener('input', revalidate);
+  document.addEventListener('change', (event) => {
+    const form = event.target instanceof Element ? event.target.closest<HTMLFormElement>('[data-base-form]') : null;
+    if (form) applyConditionals(form);
+    revalidate(event);
+  });
+  // `reset` fires before the values are restored, so wait a tick.
+  document.addEventListener('reset', (event) => {
+    const form = event.target;
+    if (form instanceof HTMLFormElement && form.hasAttribute('data-base-form')) {
+      setTimeout(() => applyConditionals(form), 0);
+    }
+  });
+
+  document.querySelectorAll<HTMLFormElement>('[data-base-form]').forEach((form) => {
+    applyConditionals(form);
+    // Show the "* Pflichtfeld" legend only on forms that actually have required fields.
+    if (form.querySelector('[required]')) form.querySelector<HTMLElement>('[data-required-note]')!.hidden = false;
+  });
+</script>

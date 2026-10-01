@@ -63,6 +63,14 @@ export default tseslint.config(
     },
   },
 
+  // Astro injects `astroHTML` (JSX attribute types) into every .astro file.
+  {
+    files: ['**/*.astro'],
+    languageOptions: {
+      globals: { astroHTML: 'readonly' },
+    },
+  },
+
   // Overrides for Astro environment type declarations
   {
     files: ['**/src/env.d.ts'],

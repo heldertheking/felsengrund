@@ -1,5 +1,4 @@
 ---
-// Angebote groups are live /admin content, fetched client-side (see the <script> below).
 const primaryLinks = [
   { label: 'Über uns', href: '/uber-uns' },
   { label: 'Agenda', href: '/agenda' },
@@ -12,8 +11,6 @@ const secondaryLinks = [
 ---
 
 <header class="relative sticky top-0 z-50 border-b border-kf-edge bg-kf-surface/90 backdrop-blur">
-  <!-- Discreet admin entry: click 5x within ~2s to reveal a link to /admin. Untabbable and
-       hidden from assistive tech since it's deliberately not meant to be discoverable. -->
   <button
     type="button"
     class="hidden lg:block absolute right-0 top-0 h-20 w-12"

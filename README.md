@@ -80,8 +80,9 @@ see [`docs/architecture.md`](./docs/architecture.md).
 
 ## Forms & notification emails
 
-The public contact, counseling, feedback, and prayer-request forms (`apps/api/src/routes/forms.ts`)
-each send a branded HTML notification email to the relevant church mailbox via a small,
+The public contact, counseling, feedback, and prayer-request forms all post to a single
+`POST /forms` endpoint (`apps/api/src/routes/forms.ts`); each form is registered in
+`packages/types/src/Forms.ts` and sends a branded HTML notification email to the relevant church mailbox via a small,
 dependency-free email templating system (`apps/api/src/lib/notification/email/`) — no external templating
 engine, just table-based HTML hardened for both Outlook and Gmail. In any non-`production`
 environment, every notification is redirected to a fixed test inbox instead of the real

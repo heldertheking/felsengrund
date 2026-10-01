@@ -82,7 +82,7 @@ export default function PodcastPlayer({ src, title }: Props) {
           onMouseUp={commitSeek}
           onTouchEnd={commitSeek}
           onKeyUp={commitSeek}
-          aria-label={`Wiedergabeposition – ${title}`}
+          aria-label={`Wiedergabeposition - ${title}`}
           className="w-full accent-kf-accent"
         />
         <div className="mt-1 flex justify-between text-xs tabular-nums text-kf-ink-muted">
