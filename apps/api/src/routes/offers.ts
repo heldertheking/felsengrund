@@ -5,7 +5,6 @@ import { MediaUtils, OffersRepository, StorageUtils } from '../lib';
 import { createLogger } from '@felsengrund/logger';
 
 // === Setup ===
-export const offersRoute = new Hono<{ Bindings: Env }>();
 const logger = createLogger('Offers Route');
 
 // === Declarations ===
@@ -22,55 +21,59 @@ const categoryLabels: Record<(typeof categoryOrder)[number], string> = Object.fr
 
 // === Routes ===
 
-offersRoute.get('/nav', async (c) => {
-  const offers = await OffersRepository.list(c.env.STORAGE);
-  if (offers.length == 0) {
-    logger.warn('No offers found in Storage bucket.');
-  }
+// Handlers are chained (not separate `offersRoute.get(...)` statements) so the route types
+// accumulate on the instance - that is what `apps/web`'s Hono client is typed from.
+export const offersRoute = new Hono<{ Bindings: Env }>()
+  .get('/nav', async (c) => {
+    const offers = await OffersRepository.list(c.env.STORAGE);
+    if (offers.length == 0) {
+      logger.warn('No offers found in Storage bucket.');
+    }
 
-  const groups = categoryOrder
-    .map((category) => {
-      const links = offers
-        .filter((offer) => offer.data.category === category)
-        .map((offer) => ({
-          label: offer.data.title,
-          href: `/angebote/${offer.slug}`,
-        }));
+    const groups = categoryOrder
+      .map((category) => {
+        const links = offers
+          .filter((offer) => offer.data.category === category)
+          .map((offer) => ({
+            label: offer.data.title,
+            href: `/angebote/${offer.slug}`,
+          }));
 
-      if (category === 'hilfe-service') {
-        links.push({ label: 'Ich brauche Hilfe', href: '/ich-brauche-hilfe' });
-      }
+        if (category === 'hilfe-service') {
+          links.push({ label: 'Ich brauche Hilfe', href: '/ich-brauche-hilfe' });
+        }
 
-      return { label: categoryLabels[category], links };
-    })
-    .filter((group) => group.links.length > 0);
+        return { label: categoryLabels[category], links };
+      })
+      .filter((group) => group.links.length > 0);
 
-  return c.json(groups);
-});
+    return c.json(groups);
+  })
 
-offersRoute.get('/offers', async (c) => {
-  const offers = await OffersRepository.list(c.env.STORAGE);
-  if (offers.length == 0) {
-    logger.warn('No offers found in Storage bucket.');
-  }
+  .get('/offers', async (c) => {
+    const offers = await OffersRepository.list(c.env.STORAGE);
+    if (offers.length == 0) {
+      logger.warn('No offers found in Storage bucket.');
+    }
 
-  const rewritten = offers.map((offer) => ({
-    ...offer,
-    data: MediaUtils.rewriteMediaUrls(c.env, offer.data),
-  }));
-  return c.json(rewritten);
-});
+    const rewritten = offers.map((offer) => ({
+      ...offer,
+      data: MediaUtils.rewriteMediaUrls(c.env, offer.data),
+    }));
+    return c.json(rewritten);
+  })
 
-offersRoute.get('/offers/:slug', async (c) => {
-  const offer = await OffersRepository.get(c.env.STORAGE, c.req.param('slug'));
-  if (!offer) {
-    logger.warn('Offer not found in Storage bucket.', { slug: c.req.param('slug') });
-    return c.json(createApiError('Offer not found', { slug: c.req.param('slug') }), 404);
-  }
+  .get('/offers/:slug', async (c) => {
+    const slug = c.req.param('slug');
+    const offer = await OffersRepository.get(c.env.STORAGE, slug);
+    if (!offer) {
+      logger.warn('Offer not found in Storage bucket.', { slug });
+      return c.json(createApiError('Offer not found', { slug }), 404);
+    }
 
-  return c.json({
-    ...offer,
-    data: MediaUtils.rewriteMediaUrls(c.env, offer.data),
-    bodyHtml: StorageUtils.renderMarkdoc(offer.body),
+    return c.json({
+      ...offer,
+      data: MediaUtils.rewriteMediaUrls(c.env, offer.data),
+      bodyHtml: StorageUtils.renderMarkdoc(offer.body),
+    });
   });
-});

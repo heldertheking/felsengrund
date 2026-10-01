@@ -25,14 +25,12 @@ const { name, required = false, value = 'on', checked = false, id = `field-${nam
     />
     <span>
       <slot />
-      {
-        required && (
-          <span class="text-kf-accent" aria-hidden="true">
-            {' '}
-            *
-          </span>
-        )
-      }
+      {required && (
+        <span class="text-kf-accent" aria-hidden="true">
+          {' '}
+          *
+        </span>
+      )}
     </span>
   </label>
   <p id={`${id}-error`} data-field-error hidden class="text-sm text-red-700"></p>

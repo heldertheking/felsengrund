@@ -33,11 +33,22 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 - Media URL rewriting and Range parsing moved to `lib/media`; the podcast RSS feed builder moved to `lib/feed`.
 - Media, offers, podcast and admin routes now return structured errors (`createApiError`).
 - `KFA_SESSION_TTL_MS` now controls the admin token lifetime.
-- All API errors now use one `{ status, message, meta? }` shape; the shared client in `packages/types` reads `message`.
+- All API errors now use one `{ status, message, meta? }` shape; the web client reads `message`.
 - Non-production notification recipient moved from source to the optional `KFA_DEV_NOTIFICATION_RECIPIENT` secret.
 - Podcast feed `Last-Modified` is now the newest episode's publish date.
 - Admin password check is now constant-time; noisy upload debug logging removed.
 - Version bumps: `apps/api` 1.1.0, `apps/web` 1.1.0, `packages/types` 1.1.0.
+
+- `apps/web` now calls the API through Hono's RPC client (`hc`), typed from the API's routes,
+  instead of hand-written clients. Route modules in `apps/api` chain their handlers and validate
+  input with zod (`@hono/zod-validator`); the admin endpoints keep their German error messages.
+  The Worker emits declaration files (`apps/api/tsconfig.build.json`) that the web app imports
+  types from, so the site never type-checks the Worker's source. The web `typecheck`/`build`
+  scripts emit them first, and `npm run dev` re-emits them on change.
+- The deployment pipeline's frontend path filter now includes `apps/api/**`, since API changes
+  affect the web client's types.
+- The admin form builders (`offerForm`, `podcastForm`) moved to `apps/web/src/lib/admin-forms.ts`
+  and are type-checked against the API's schemas.
 
 ### Fixed
 
@@ -47,8 +58,10 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
-- `FormsClient` and `ApiClient.forms` from `@felsengrund/types`, and the `POST /contact`,
-  `/counseling`, `/feedback` and `/prayer-request` routes.
+- The hand-written clients (`BaseClient`, `OffersClient`, `PodcastClient`, `NavClient`,
+  `AdminClient`, `FormsClient`) and `createApiClient`/`ApiClient` from `@felsengrund/types`, plus the unused
+  `SaveResult`, `LoginResult` and `ErrorResponse` types.
+- The `POST /contact`, `/counseling`, `/feedback` and `/prayer-request` routes.
 - `packages/api-core` workspace package.
 - Unused `KFA_NOTIFICATION_WEBHOOK` variable (notifications go out through the email worker now).
 

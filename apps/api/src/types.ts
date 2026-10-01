@@ -11,7 +11,7 @@ export interface Env {
   STORAGE: R2Bucket;
 }
 
-/** Shape of every error body the API returns; the shared client in `@felsengrund/types` reads `message`. */
+/** Shape of every error body the API returns; `unwrap` in `apps/web/src/lib/api.ts` reads `message`. */
 export interface ApiError {
   status: 'error' | 'fail';
   message: string;

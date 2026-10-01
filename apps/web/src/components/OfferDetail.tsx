@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { apiClient } from '../lib/api';
+import { api, unwrapOrNull } from '../lib/api';
 import { CATEGORY_DETAILS, type OfferDetailResponse } from '@felsengrund/types';
 import Breadcrumbs from './Breadcrumbs';
 
@@ -26,8 +26,7 @@ export default function OfferDetail() {
 
     let cancelled = false;
 
-    apiClient.offers
-      .get(slug)
+    unwrapOrNull(api.offers[':slug'].$get({ param: { slug } }))
       .then((offer) => {
         if (cancelled) return;
         if (!offer) setState({ status: 'not-found' });

@@ -147,10 +147,3 @@ export function validateForm(id: FormId, payload: FormPayload): string | null {
 export interface OkResponse {
   ok: true;
 }
-
-/** Error body returned by every `apps/api` route. */
-export interface ErrorResponse {
-  status: 'error' | 'fail';
-  message: string;
-  meta?: Record<string, unknown>;
-}

@@ -154,7 +154,7 @@ const secondaryLinks = [
 </style>
 
 <script>
-  import { apiClient } from '../lib/api';
+  import { api, unwrap } from '../lib/api';
   import type { NavGroup } from '@felsengrund/types';
 
   const trigger = document.querySelector<HTMLButtonElement>('[data-mobile-trigger]');
@@ -196,8 +196,7 @@ const secondaryLinks = [
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
 
-  apiClient.nav
-    .list()
+  unwrap(api.nav.$get())
     .then((groups: NavGroup[]) => {
       if (desktopOfferGroups) {
         desktopOfferGroups.innerHTML = groups

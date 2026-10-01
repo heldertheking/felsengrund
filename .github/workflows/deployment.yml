@@ -52,6 +52,8 @@ jobs:
           filters: |
             frontend:
                - 'apps/web/**'
+               # The web client is typed from the API's routes, so API changes can break (or change) the site.
+               - 'apps/api/**'
                - 'packages/**'
                - 'package.json'
                - 'package-lock.json'

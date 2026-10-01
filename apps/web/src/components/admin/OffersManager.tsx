@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { apiClient } from '../../lib/api';
-import {
-  CATEGORY_DETAILS,
-  UnauthorizedError,
-  type Offer,
-  type OfferFrontmatter,
-  type OfferOrganizer,
-} from '@felsengrund/types';
+import { api, unwrap, UnauthorizedError } from '../../lib/api';
+import { offerForm } from '../../lib/admin-forms';
+import { CATEGORY_DETAILS, type Offer, type OfferFrontmatter, type OfferOrganizer } from '@felsengrund/types';
 import { downloadMdocExport } from '../../lib/export';
 import { filterMdocFiles } from '../../lib/mdoc';
 
@@ -38,8 +33,7 @@ export default function OffersManager({ onUnauthorized }: Props) {
   const importInputRef = useRef<HTMLInputElement>(null);
 
   function reload() {
-    apiClient.offers
-      .list()
+    unwrap(api.offers.$get())
       .then((data) => {
         setOffers(data);
         setSelected((prev) => new Set([...prev].filter((slug) => data.some((o) => o.slug === slug))));
@@ -71,7 +65,7 @@ export default function OffersManager({ onUnauthorized }: Props) {
     setBulkBusy(true);
     try {
       for (const slug of selected) {
-        await apiClient.offers.delete(slug);
+        await unwrap(api.admin.offers[':slug'].$delete({ param: { slug } }));
       }
       setSelected(new Set());
       reload();
@@ -112,7 +106,7 @@ export default function OffersManager({ onUnauthorized }: Props) {
 
     for (const file of files) {
       try {
-        await apiClient.offers.importMdoc(file);
+        await unwrap(api.admin.offers.import.$post({ form: { file } }));
       } catch (err) {
         if (err instanceof UnauthorizedError) return onUnauthorized();
         failures.push(`${file.name}: ${err instanceof Error ? err.message : 'Import fehlgeschlagen.'}`);
@@ -256,7 +250,7 @@ function DeleteButton({
     if (!confirm('Dieses Angebot wirklich löschen?')) return;
     setBusy(true);
     try {
-      await apiClient.offers.delete(slug);
+      await unwrap(api.admin.offers[':slug'].$delete({ param: { slug } }));
       onDeleted();
     } catch (err) {
       if (err instanceof UnauthorizedError) return onUnauthorized();
@@ -329,9 +323,9 @@ function OfferForm({
       };
 
       if (isEdit) {
-        await apiClient.offers.update(offer.slug, input);
+        await unwrap(api.admin.offers.$post({ form: offerForm(input, offer.slug) }));
       } else {
-        await apiClient.offers.create(input);
+        await unwrap(api.admin.offers.$post({ form: offerForm(input) }));
       }
       onDone();
     } catch (err) {
