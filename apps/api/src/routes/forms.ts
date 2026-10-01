@@ -1,127 +1,58 @@
 import { Hono } from 'hono';
-import type {
-  ContactInput,
-  CounselingInput,
-  ErrorResponse,
-  FeedbackInput,
-  OkResponse,
-  PrayerRequestInput,
-} from '@felsengrund/types';
-import type { Env } from '../types';
-import { FORMS, NotificationService } from '../lib/mail';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+import type { FormInputs, OkResponse } from '@felsengrund/types';
+import { FORM_IDS, FORM_INVALID_MESSAGE, formSchemas } from '@felsengrund/types/forms';
+import { createLogger } from '@felsengrund/logger';
+import { createFormError, type Env } from '../types';
+import { NotificationService } from '../lib';
+import { buildFormNotification } from '../lib/form-notifications';
 
-export const formsRoute = new Hono<{ Bindings: Env }>();
-
-// Built once, shared by every route below - the mailer config doesn't depend on a request.
+// === Setup ===
+const logger = createLogger('Forms Route');
 const notificationService = new NotificationService();
 
-formsRoute.post('/contact', async (c) => {
-  const body = (await c.req.json()) as Partial<ContactInput>;
-
-  if (!body.name || !body.email || !body.subject || !body.message) {
-    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
-  }
-
-  await notificationService.send(
-    `Kontaktformular: ${body.subject}`,
-    {
-      heading: 'Neue Kontaktanfrage',
-      intro: 'Über das Kontaktformular auf der Website wurde eine neue Anfrage gestellt.',
-      fields: [
-        { label: 'Name', value: body.name },
-        { label: 'E-Mail', value: body.email },
-        { label: 'Betreff', value: body.subject },
-      ],
-      message: { label: 'Nachricht', value: body.message },
-    },
-    FORMS.CONTACT,
-    c.env,
-    { replyTo: { name: body.name, email: body.email } },
-  );
-
-  return c.json<OkResponse>({ ok: true });
+/** Envelope only. The per-form field checks live in `formSchemas` (`@felsengrund/types/forms`). */
+const submissionSchema = z.object({
+  id: z.enum(FORM_IDS),
+  payload: z.record(z.string(), z.union([z.string(), z.array(z.string())])),
 });
 
-formsRoute.post('/counseling', async (c) => {
-  const body = (await c.req.json()) as Partial<CounselingInput>;
+// === Routes ===
 
-  if (!body.name || !body.email || !body.subject || !body.message) {
-    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
-  }
+/**
+ * The one endpoint for every public form: `{ id, payload }`.
+ * Forms are registered in `@felsengrund/types` (Forms.ts) and `lib/form-notifications.ts`.
+ */
+export const formsRoute = new Hono<{ Bindings: Env }>().post(
+  '/forms',
+  zValidator('json', submissionSchema, (result, c) => {
+    if (!result.success) {
+      logger.warn('Malformed form submission', { issues: result.error.issues });
+      return c.json(createFormError('validation', 'Unknown form or malformed payload'), 400);
+    }
+  }),
+  async (c) => {
+    const { id, payload } = c.req.valid('json');
 
-  await notificationService.send(
-    `Lebensberatung: ${body.subject}`,
-    {
-      heading: 'Neue Anfrage für Lebensberatung',
-      intro: 'Über das Formular auf der Website wurde eine neue Anfrage für eine Lebensberatung gestellt.',
-      fields: [
-        { label: 'Name', value: body.name },
-        { label: 'E-Mail', value: body.email },
-        { label: 'Telefon', value: body.phone },
-        { label: 'Bevorzugte Kontaktart', value: body.preferredContactMethod },
-        { label: 'Bevorzugtes Geschlecht', value: body.preferredCounselorGender },
-        { label: 'Betreff', value: body.subject },
-      ],
-      message: { label: 'Nachricht', value: body.message },
-    },
-    FORMS.CONSOLING,
-    c.env,
-    { replyTo: { name: body.name, email: body.email } },
-  );
+    const parsed = formSchemas[id].safeParse(payload);
+    if (!parsed.success) {
+      logger.warn('Form validation failed', { id, issues: parsed.error.issues });
+      return c.json(
+        createFormError('validation', FORM_INVALID_MESSAGE, undefined, { submittedAt: new Date().toISOString() }),
+        400,
+      );
+    }
 
-  return c.json<OkResponse>({ ok: true });
-});
+    // `formSchemas[id]` is a union over all forms, so TS can't correlate `id` with the parsed shape.
+    const { subject, content, mailbox, options } = buildFormNotification(id, parsed.data as FormInputs[typeof id]);
+    try {
+      await notificationService.send(subject, content, mailbox, c.env, options);
+    } catch (sendError) {
+      logger.error('failed to send notification email', { id, error: sendError });
+      return c.json(createFormError('sending', 'Failed to send notification'), 502);
+    }
 
-formsRoute.post('/feedback', async (c) => {
-  const body = (await c.req.json()) as Partial<FeedbackInput>;
-
-  if (!body.message) {
-    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
-  }
-
-  await notificationService.send(
-    'Feedback zur Website',
-    {
-      heading: 'Neues Feedback',
-      intro: 'Über das Feedback-Formular auf der Website wurde eine neue Rückmeldung eingereicht.',
-      fields: [
-        { label: 'Name', value: body.name },
-        { label: 'E-Mail', value: body.email },
-      ],
-      message: { label: 'Feedback', value: body.message },
-    },
-    // Feedback has no dedicated mailbox - falls back to the general kontakt@ inbox.
-    FORMS.UNSPECIFIED,
-    c.env,
-    body.email ? { replyTo: { name: body.name, email: body.email } } : undefined,
-  );
-
-  return c.json<OkResponse>({ ok: true });
-});
-
-formsRoute.post('/prayer-request', async (c) => {
-  const body = (await c.req.json()) as Partial<PrayerRequestInput>;
-
-  if (!body.topic || !body.description) {
-    return c.json({ error: 'Fehlende Angaben.' } as ErrorResponse, 400);
-  }
-
-  await notificationService.send(
-    `Gebetsanliegen: ${body.topic}`,
-    {
-      heading: 'Neues Gebetsanliegen',
-      intro: 'Über das Formular auf der Website wurde ein neues Gebetsanliegen eingereicht.',
-      fields: [
-        { label: 'Von', value: body.displayName || 'Anonym' },
-        { label: 'E-Mail', value: body.email },
-        { label: 'Thema', value: body.topic },
-      ],
-      message: { label: 'Anliegen', value: body.description },
-    },
-    FORMS.PRAYER_REQUEST,
-    c.env,
-    body.email ? { replyTo: { name: body.displayName, email: body.email } } : undefined,
-  );
-
-  return c.json<OkResponse>({ ok: true });
-});
+    return c.json<OkResponse>({ ok: true });
+  },
+);

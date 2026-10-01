@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { createLogger } from '@felsengrund/logger';
-import type { Env } from './types';
+import { createApiError, type Env } from './types';
 import { corsMiddleware } from './middleware/cors.middleware';
 import { requestLogger } from './middleware/request-logger.middleware';
 import { checkRequiredBindings } from './middleware/env-check';
@@ -19,25 +19,32 @@ app.use('*', requestLogger);
 app.use('*', checkRequiredBindings);
 app.use('*', corsMiddleware);
 
-app.get('/', (c) =>
-  c.json({
-    name: 'Kirche Felsengrund API',
-    version: pkg.version,
-    repository: pkg.repository,
-    environment: c.env.ENVIRONMENT,
-  })
-);
+// Chained so the route types accumulate: `AppType` below is what `apps/web`'s Hono client is
+// typed from (see `client.ts` and docs/architecture.md). Add new route modules to this chain.
+const routes = app
+  .get('/', (c) =>
+    c.json({
+      name: 'Kirche Felsengrund API',
+      version: pkg.version,
+      repository: pkg.repository,
+      environment: c.env.ENVIRONMENT,
+    }),
+  )
+  .route('/', formsRoute)
+  .route('/', offersRoute)
+  .route('/', podcastRoute)
+  .route('/', adminRoute);
 
-app.route('/', formsRoute);
-app.route('/', offersRoute);
-app.route('/', podcastRoute);
+// Streams raw R2 objects, which the typed client never calls - kept out of `AppType`.
 app.route('/', mediaRoute);
-app.route('/', adminRoute);
+
+export type AppType = typeof routes;
+export type { Client } from './client';
 
 // API only worker - no UI served; the admin UI lives in apps/web.
 app.notFound((c) => {
   console.warn(`[404] ${c.req.method} ${c.req.path}`);
-  return c.json({ error: 'Not found.' }, 404);
+  return c.json(createApiError('Not found.'), 404);
 });
 
 // Logs full context + a requestId so a 500 can be diagnosed from Workers Logs alone.
@@ -52,7 +59,8 @@ app.onError((error, c) => {
     environment: c.env.ENVIRONMENT,
     error,
   });
-  return c.json({ error: 'Internal server error.', requestId }, 500);
+  return c.json(createApiError('Internal server error.', { requestId }), 500);
 });
 
-export default app;
+// `routes` is `app` itself (chaining returns the same instance); exporting it keeps the typed chain as the default export.
+export default routes;

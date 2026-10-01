@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { apiClient } from '../lib/api';
+import { api, unwrapOrNull } from '../lib/api';
 import type { EpisodeDetailResponse } from '@felsengrund/types';
 import Breadcrumbs from './Breadcrumbs';
 import PodcastPlayer from './PodcastPlayer';
@@ -29,8 +29,7 @@ export default function PodcastDetail() {
 
     let cancelled = false;
 
-    apiClient.podcast
-      .get(slug)
+    unwrapOrNull(api.podcast[':slug'].$get({ param: { slug } }))
       .then((episode) => {
         if (cancelled) return;
         if (!episode) setState({ status: 'not-found' });

@@ -1,86 +1,29 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import BaseForm from '../components/form/BaseForm.astro';
+import FormField from '../components/form/FormField.astro';
 ---
 
 <BaseLayout
-  title="Kontakt & Spenden – Kirche Felsengrund"
+  title="Kontakt & Spenden - Kirche Felsengrund"
   description="Kontaktiere die Kirche Felsengrund oder unterstütze uns mit einer Spende."
 >
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
     <h1 class="font-display text-4xl font-bold text-kf-ink sm:text-5xl">Kontakt & Spenden</h1>
     <p class="mt-4 max-w-2xl text-lg text-kf-ink-muted">
-      Wir freuen uns über deine Nachricht — ob Frage, Anliegen oder einfach ein "Hallo".
+      Wir freuen uns über deine Nachricht - ob Frage, Anliegen oder einfach ein "Hallo".
     </p>
 
     <div class="mt-12 grid grid-cols-1 gap-12 lg:grid-cols-2">
       <div>
         <h2 class="font-display text-xl font-semibold text-kf-ink">Schreib uns</h2>
 
-        <form id="contact-form" class="mt-6 space-y-4" novalidate>
-          <div>
-            <label for="name" class="block text-sm font-medium text-kf-ink">
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              required
-              class="mt-1.5 w-full min-h-11 rounded-lg border border-kf-edge bg-kf-surface px-3.5 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent lg:min-h-0"
-            />
-          </div>
-
-          <div>
-            <label for="email" class="block text-sm font-medium text-kf-ink">
-              E-Mail
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              required
-              class="mt-1.5 w-full min-h-11 rounded-lg border border-kf-edge bg-kf-surface px-3.5 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent lg:min-h-0"
-            />
-          </div>
-
-          <div>
-            <label for="subject" class="block text-sm font-medium text-kf-ink">
-              Betreff
-            </label>
-            <input
-              type="text"
-              id="subject"
-              name="subject"
-              required
-              class="mt-1.5 w-full min-h-11 rounded-lg border border-kf-edge bg-kf-surface px-3.5 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent lg:min-h-0"
-            />
-          </div>
-
-          <div>
-            <label for="message" class="block text-sm font-medium text-kf-ink">
-              Nachricht
-            </label>
-            <textarea
-              id="message"
-              name="message"
-              rows="5"
-              required
-              class="mt-1.5 w-full rounded-lg border border-kf-edge bg-kf-surface px-3.5 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-            ></textarea>
-          </div>
-
-          <!-- The original site used Contact Form 7 + an image CAPTCHA plugin here; skipped
-               deliberately (not replicable without a paid service). -->
-
-          <button
-            type="submit"
-            class="inline-flex min-h-11 items-center justify-center rounded-lg bg-kf-accent px-6 py-2.5 font-display font-semibold text-white transition hover:opacity-90 lg:min-h-0"
-          >
-            Senden
-          </button>
-
-          <p id="contact-form-status" class="text-sm text-kf-ink-muted" role="status"></p>
-        </form>
+        <BaseForm formId="contact" label="contact form" class="mt-8">
+          <FormField name="name" required autocomplete="name" label="Name" />
+          <FormField name="email" required autocomplete="email" label="Email" />
+          <FormField name="subject" required autocomplete="off" label="Betreff" />
+          <FormField name="message" required autocomplete="off" label="Nachricht" as="textarea" />
+        </BaseForm>
       </div>
 
       <div class="space-y-10">
@@ -142,35 +85,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <script>
-  import { apiClient } from '../lib/api';
-  import type { ContactInput } from '@felsengrund/types';
-
   const subjectParam = new URLSearchParams(window.location.search).get('subject'); // Gathers URL parameters
 
   if (subjectParam) {
-    const subjectElement = document.querySelector('#subject') as HTMLInputElement | null;
+    const subjectElement = document.querySelector('#field-subject') as HTMLInputElement | null;
     if (subjectElement) {
       subjectElement.value = `${String(subjectParam).charAt(0).toUpperCase() + String(subjectParam).slice(1)}`;
     }
   }
-
-  const form = document.querySelector<HTMLFormElement>('#contact-form');
-  const status = document.querySelector<HTMLParagraphElement>('#contact-form-status');
-
-  form?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!status || !form) return;
-
-    const data = Object.fromEntries(new FormData(form).entries());
-    status.textContent = 'Wird gesendet…';
-
-    try {
-      await apiClient.forms.submitContact(data as unknown as ContactInput);
-      status.textContent = 'Danke für deine Nachricht! Wir melden uns bei dir.';
-      form.reset();
-    } catch (error) {
-      console.error('Failed to submit contact form', error);
-      status.textContent = 'Da ist etwas schiefgelaufen. Bitte versuch es später erneut.';
-    }
-  });
 </script>

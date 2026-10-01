@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { apiClient, clearAdminToken, getAdminToken, setAdminToken } from '../../lib/api';
+import { api, clearAdminToken, getAdminToken, setAdminToken, unwrap } from '../../lib/api';
 import Breadcrumbs from '../Breadcrumbs';
 import OffersManager from './OffersManager';
 import PodcastManager from './PodcastManager';
@@ -17,7 +17,7 @@ function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
     setError(null);
 
     try {
-      const token = await apiClient.admin.login(password);
+      const { token } = await unwrap(api.admin.login.$post({ form: { password } }));
       setAdminToken(token);
       onLoggedIn();
     } catch (err) {
@@ -31,7 +31,7 @@ function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4">
       <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Admin' }]} />
       <form onSubmit={handleSubmit} className="w-full rounded-2xl border border-kf-edge bg-kf-surface p-8 shadow-md">
-        <h1 className="font-display text-lg font-bold text-kf-ink">Kirche Felsengrund – Admin</h1>
+        <h1 className="font-display text-lg font-bold text-kf-ink">Kirche Felsengrund - Admin</h1>
         <div className="mt-6">
           <label htmlFor="admin-password" className="text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">
             Passwort
@@ -91,7 +91,7 @@ export default function AdminApp() {
       />
       <div className="rounded-2xl border border-kf-edge bg-kf-surface p-8 shadow-md">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <span className="font-display text-lg font-bold text-kf-ink">Kirche Felsengrund – Admin</span>
+          <span className="font-display text-lg font-bold text-kf-ink">Kirche Felsengrund - Admin</span>
           <nav className="flex items-center gap-4 text-sm">
             <button
               type="button"

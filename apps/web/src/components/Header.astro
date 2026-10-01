@@ -1,5 +1,4 @@
 ---
-// Angebote groups are live /admin content, fetched client-side (see the <script> below).
 const primaryLinks = [
   { label: 'Über uns', href: '/uber-uns' },
   { label: 'Agenda', href: '/agenda' },
@@ -12,8 +11,6 @@ const secondaryLinks = [
 ---
 
 <header class="relative sticky top-0 z-50 border-b border-kf-edge bg-kf-surface/90 backdrop-blur">
-  <!-- Discreet admin entry: click 5x within ~2s to reveal a link to /admin. Untabbable and
-       hidden from assistive tech since it's deliberately not meant to be discoverable. -->
   <button
     type="button"
     class="hidden lg:block absolute right-0 top-0 h-20 w-12"
@@ -157,7 +154,7 @@ const secondaryLinks = [
 </style>
 
 <script>
-  import { apiClient } from '../lib/api';
+  import { api, unwrap } from '../lib/api';
   import type { NavGroup } from '@felsengrund/types';
 
   const trigger = document.querySelector<HTMLButtonElement>('[data-mobile-trigger]');
@@ -199,8 +196,7 @@ const secondaryLinks = [
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
 
-  apiClient.nav
-    .list()
+  unwrap(api.nav.$get())
     .then((groups: NavGroup[]) => {
       if (desktopOfferGroups) {
         desktopOfferGroups.innerHTML = groups

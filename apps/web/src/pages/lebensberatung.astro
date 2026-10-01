@@ -1,19 +1,31 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HilfeHero from '../components/hilfe/HilfeHero.astro';
-import FormField from '../components/hilfe/FormField.astro';
-import RadioGroup from '../components/hilfe/RadioGroup.astro';
-import FormStatus from '../components/hilfe/FormStatus.astro';
+import FormField from '../components/form/FormField.astro';
+import BaseForm from '../components/form/BaseForm.astro';
+import FormRadioGroup from '../components/form/FormRadioGroup.astro';
+import FormConditional from '../components/form/FormConditional.astro';
+
+const contactOptions = [
+  { value: 'email', label: 'E-Mail' },
+  { value: 'phone', label: 'Telefon' },
+];
+const counselorOptions = [
+  { value: 'none', label: 'Keine Präferenz' },
+  { value: 'female', label: 'Weiblich' },
+  { value: 'male', label: 'Männlich' },
+  // { value: 'other', label: 'Sonstiges' },
+];
 ---
 
 <BaseLayout
-  title="Lebensberatung – Kirche Felsengrund"
-  description="Kostenlose, vertrauliche Lebensberatung – wir melden uns innerhalb von 48 Stunden bei dir."
+  title="Lebensberatung - Kirche Felsengrund"
+  description="Kostenlose, vertrauliche Lebensberatung - wir melden uns innerhalb von 48 Stunden bei dir."
 >
   <HilfeHero
     eyebrow="Hilfe & Service"
     title="Lebensberatung"
-    lead="Ein offenes Ohr für das, was dich beschäftigt. Unsere Lebensberatung ist kostenlos, vertraulich und für alle offen – wir melden uns innerhalb von 48 Stunden bei dir zurück."
+    lead="Ein offenes Ohr für das, was dich beschäftigt. Unsere Lebensberatung ist kostenlos, vertraulich und für alle offen - wir melden uns innerhalb von 48 Stunden bei dir zurück."
     image="/images/leiter.jpg"
     imageAlt="Ansprechpersonen von Kirche Felsengrund"
   />
@@ -25,123 +37,23 @@ import FormStatus from '../components/hilfe/FormStatus.astro';
         Erzähl uns kurz, worum es geht. Deine Angaben werden vertraulich behandelt und nur für die Beratung verwendet.
       </p>
 
-      <form id="counseling-form" class="mt-8 flex flex-col gap-6">
-        <FormField label="Name" name="name" required>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            autocomplete="name"
-            class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-          />
-        </FormField>
-
-        <FormField label="E-Mail" name="email" required>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            autocomplete="email"
-            class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-          />
-        </FormField>
-
-        <FormField label="Telefon" name="phone">
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            autocomplete="tel"
-            class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-          />
-        </FormField>
-
-        <FormField label="Betreff" name="subject" required>
-          <input
-            type="text"
-            id="subject"
-            name="subject"
-            required
-            class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-          />
-        </FormField>
-
-        <FormField label="Nachricht" name="message" required>
-          <textarea
-            id="message"
-            name="message"
-            required
-            rows={5}
-            class="rounded-lg border border-kf-edge bg-kf-surface px-3 py-2.5 text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent"
-          ></textarea>
-        </FormField>
-
-        <RadioGroup
-          legend="Bevorzugte Kontaktart"
-          name="preferredContactMethod"
-          required
-          options={[
-            { value: 'email', label: 'E-Mail' },
-            { value: 'phone', label: 'Telefon' },
-          ]}
-        />
-
-        <RadioGroup
+      <BaseForm formId="counseling">
+        <FormField name="name" required autocomplete="name" label="Name" />
+        <FormField name="subject" required autocomplete="off" label="Thema" />
+        <FormField name="message" required autocomplete="off" label="Nachricht" as="textarea" />
+        <FormRadioGroup name="contactPreference" required options={contactOptions} legend="Bevorzugte Kontaktart" />
+        <FormConditional when="contactPreference" is="email">
+          <FormField label="E-Mail" name="email" type="email" required autocomplete="email" />
+        </FormConditional>
+        <FormConditional when="contactPreference" is="phone">
+          <FormField label="Telefon" name="phone" type="tel" required autocomplete="tel" />
+        </FormConditional>
+        <FormRadioGroup
+          name="counselorPreference"
+          options={counselorOptions}
           legend="Bevorzugtes Geschlecht der beratenden Person"
-          name="preferredCounselorGender"
-          options={[
-            { value: 'female', label: 'Weiblich' },
-            { value: 'male', label: 'Männlich' },
-          ]}
         />
-
-        <div class="flex flex-col gap-2 pt-2">
-          <button
-            type="submit"
-            class="inline-flex min-h-11 items-center justify-center rounded-lg bg-kf-accent px-5 py-2.5 font-display text-sm font-semibold text-white transition hover:opacity-90"
-          >
-            Anfrage senden
-          </button>
-          <FormStatus id="counseling-status" />
-        </div>
-      </form>
+      </BaseForm>
     </div>
   </section>
 </BaseLayout>
-
-<script>
-  import { apiClient } from '../lib/api';
-  import type { CounselingInput } from '@felsengrund/types';
-
-  const form = document.querySelector('#counseling-form');
-  const status = document.querySelector('#counseling-status');
-
-  form?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!(form instanceof HTMLFormElement) || !(status instanceof HTMLElement)) return;
-
-    const submitButton = form.querySelector('button[type="submit"]');
-    const payload = Object.fromEntries(new FormData(form).entries());
-
-    status.textContent = 'Wird gesendet …';
-    status.dataset.state = 'pending';
-    if (submitButton instanceof HTMLButtonElement) submitButton.disabled = true;
-
-    try {
-      await apiClient.forms.submitCounseling(payload as unknown as CounselingInput);
-
-      status.textContent = 'Danke! Wir melden uns innerhalb von 48 Stunden bei dir zurück.';
-      status.dataset.state = 'success';
-      form.reset();
-    } catch (error) {
-      console.error('Failed to submit counseling request', error);
-      status.textContent =
-        'Das hat leider nicht geklappt. Bitte versuche es später erneut oder schreib uns direkt an oliver.lutz@kirche-felsengrund.ch.';
-      status.dataset.state = 'error';
-    } finally {
-      if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
-    }
-  });
-</script>

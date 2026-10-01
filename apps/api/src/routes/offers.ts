@@ -1,59 +1,79 @@
 import { Hono } from 'hono';
-import { getOffer, listOffers, renderMarkdoc } from '@felsengrund/api-core';
 import { CATEGORY_DETAILS } from '@felsengrund/types';
-import type { Env } from '../types';
-import { rewriteMediaUrls } from '../lib/media-url';
+import { createApiError, Env } from '../types';
+import { MediaUtils, OffersRepository, StorageUtils } from '../lib';
+import { createLogger } from '@felsengrund/logger';
 
-export const offersRoute = new Hono<{ Bindings: Env }>();
+// === Setup ===
+const logger = createLogger('Offers Route');
+
+// === Declarations ===
 
 // Powers the header's "Angebote" dropdown. Mirrors the offers list grouping, plus a
 // hand-added static "Ich brauche Hilfe" entry (not an R2-managed offer).
 const categoryOrder = (Object.keys(CATEGORY_DETAILS) as (keyof typeof CATEGORY_DETAILS)[]).sort(
   (a, b) => CATEGORY_DETAILS[a].index - CATEGORY_DETAILS[b].index,
 );
+
 const categoryLabels: Record<(typeof categoryOrder)[number], string> = Object.fromEntries(
   categoryOrder.map((category) => [category, CATEGORY_DETAILS[category].label]),
 ) as Record<(typeof categoryOrder)[number], string>;
 
-offersRoute.get('/nav', async (c) => {
-  const offers = await listOffers(c.env.STORAGE);
+// === Routes ===
 
-  const groups = categoryOrder
-    .map((category) => {
-      const links = offers
-        .filter((offer) => offer.data.category === category)
-        .map((offer) => ({
-          label: offer.data.title,
-          href: `/angebote/${offer.slug}`,
-        }));
+// Handlers are chained (not separate `offersRoute.get(...)` statements) so the route types
+// accumulate on the instance - that is what `apps/web`'s Hono client is typed from.
+export const offersRoute = new Hono<{ Bindings: Env }>()
+  .get('/nav', async (c) => {
+    const offers = await OffersRepository.list(c.env.STORAGE);
+    if (offers.length == 0) {
+      logger.warn('No offers found in Storage bucket.');
+    }
 
-      if (category === 'hilfe-service') {
-        links.push({ label: 'Ich brauche Hilfe', href: '/ich-brauche-hilfe' });
-      }
+    const groups = categoryOrder
+      .map((category) => {
+        const links = offers
+          .filter((offer) => offer.data.category === category)
+          .map((offer) => ({
+            label: offer.data.title,
+            href: `/angebote/${offer.slug}`,
+          }));
 
-      return { label: categoryLabels[category], links };
-    })
-    .filter((group) => group.links.length > 0);
+        if (category === 'hilfe-service') {
+          links.push({ label: 'Ich brauche Hilfe', href: '/ich-brauche-hilfe' });
+        }
 
-  return c.json(groups);
-});
+        return { label: categoryLabels[category], links };
+      })
+      .filter((group) => group.links.length > 0);
 
-offersRoute.get('/offers', async (c) => {
-  const offers = await listOffers(c.env.STORAGE);
-  const rewritten = offers.map((offer) => ({
-    ...offer,
-    data: rewriteMediaUrls(c.env, offer.data),
-  }));
-  return c.json(rewritten);
-});
+    return c.json(groups);
+  })
 
-offersRoute.get('/offers/:slug', async (c) => {
-  const offer = await getOffer(c.env.STORAGE, c.req.param('slug'));
-  if (!offer) return c.json({ error: 'Angebot nicht gefunden.' }, 404);
+  .get('/offers', async (c) => {
+    const offers = await OffersRepository.list(c.env.STORAGE);
+    if (offers.length == 0) {
+      logger.warn('No offers found in Storage bucket.');
+    }
 
-  return c.json({
-    ...offer,
-    data: rewriteMediaUrls(c.env, offer.data),
-    bodyHtml: renderMarkdoc(offer.body),
+    const rewritten = offers.map((offer) => ({
+      ...offer,
+      data: MediaUtils.rewriteMediaUrls(c.env, offer.data),
+    }));
+    return c.json(rewritten);
+  })
+
+  .get('/offers/:slug', async (c) => {
+    const slug = c.req.param('slug');
+    const offer = await OffersRepository.get(c.env.STORAGE, slug);
+    if (!offer) {
+      logger.warn('Offer not found in Storage bucket.', { slug });
+      return c.json(createApiError('Offer not found', { slug }), 404);
+    }
+
+    return c.json({
+      ...offer,
+      data: MediaUtils.rewriteMediaUrls(c.env, offer.data),
+      bodyHtml: StorageUtils.renderMarkdoc(offer.body),
+    });
   });
-});

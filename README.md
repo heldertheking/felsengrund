@@ -20,10 +20,10 @@ a traditional client/API split rather than a single server-rendered app:
   streaming, and the admin CMS's backend (bearer-token auth, not cookies — see
   [`docs/architecture.md`](./docs/architecture.md)).
 - **`packages/types`** — shared TypeScript types (offers, podcast episodes, nav, admin,
-  forms) used by both `apps/web` and `apps/api` so the two halves agree on shapes.
-- **`packages/api-core`** — plain TypeScript used by `apps/api`: R2-backed content access
-  (Markdoc-rendered offers/podcast episodes) and the admin
-  bearer-token auth.
+  forms) used by both `apps/web` and `apps/api`, plus the form registry. `apps/web` calls the
+  API through a Hono RPC client typed from the API's routes (see
+  [`docs/architecture.md`](./docs/architecture.md#typed-api-client-hono-rpc)), so the two halves
+  can't drift apart.
 - **`packages/logger`** — a tiny leveled console logger (`createLogger()`) shared across
   `apps/api`'s middleware, routes, and services (request logging, error logging, the mail
   notification service) for consistent, namespaced log output.
@@ -83,9 +83,10 @@ see [`docs/architecture.md`](./docs/architecture.md).
 
 ## Forms & notification emails
 
-The public contact, counseling, feedback, and prayer-request forms (`apps/api/src/routes/forms.ts`)
-each send a branded HTML notification email to the relevant church mailbox via a small,
-dependency-free email templating system (`apps/api/src/lib/email/`) — no external templating
+The public contact, counseling, feedback, and prayer-request forms all post to a single
+`POST /forms` endpoint (`apps/api/src/routes/forms.ts`); each form is registered in
+`packages/types/src/Forms.ts` and sends a branded HTML notification email to the relevant church mailbox via a small,
+dependency-free email templating system (`apps/api/src/lib/notification/email/`) — no external templating
 engine, just table-based HTML hardened for both Outlook and Gmail. In any non-`production`
 environment, every notification is redirected to a fixed test inbox instead of the real
 mailboxes, so local/staging testing never reaches the church's actual inboxes. See

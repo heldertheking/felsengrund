@@ -15,11 +15,3 @@ export type CreatePodcastInput = Omit<EpisodeFrontmatter, 'audioUrl' | 'coverIma
 export type UpdatePodcastInput = Omit<CreatePodcastInput, 'audio'> & {
   audio?: File;
 };
-
-export interface SaveResult {
-  slug: string;
-}
-
-export interface LoginResult {
-  token: string;
-}

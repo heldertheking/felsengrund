@@ -44,6 +44,7 @@ wrangler secret put KFA_ADMIN_PASSWORD --env production
 wrangler secret put KFA_ADMIN_PASSWORD --env development
 wrangler secret put KFA_MAIL_PASSWORD --env production
 wrangler secret put KFA_MAIL_PASSWORD --env development
+wrangler secret put KFA_DEV_NOTIFICATION_RECIPIENT --env development
 ```
 
 - **`KFA_ADMIN_PASSWORD`** — gates `/admin/login`, which returns a signed bearer token on
@@ -58,6 +59,10 @@ wrangler secret put KFA_MAIL_PASSWORD --env development
   doesn't create or configure the mailbox itself. A `535 Authentication failed` error at
   send time almost always means this mailbox doesn't exist yet or the passwords don't match.
 
+- **`KFA_DEV_NOTIFICATION_RECIPIENT`** — optional; the inbox that receives all form notification
+  emails in non-`production` environments. Not needed in `production`. If it's unset elsewhere,
+  notification emails are skipped with a warning.
+
 For local development, copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars`.
 
 ### Plain vars
@@ -67,18 +72,16 @@ For local development, copy `apps/api/.dev.vars.example` to `apps/api/.dev.vars`
 - **`KFA_WORKER_ORIGIN`** — this Worker's own public URL (e.g. its `*.workers.dev`
   address, or a custom domain if one is attached later). Used to rewrite relative
   `/media/<key>` references in API responses into absolute URLs the cross-origin frontend
-  can load directly, and to build the podcast Atom feed's audio/link URLs.
+  can load directly, and to build the podcast RSS feed's (`/podcast/feed.xml`) audio, cover image and self-link URLs.
 - **`KFA_WEBPAGE_ORIGIN`** — the deployed `apps/web` origin for this environment (e.g.
   `https://kirche-felsengrund.ch` in production). Used for the podcast feed's website link
   and cover image URL.
 - **`KFA_ALLOWED_ORIGINS`** — comma-separated list of origins allowed to call this API
   (CORS). Must include whatever origin `apps/web` is actually served from (webkeeper.ch's
   domain in production, `http://localhost:4321` for local dev).
-- **`KFA_NOTIFICATION_WEBHOOK`** — required by `apps/api/src/middleware/env-check.ts`, but
-  not currently read by any route or service. Reserved/leftover — don't go looking for where
-  it's consumed.
-- **`KFA_SESSION_TTL_MS`** — declared in `wrangler.jsonc` but neither required by
-  `env-check.ts` nor read anywhere in `apps/api`'s source. Also, currently dead.
+- **`KFA_SESSION_TTL_MS`** — admin bearer-token lifetime in milliseconds (`43200000` = 12
+  hours), read by `POST /admin/login`. Optional: not checked by `env-check.ts`, and login falls
+  back to 12 hours if it's missing.
 
 ### Build & deploy
 
@@ -97,7 +100,10 @@ the `quality` job.
 **Pull requests** — every PR, regardless of its target branch, runs `quality` (typecheck, ESLint,
 and a non-blocking Prettier check), then build and test for both `apps/web` and `apps/api`, plus
 Gitleaks and CodeQL. Nothing deploys from a PR. The path filter only applies to pushes to
-`master`, where it decides what gets deployed (changes under `packages/**` count for both).
+`master`, where it decides what gets deployed (changes under `packages/**` count for both, and
+changes under `apps/api/**` also count for the web app, because its client is typed from the API).
+The web `typecheck` and `build` first emit the API's route declarations, so nothing has to be built
+before them.
 
 This replaced the Worker's Cloudflare **Workers Builds** dashboard integration (Workers &
 Pages → this Worker → Settings → Builds) — disable/disconnect that if it's still configured,
@@ -141,9 +147,30 @@ Before this works:
    is available on webkeeper.ch's specific Plesk version** — this is the one piece of the
    pipeline that depends on infrastructure only reachable from the Plesk control panel.
 
+## Releases
+
+`.github/workflows/release.yml` publishes a GitHub Release when a release lands on `master`
+(normally by merging `release/x.y.z` into `master`).
+
+- **Version:** the root `package.json` `version` is the source of truth. The tag is `vX.Y.Z`.
+- **Notes:** `CHANGELOG.md` must contain a `## [X.Y.Z]` heading (optionally ` - date`) for that
+  version with some content. Everything up to the next `## [` heading becomes the release notes.
+  If the section is missing or empty the workflow fails instead of publishing empty notes.
+  Versions with a `-` suffix (e.g. `1.2.0-rc.1`) are marked as pre-releases.
+- **Re-runs:** if the tag already exists, the run is a no-op, so pushes to `master` that do not
+  bump the version publish nothing.
+- **Milestone:** after publishing, the open milestone `Release X.Y.Z` is closed, if there is one.
+- **Dry run:** PRs (any base branch) that change `release.yml` or `CHANGELOG.md`, and manual runs
+  with `dry_run` enabled (the default), only print the extracted notes in the log and job
+  summary. Nothing is tagged, published or closed.
+- **Subscribing:** on GitHub use **Watch → Custom → Releases**, or follow
+  `https://github.com/heldertheking/felsengrund/releases.atom`.
+
+The extraction can be tried locally: `bash .github/scripts/changelog-section.sh 1.1.0`.
+
 ## CORS
 
-`apps/api`'s `ALLOWED_ORIGINS` var must list every origin that's allowed to call it —
+`apps/api`'s `KFA_ALLOWED_ORIGINS` var must list every origin that's allowed to call it —
 production webkeeper.ch domain, plus any staging subdomain used during testing, plus
 `http://localhost:4321` for local `astro dev`. A mismatch here shows up as CORS errors in the
 browser console, not as a server-side error — check this first if requests from `apps/web`

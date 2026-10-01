@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
-import { apiClient } from '../../lib/api';
-import { UnauthorizedError, type Episode, type PodcastSpeaker } from '@felsengrund/types';
+import { api, unwrap, UnauthorizedError } from '../../lib/api';
+import { podcastForm } from '../../lib/admin-forms';
+import type { Episode, PodcastSpeaker } from '@felsengrund/types';
 import { downloadMdocExport } from '../../lib/export';
 
 const inputClass =
@@ -23,8 +24,7 @@ export default function PodcastManager({ onUnauthorized }: Props) {
   const [bulkBusy, setBulkBusy] = useState(false);
 
   function reload() {
-    apiClient.podcast
-      .list()
+    unwrap(api.podcast.$get())
       .then((data) => {
         setEpisodes(data);
         setSelected((prev) => new Set([...prev].filter((slug) => data.some((e) => e.slug === slug))));
@@ -56,7 +56,7 @@ export default function PodcastManager({ onUnauthorized }: Props) {
     setBulkBusy(true);
     try {
       for (const slug of selected) {
-        await apiClient.podcast.delete(slug);
+        await unwrap(api.admin.podcast[':slug'].$delete({ param: { slug } }));
       }
       setSelected(new Set());
       reload();
@@ -194,7 +194,7 @@ function DeleteButton({
     if (!confirm('Diese Episode wirklich löschen?')) return;
     setBusy(true);
     try {
-      await apiClient.podcast.delete(slug);
+      await unwrap(api.admin.podcast[':slug'].$delete({ param: { slug } }));
       onDeleted();
     } catch (err) {
       if (err instanceof UnauthorizedError) return onUnauthorized();
@@ -283,7 +283,7 @@ function PodcastForm({
       const speakersInput = speakers.filter((s) => s.name.trim());
 
       if (isEdit) {
-        await apiClient.podcast.update(episode.slug, {
+        const input = {
           title,
           publishDate,
           episodeNumber: episodeNumber ? Number(episodeNumber) : undefined,
@@ -292,10 +292,11 @@ function PodcastForm({
           body,
           audio: audio ?? undefined,
           coverImage: coverImage ?? undefined,
-        });
+        };
+        await unwrap(api.admin.podcast.$post({ form: podcastForm(input, episode.slug) }));
       } else {
         if (!audio) throw new Error('Bitte eine Audiodatei auswählen.');
-        await apiClient.podcast.create({
+        const input = {
           title,
           publishDate,
           episodeNumber: episodeNumber ? Number(episodeNumber) : undefined,
@@ -304,7 +305,8 @@ function PodcastForm({
           body,
           audio,
           coverImage: coverImage ?? undefined,
-        });
+        };
+        await unwrap(api.admin.podcast.$post({ form: podcastForm(input) }));
       }
       onDone();
     } catch (err) {
