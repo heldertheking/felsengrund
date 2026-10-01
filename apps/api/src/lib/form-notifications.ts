@@ -1,4 +1,4 @@
-import type { FormId, FormInputs, FormPayload } from '@felsengrund/types';
+import type { FormId, FormInputs } from '@felsengrund/types';
 import { FORMS, type SendOptions } from './notification';
 import type { NotificationEmailContent } from './notification/email/notification-email';
 
@@ -91,7 +91,7 @@ const formNotifications: NotificationBuilders = {
   }),
 };
 
-/** `payload` must already have passed `validateForm` for `id`. */
-export function buildFormNotification<K extends FormId>(id: K, payload: FormPayload): FormNotification {
-  return formNotifications[id](payload as unknown as FormInputs[K]);
+/** `input` is the output of the form's schema in `formSchemas` (`@felsengrund/types/forms`). */
+export function buildFormNotification<K extends FormId>(id: K, input: FormInputs[K]): FormNotification {
+  return formNotifications[id](input);
 }

@@ -19,8 +19,13 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 - All public forms now go through one `POST /forms` endpoint (`{ id, payload }`) instead of
   one route per form. The API validates the payload and hands it to a notification layer
   (`apps/api/src/lib/form-notifications.ts`) that translates it into the notification email.
-- Forms are registered in a single place, `packages/types/src/Forms.ts` (`FormInputs` +
-  `formValidators`); adding a form means one entry there and one in the notification layer.
+- Forms are registered in a single place, `packages/types/src/Forms.ts` (`formSchemas`);
+  adding a form means one entry there and one in the notification layer.
+- Form validation moved to zod: one schema per form in `packages/types/src/Forms.ts`
+  (`formSchemas`) replaces the hand-written input interfaces and validators, the input types are
+  inferred from it, and `POST /forms` validates the payload with it. The rules, the 5000 character
+  cap, the regex-free email check and the error responses are unchanged. The schemas are only
+  exported from `@felsengrund/types/forms`, so zod stays out of the web bundle.
 - Form validation failures and unknown form ids return a `createFormError` body; a failed
   notification email returns a `502` form error.
 - Counseling form fields `contact-preference` / `counselor-preference` renamed to

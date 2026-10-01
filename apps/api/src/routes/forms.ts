@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { formValidators, validateForm, type FormId, type OkResponse } from '@felsengrund/types';
+import type { FormInputs, OkResponse } from '@felsengrund/types';
+import { FORM_IDS, FORM_INVALID_MESSAGE, formSchemas } from '@felsengrund/types/forms';
 import { createLogger } from '@felsengrund/logger';
 import { createFormError, type Env } from '../types';
 import { NotificationService } from '../lib';
@@ -11,9 +12,9 @@ import { buildFormNotification } from '../lib/form-notifications';
 const logger = createLogger('Forms Route');
 const notificationService = new NotificationService();
 
-/** Envelope only. The per-form field checks live in `formValidators` (`@felsengrund/types`). */
+/** Envelope only. The per-form field checks live in `formSchemas` (`@felsengrund/types/forms`). */
 const submissionSchema = z.object({
-  id: z.enum(Object.keys(formValidators) as [FormId, ...FormId[]]),
+  id: z.enum(FORM_IDS),
   payload: z.record(z.string(), z.union([z.string(), z.array(z.string())])),
 });
 
@@ -34,13 +35,17 @@ export const formsRoute = new Hono<{ Bindings: Env }>().post(
   async (c) => {
     const { id, payload } = c.req.valid('json');
 
-    const error = validateForm(id, payload);
-    if (error) {
-      logger.warn('Form validation failed', { id, error });
-      return c.json(createFormError('validation', error, undefined, { submittedAt: new Date().toISOString() }), 400);
+    const parsed = formSchemas[id].safeParse(payload);
+    if (!parsed.success) {
+      logger.warn('Form validation failed', { id, issues: parsed.error.issues });
+      return c.json(
+        createFormError('validation', FORM_INVALID_MESSAGE, undefined, { submittedAt: new Date().toISOString() }),
+        400,
+      );
     }
 
-    const { subject, content, mailbox, options } = buildFormNotification(id, payload);
+    // `formSchemas[id]` is a union over all forms, so TS can't correlate `id` with the parsed shape.
+    const { subject, content, mailbox, options } = buildFormNotification(id, parsed.data as FormInputs[typeof id]);
     try {
       await notificationService.send(subject, content, mailbox, c.env, options);
     } catch (sendError) {
