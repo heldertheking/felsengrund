@@ -1,6 +1,6 @@
 import type { FormId, FormInputs, FormPayload } from '@felsengrund/types';
-import { FORMS, type SendOptions } from './mail';
-import type { NotificationEmailContent } from './email/notification-email';
+import { FORMS, type SendOptions } from './notification';
+import type { NotificationEmailContent } from './notification/email/notification-email';
 
 /**
  * Translation layer: general form input -> notification email.

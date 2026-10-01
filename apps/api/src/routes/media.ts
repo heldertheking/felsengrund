@@ -1,53 +1,27 @@
 import { Hono } from 'hono';
-import type { Env } from '../types';
+import { createApiError, Env } from '../types';
 import { createLogger } from '@felsengrund/logger';
+import { MediaUtils } from '../lib';
 
-// Uses c.req.path (not c.req.param('*'), which returns undefined in Hono 4.13.7) for the media key.
+// === Setup ===
 export const mediaRoute = new Hono<{ Bindings: Env }>();
+const logger = createLogger('Media Route');
 
-type ParsedRange = { offset: number; length?: number } | { suffix: number };
-
-/** Parses an HTTP Range header (RFC 7233: `bytes=200-499`, `bytes=500-`, `bytes=-500`). Undefined if missing/malformed. */
-function parseRangeHeader(header: string | null): ParsedRange | undefined {
-  if (!header) return undefined;
-  const match = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
-  if (!match) return undefined;
-  const [, startStr, endStr] = match;
-  if (startStr === '' && endStr === '') return undefined;
-
-  if (startStr === '') {
-    const suffix = Number(endStr);
-    return Number.isFinite(suffix) && suffix > 0 ? { suffix } : undefined;
-  }
-
-  const offset = Number(startStr);
-  if (!Number.isFinite(offset) || offset < 0) return undefined;
-  if (endStr === '') return { offset };
-
-  const end = Number(endStr);
-  if (!Number.isFinite(end) || end < offset) return undefined;
-  return { offset, length: end - offset + 1 };
-}
-
-function toR2Range(range: ParsedRange): R2Range {
-  return 'suffix' in range ? { suffix: range.suffix } : { offset: range.offset, length: range.length };
-}
-
-const logger = createLogger('media', { level: 'info' });
+// === Routes ===
 
 mediaRoute.get('/media/*', async (c) => {
   const key = c.req.path.replace(/^\/media\//, ''); // Stips /media/ to get R2 key
   if (!key) {
-    logger.warn('request has no key after /media/', { path: c.req.path });
-    return c.text('Not found.', 404);
+    logger.warn('Invalid request to /media, no key found', { path: c.req.path });
+    return c.json(createApiError('Malformed request to /media/*; missing key', { path: c.req.path }), 400);
   }
 
-  const requestedRange = parseRangeHeader(c.req.header('range') ?? null);
+  const requestedRange = MediaUtils.parseRangeHeader(c.req.header('range') ?? null);
 
   let object: R2ObjectBody | null;
   let servedRange = requestedRange;
   try {
-    object = await c.env.STORAGE.get(key, requestedRange ? { range: toR2Range(requestedRange) } : undefined);
+    object = await c.env.STORAGE.get(key, requestedRange ? { range: MediaUtils.toR2Range(requestedRange) } : undefined);
   } catch (error) {
     // Unsatisfiable or malformed range, returning full object as fallback
     logger.warn('requested range failed for key, falling back to full object', {
@@ -61,7 +35,7 @@ mediaRoute.get('/media/*', async (c) => {
 
   if (!object) {
     logger.warn('key not found in R2', { path: c.req.path });
-    return c.text('Not found.', 404);
+    return c.json(createApiError('Object not found', { path: c.req.path, key: key }), 404);
   }
 
   // Build response headers

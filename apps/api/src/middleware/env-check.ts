@@ -7,13 +7,7 @@ const logger = createLogger('env-check');
 // Wrangler doesn't inherit top-level vars/bindings into named environments - each env block
 // must repeat every one, or requests fail with an unhelpful generic error. This turns that
 // into one clear log line naming what's missing.
-const REQUIRED_VARS: (keyof Env)[] = [
-  'ENVIRONMENT',
-  'KFA_WORKER_ORIGIN',
-  'KFA_WEBPAGE_ORIGIN',
-  'KFA_ALLOWED_ORIGINS',
-  'KFA_NOTIFICATION_WEBHOOK',
-];
+const REQUIRED_VARS: (keyof Env)[] = ['ENVIRONMENT', 'KFA_WORKER_ORIGIN', 'KFA_WEBPAGE_ORIGIN', 'KFA_ALLOWED_ORIGINS'];
 
 let lastCheckedEnv: Env | undefined;
 

@@ -1,10 +1,9 @@
-name: "Gitleaks Secret Scan"
+name: 'Gitleaks Secret Scan'
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ['master']
   pull_request:
-    branches: [ "master" ]
 
 permissions:
   contents: read

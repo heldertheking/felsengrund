@@ -13,7 +13,7 @@ Closes #
 
 - [ ] `apps/web` (public site / admin UI)
 - [ ] `apps/api` (Worker / API)
-- [ ] `packages/*` (shared types, api-core, logger)
+- [ ] `packages/*` (shared types, logger)
 - [ ] `docs/` / other
 
 ## How was this tested?

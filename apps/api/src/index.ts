@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { createLogger } from '@felsengrund/logger';
-import type { Env } from './types';
+import { createApiError, type Env } from './types';
 import { corsMiddleware } from './middleware/cors.middleware';
 import { requestLogger } from './middleware/request-logger.middleware';
 import { checkRequiredBindings } from './middleware/env-check';
@@ -25,7 +25,7 @@ app.get('/', (c) =>
     version: pkg.version,
     repository: pkg.repository,
     environment: c.env.ENVIRONMENT,
-  })
+  }),
 );
 
 app.route('/', formsRoute);
@@ -37,7 +37,7 @@ app.route('/', adminRoute);
 // API only worker - no UI served; the admin UI lives in apps/web.
 app.notFound((c) => {
   console.warn(`[404] ${c.req.method} ${c.req.path}`);
-  return c.json({ error: 'Not found.' }, 404);
+  return c.json(createApiError('Not found.'), 404);
 });
 
 // Logs full context + a requestId so a 500 can be diagnosed from Workers Logs alone.
@@ -52,7 +52,7 @@ app.onError((error, c) => {
     environment: c.env.ENVIRONMENT,
     error,
   });
-  return c.json({ error: 'Internal server error.', requestId }, 500);
+  return c.json(createApiError('Internal server error.', { requestId }), 500);
 });
 
 export default app;

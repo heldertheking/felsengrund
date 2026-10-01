@@ -32,7 +32,7 @@ function serializeMeta(meta: Record<string, unknown>): Record<string, unknown> {
 }
 
 export function createLogger(namespace: string, opts?: LoggerOptions): Logger {
-  const minLevel = opts?.level ?? 'debug';
+  const minLevel = opts?.level ?? 'info';
   const minIndex = LEVELS.indexOf(minLevel);
 
   const log = (level: LogLevel, message: string, meta?: Record<string, unknown>): void => {

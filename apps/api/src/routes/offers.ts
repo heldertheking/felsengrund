@@ -1,22 +1,32 @@
 import { Hono } from 'hono';
-import { getOffer, listOffers, renderMarkdoc } from '@felsengrund/api-core';
 import { CATEGORY_DETAILS } from '@felsengrund/types';
-import type { Env } from '../types';
-import { rewriteMediaUrls } from '../lib/media-url';
+import { createApiError, Env } from '../types';
+import { MediaUtils, OffersRepository, StorageUtils } from '../lib';
+import { createLogger } from '@felsengrund/logger';
 
+// === Setup ===
 export const offersRoute = new Hono<{ Bindings: Env }>();
+const logger = createLogger('Offers Route');
+
+// === Declarations ===
 
 // Powers the header's "Angebote" dropdown. Mirrors the offers list grouping, plus a
 // hand-added static "Ich brauche Hilfe" entry (not an R2-managed offer).
 const categoryOrder = (Object.keys(CATEGORY_DETAILS) as (keyof typeof CATEGORY_DETAILS)[]).sort(
   (a, b) => CATEGORY_DETAILS[a].index - CATEGORY_DETAILS[b].index,
 );
+
 const categoryLabels: Record<(typeof categoryOrder)[number], string> = Object.fromEntries(
   categoryOrder.map((category) => [category, CATEGORY_DETAILS[category].label]),
 ) as Record<(typeof categoryOrder)[number], string>;
 
+// === Routes ===
+
 offersRoute.get('/nav', async (c) => {
-  const offers = await listOffers(c.env.STORAGE);
+  const offers = await OffersRepository.list(c.env.STORAGE);
+  if (offers.length == 0) {
+    logger.warn('No offers found in Storage bucket.');
+  }
 
   const groups = categoryOrder
     .map((category) => {
@@ -39,21 +49,28 @@ offersRoute.get('/nav', async (c) => {
 });
 
 offersRoute.get('/offers', async (c) => {
-  const offers = await listOffers(c.env.STORAGE);
+  const offers = await OffersRepository.list(c.env.STORAGE);
+  if (offers.length == 0) {
+    logger.warn('No offers found in Storage bucket.');
+  }
+
   const rewritten = offers.map((offer) => ({
     ...offer,
-    data: rewriteMediaUrls(c.env, offer.data),
+    data: MediaUtils.rewriteMediaUrls(c.env, offer.data),
   }));
   return c.json(rewritten);
 });
 
 offersRoute.get('/offers/:slug', async (c) => {
-  const offer = await getOffer(c.env.STORAGE, c.req.param('slug'));
-  if (!offer) return c.json({ error: 'Angebot nicht gefunden.' }, 404);
+  const offer = await OffersRepository.get(c.env.STORAGE, c.req.param('slug'));
+  if (!offer) {
+    logger.warn('Offer not found in Storage bucket.', { slug: c.req.param('slug') });
+    return c.json(createApiError('Offer not found', { slug: c.req.param('slug') }), 404);
+  }
 
   return c.json({
     ...offer,
-    data: rewriteMediaUrls(c.env, offer.data),
-    bodyHtml: renderMarkdoc(offer.body),
+    data: MediaUtils.rewriteMediaUrls(c.env, offer.data),
+    bodyHtml: StorageUtils.renderMarkdoc(offer.body),
   });
 });

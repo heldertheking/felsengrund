@@ -2,7 +2,7 @@
   "name": "felsengrund",
   "description": "Public website and self-service admin panel for Kirche Felsengrund, a church in Oetwil am See, Switzerland — an Astro static site plus a Cloudflare Worker API.",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "workspaces": [
     "apps/*",
@@ -33,5 +33,9 @@
     "prettier-plugin-astro": "^1.0.0",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.70.0"
+  },
+  "allowScripts": {
+    "workerd@1.20260926.1": true,
+    "esbuild@0.28.1": true
   }
 }
