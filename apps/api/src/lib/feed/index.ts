@@ -75,11 +75,24 @@ const parseAudioMetadata = async (path: string): Promise<{ size: number; type: s
 const XML_ENTITIES: Record<string, string> = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'" };
 
 /** Rendered HTML -> plain text, unescaped; callers must run it through `escapeXml` before embedding. */
-const stripToPlainText = (html: string): string => {
-  return html
-    .replace(/<[^>]*>/g, '')
-    .replace(/&(amp|lt|gt|quot|#39);/g, (entity) => XML_ENTITIES[entity])
-    .trim();
+const stripToPlainText = async (html: string): Promise<string> => {
+  let text = '';
+
+  const rewriter = new HTMLRewriter().on('*', {
+    text(chunk) {
+      text += chunk.text;
+    },
+  });
+
+  const res = new Response(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
+
+  // Transform and drain the response stream
+  const transformed = rewriter.transform(res);
+  await transformed.text();
+
+  return text.trim();
 };
 
 /** A literal `]]>` would terminate the CDATA section early. */
@@ -108,7 +121,7 @@ async function episodeToXmlItem(episode: Episode): Promise<EpisodeItem> {
   }
 
   const htmlContent = StorageUtils.renderMarkdoc(episode.body);
-  const plainTextDescription = stripToPlainText(htmlContent);
+  const plainTextDescription = await stripToPlainText(htmlContent);
 
   return {
     title: episode.data.title,
