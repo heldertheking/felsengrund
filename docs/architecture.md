@@ -244,17 +244,19 @@ endpoint, `POST /forms` in `apps/api/src/routes/forms.ts`, with the body
 (`FormPayload`, keyed by each field's `name`). The route:
 
 1. rejects unknown form ids (`400`),
-2. runs the form's validator, if it has one (`400` with `{ error }` on failure),
+2. validates the payload with the form's zod schema (`400` form error on failure),
 3. translates the payload into a notification (`lib/form-notifications.ts`) and sends it,
 4. returns `{ ok: true }`.
 
 ### Adding a form
 
-1. **`packages/types/src/Forms.ts`** — add the form id and its input shape to `FormInputs`
-   (field names = the `name` attributes in the Astro form), and add an entry to
-   `formValidators`: a validator returning an error message or `null`, or `null` instead of a
-   validator if the frontend's validation is enough. Both are exhaustive over `FormId`, so a
-   missing entry is a compile error.
+1. **`packages/types/src/Forms.ts`** — add a zod schema to `formSchemas` (the key is the form
+   id, the field names are the `name` attributes in the Astro form). Build it with
+   `formSchema({ ... })`, which adds the shared checks (5000 character cap, email check); put
+   conditional rules in `.superRefine(...)`. `FormId` and `FormInputs` are inferred from the
+   schemas, so there is no separate type to maintain. The schemas are runtime code and are only
+   exported from the subpath `@felsengrund/types/forms` (used by `apps/api`); the
+   `@felsengrund/types` barrel re-exports the types only, which keeps zod out of the web bundle.
 2. **`apps/api/src/lib/form-notifications.ts`** — add the matching entry that turns the typed
    input into `{ subject, content, mailbox, options }`. This is the translation layer between
    the general form model and the mail system; it's the only place that needs to change when
