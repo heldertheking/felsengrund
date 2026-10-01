@@ -1,4 +1,6 @@
 ---
+import type { FormId } from '@felsengrund/types';
+
 /**
  * Shell for every form. Responsibilities:
  *  - validation (native constraints, German messages) with inline errors, aria-invalid and
@@ -19,8 +21,8 @@
  *   </BaseForm>
  */
 interface Props {
-  /** Key into `formHandlers` in src/lib/forms.ts. */
-  formId: string;
+  /** Form id registered in `@felsengrund/types` (Forms.ts). */
+  formId: FormId;
   submitLabel?: string;
   submittingLabel?: string;
   successMessage?: string;
@@ -89,6 +91,7 @@ const {
 </form>
 
 <script>
+  import type { FormId } from '@felsengrund/types';
   import { sendForm, type FormPayload } from '../../lib/forms';
 
   const MESSAGES = {
@@ -281,7 +284,7 @@ const {
     submitting.add(form);
     setBusy(form, true);
     try {
-      await sendForm(form.dataset.formId!, collect(form));
+      await sendForm(form.dataset.formId as FormId, collect(form));
       form.reset();
       setStatus(form, 'success', form.dataset.successMessage!);
       form.querySelector<HTMLElement>('[data-status]')!.focus();

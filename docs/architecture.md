@@ -163,21 +163,41 @@ audio upload) it now gates offers, podcast episodes, and all admin uploads toget
 
 ## Forms & notification emails
 
-Four public forms post to `apps/api/src/routes/forms.ts`, each validating its required
-fields (returning `{ error }` with `400` if any are missing) and, on success, sending a
-notification email and returning `{ ok: true }`:
+Every public form (contact, counseling, feedback, prayer request) posts to a single
+endpoint, `POST /forms` in `apps/api/src/routes/forms.ts`, with the body
+`{ id, payload }`. `payload` is the raw field values collected by `BaseForm.astro`
+(`FormPayload`, keyed by each field's `name`). The route:
 
-| Route                  | Frontend                                                       | `FORMS` value    | Production recipient                                   |
-| ---------------------- | -------------------------------------------------------------- | ---------------- | ------------------------------------------------------ |
-| `POST /contact`        | `apps/web/src/pages/kontakt.astro`                             | `CONTACT`        | `kontakt@kirche-felsengrund.ch`                        |
-| `POST /counseling`     | `apps/web/src/pages/lebensberatung.astro`                      | `CONSOLING`      | `lebensberatung@kirche-felsengrund.ch`                 |
-| `POST /prayer-request` | `PrayerWallForm.tsx`, mounted on `jetzt-fuer-mich-beten.astro` | `PRAYER_REQUEST` | `gebetsanliegen@kirche-felsengrund.ch`                 |
-| `POST /feedback`       | `FeedbackForm.tsx`                                             | `UNSPECIFIED`    | `kontakt@kirche-felsengrund.ch` (no dedicated mailbox) |
+1. rejects unknown form ids (`400`),
+2. runs the form's validator, if it has one (`400` with `{ error }` on failure),
+3. translates the payload into a notification (`lib/form-notifications.ts`) and sends it,
+4. returns `{ ok: true }`.
+
+### Adding a form
+
+1. **`packages/types/src/Forms.ts`** — add the form id and its input shape to `FormInputs`
+   (field names = the `name` attributes in the Astro form), and add an entry to
+   `formValidators`: a validator returning an error message or `null`, or `null` instead of a
+   validator if the frontend's validation is enough. Both are exhaustive over `FormId`, so a
+   missing entry is a compile error.
+2. **`apps/api/src/lib/form-notifications.ts`** — add the matching entry that turns the typed
+   input into `{ subject, content, mailbox, options }`. This is the translation layer between
+   the general form model and the mail system; it's the only place that needs to change when
+   the mails are reworked.
+3. **`apps/web`** — use `<BaseForm formId="...">`. `formId` is typed as `FormId`, so only
+   registered ids compile. `src/lib/forms.ts` needs no changes.
+
+| Form id      | Frontend                                     | `FORMS` value    | Production recipient                                   |
+| ------------ | -------------------------------------------- | ---------------- | ------------------------------------------------------ |
+| `contact`    | `apps/web/src/pages/kontakt.astro`           | `CONTACT`        | `kontakt@kirche-felsengrund.ch`                        |
+| `counseling` | `apps/web/src/pages/lebensberatung.astro`    | `CONSOLING`      | `lebensberatung@kirche-felsengrund.ch`                 |
+| `prayer`     | `index.astro`, `jetzt-fuer-mich-beten.astro` | `PRAYER_REQUEST` | `gebetsanliegen@kirche-felsengrund.ch`                 |
+| `feedback`   | `index.astro` ("Parkplatz")                  | `UNSPECIFIED`    | `kontakt@kirche-felsengrund.ch` (no dedicated mailbox) |
 
 ### `NotificationService` (`apps/api/src/lib/mail.ts`)
 
 `forms.ts` builds one `NotificationService` at module scope (its SMTP config doesn't depend
-on a request, so it's shared across all four routes rather than re-created per call).
+on a request, so it's shared across requests rather than re-created per call).
 `send(subject, content, form, env, options)` then:
 
 - Sends over SMTP via [`worker-mailer`](https://www.npmjs.com/package/worker-mailer) to

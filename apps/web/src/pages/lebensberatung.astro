@@ -41,14 +41,14 @@ const counselorOptions = [
         <FormField name="name" required autocomplete="name" label="Name" />
         <FormField name="subject" required autocomplete="off" label="Thema" />
         <FormField name="message" required autocomplete="off" label="Nachricht" as="textarea"/>
-        <FormRadioGroup name="contact-preference" required options={contactOptions} legend="Bevorzugte Kontaktart" />
-        <FormConditional when="contact-preference" is="email">
+        <FormRadioGroup name="contactPreference" required options={contactOptions} legend="Bevorzugte Kontaktart" />
+        <FormConditional when="contactPreference" is="email">
           <FormField label="E-Mail" name="email" type="email" required autocomplete="email" />
         </FormConditional>
-        <FormConditional when="contact-preference" is="phone">
+        <FormConditional when="contactPreference" is="phone">
           <FormField label="Telefon" name="phone" type="tel" required autocomplete="tel" />
         </FormConditional>
-        <FormRadioGroup name="counselor-preference" options={counselorOptions} legend="Bevorzugtes Geschlecht der beratenden Person" />
+        <FormRadioGroup name="counselorPreference" options={counselorOptions} legend="Bevorzugtes Geschlecht der beratenden Person" />
       </BaseForm>
     </div>
   </section>

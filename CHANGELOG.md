@@ -12,6 +12,26 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-01
+
+### Changed
+
+- All public forms now go through one `POST /forms` endpoint (`{ id, payload }`) instead of
+  one route per form. The API validates the payload and hands it to a notification layer
+  (`apps/api/src/lib/form-notifications.ts`) that translates it into the notification email.
+- Forms are registered in a single place, `packages/types/src/Forms.ts` (`FormInputs` +
+  `formValidators`); adding a form means one entry there and one in the notification layer.
+- Counseling form fields `contact-preference` / `counselor-preference` renamed to
+  `contactPreference` / `counselorPreference`. The counseling mail now shows readable labels
+  and includes the contact method.
+- `BaseForm`'s `formId` is typed as `FormId`.
+- Version bumps: `apps/api` 1.1.0, `apps/web` 1.1.0, `packages/types` 1.1.0.
+
+### Removed
+
+- `FormsClient` and `ApiClient.forms` from `@felsengrund/types`, and the `POST /contact`,
+  `/counseling`, `/feedback` and `/prayer-request` routes.
+
 ## [1.0.1] - 2026-09-28
 
 ### Changed
