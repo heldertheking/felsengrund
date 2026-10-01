@@ -1,0 +1,61 @@
+version: 2
+updates:
+  # Root dependencies (root-level devDependencies, configs, build tools)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+      minor-and-patch:
+        update-types:
+          - "patch"
+          - "minor"
+
+  # App: Astro Frontend
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      astro-ecosystem:
+        patterns:
+          - "astro*"
+          - "@astrojs/*"
+      minor-and-patch:
+        update-types:
+          - "patch"
+          - "minor"
+
+  # App: Cloudflare Worker
+  - package-ecosystem: "npm"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      cloudflare:
+        patterns:
+          - "wrangler"
+          - "@cloudflare/*"
+      minor-and-patch:
+        update-types:
+          - "patch"
+          - "minor"
+
+  # Package: Shared Types
+  - package-ecosystem: "npm"
+    directory: "/packages/types"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Package: Shared Logger
+  - package-ecosystem: "npm"
+    directory: "/packages/logger"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
