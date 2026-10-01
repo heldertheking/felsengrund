@@ -3,20 +3,25 @@
   "private": true,
   "version": "1.1.0",
   "type": "module",
+  "types": "./dist/apps/api/src/index.d.ts",
   "repository": "https://github.com/heldertheking/felsengrund",
   "scripts": {
     "dev:local": "wrangler dev",
     "dev:develop": "wrangler dev -e=development",
     "deploy": "wrangler deploy -e=production",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:types": "tsc -p tsconfig.build.json",
+    "dev:types": "tsc -p tsconfig.build.json --watch --preserveWatchOutput"
   },
   "dependencies": {
     "@felsengrund/logger": "*",
     "@felsengrund/types": "*",
+    "@hono/zod-validator": "^0.9.1",
     "@markdoc/markdoc": "^0.5.9",
     "hono": "^4.6.14",
     "worker-mailer": "^1.2.1",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",

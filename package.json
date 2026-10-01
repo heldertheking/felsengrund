@@ -9,9 +9,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\" \"npm run dev:types\"",
     "dev:web": "npm run dev -w @felsengrund/web",
     "dev:api": "npm run dev:local -w @felsengrund/api",
+    "dev:types": "npm run dev:types -w @felsengrund/api",
     "build:web": "npm run build -w @felsengrund/web",
     "build:api": "npm run build -w @felsengrund/api",
     "lint": "eslint .",

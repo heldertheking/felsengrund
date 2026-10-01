@@ -91,17 +91,21 @@ import FormRow from '../components/form/FormRow.astro';
 
       <div class="mt-8 rounded-xl border border-kf-edge bg-kf-surface p-5 shadow-sm sm:p-8">
         <BaseForm formId="prayer" submitLabel="Gebetsanliegen senden">
-          <FormField name="topic" required autocomplete="off" label="Um welches Thema geht es?"/>
+          <FormField name="topic" required autocomplete="off" label="Um welches Thema geht es?" />
           <FormField name="description" required as="textarea" label="Erzähle uns mehr" />
           <FormRow>
-            <FormCheckbox id="pr-anonymous" name="anonymous" checked>Ich möchte anonym bleiben.</FormCheckbox>
-            <FormCheckbox id="pr-answer" name="answer">Ich möchte eine rückmeldung erhalten.</FormCheckbox>
+            <FormCheckbox id="pr-anonymous" name="anonymous" checked>
+              Ich möchte anonym bleiben.
+            </FormCheckbox>
+            <FormCheckbox id="pr-answer" name="answer">
+              Ich möchte eine rückmeldung erhalten.
+            </FormCheckbox>
           </FormRow>
           <FormConditional when="anonymous" is="!on">
             <FormField name="displayName" required autocomplete="name" label="Wie sollen wir dich nennen?" />
           </FormConditional>
           <FormConditional when="answer" is="on">
-            <FormField name="email" required autocomplete="email" label="E-mail Adresse"/>
+            <FormField name="email" required autocomplete="email" label="E-mail Adresse" />
           </FormConditional>
         </BaseForm>
       </div>
@@ -121,12 +125,20 @@ import FormRow from '../components/form/FormRow.astro';
 
         <div class="mt-8 rounded-xl border border-kf-edge bg-kf-surface p-5 shadow-sm sm:p-8">
           <BaseForm formId="feedback" submitLabel="Rückmeldung Absenden." successMessage="Danke für deine Rückmeldung">
-            <FormField label="Dein(e) Fragen, Anliegen oder Feedback" name="message" required autocomplete="off" as="textarea" />
-            <FormCheckbox id="fb-anonymous" name="anonymous" checked>Ich möchte anonym bleiben.</FormCheckbox>
+            <FormField
+              label="Dein(e) Fragen, Anliegen oder Feedback"
+              name="message"
+              required
+              autocomplete="off"
+              as="textarea"
+            />
+            <FormCheckbox id="fb-anonymous" name="anonymous" checked>
+              Ich möchte anonym bleiben.
+            </FormCheckbox>
             <FormConditional when="anonymous" is="!on">
               <FormRow>
                 <FormField name="displayName" required autocomplete="name" label="Wie sollen wir dich nennen?" />
-                <FormField name="email" required autocomplete="email" label="E-mail Adresse"/>
+                <FormField name="email" required autocomplete="email" label="E-mail Adresse" />
               </FormRow>
             </FormConditional>
           </BaseForm>

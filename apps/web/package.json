@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "build:api-types": "tsc -p ../api/tsconfig.build.json",
+    "build": "npm run build:api-types && astro check && astro build",
     "preview": "astro preview",
-    "typecheck": "astro check"
+    "typecheck": "npm run build:api-types && astro check"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.5",
@@ -17,12 +18,14 @@
     "astro": "^7.3.1",
     "fflate": "^0.8.2",
     "framer-motion": "^11.11.17",
+    "hono": "^4.6.14",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@felsengrund/api": "*",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "tailwindcss": "^4.3.3",

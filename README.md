@@ -20,7 +20,10 @@ a traditional client/API split rather than a single server-rendered app:
   streaming, and the admin CMS's backend (bearer-token auth, not cookies — see
   [`docs/architecture.md`](./docs/architecture.md)).
 - **`packages/types`** — shared TypeScript types (offers, podcast episodes, nav, admin,
-  forms) used by both `apps/web` and `apps/api` so the two halves agree on shapes.
+  forms) used by both `apps/web` and `apps/api`, plus the form registry. `apps/web` calls the
+  API through a Hono RPC client typed from the API's routes (see
+  [`docs/architecture.md`](./docs/architecture.md#typed-api-client-hono-rpc)), so the two halves
+  can't drift apart.
 - **`packages/logger`** — a tiny leveled console logger (`createLogger()`) shared across
   `apps/api`'s middleware, routes, and services (request logging, error logging, the mail
   notification service) for consistent, namespaced log output.

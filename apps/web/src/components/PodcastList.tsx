@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { apiClient } from '../lib/api';
+import { api, unwrap } from '../lib/api';
 import type { Episode, PodcastSpeaker } from '@felsengrund/types';
 
 type State = { status: 'loading' } | { status: 'error' } | { status: 'ready'; episodes: Episode[] };
@@ -10,8 +10,7 @@ export default function PodcastList() {
   useEffect(() => {
     let cancelled = false;
 
-    apiClient.podcast
-      .list()
+    unwrap(api.podcast.$get())
       .then((episodes) => {
         if (!cancelled) setState({ status: 'ready', episodes });
       })

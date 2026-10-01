@@ -29,33 +29,33 @@ const hintId = hint ? `${id}-hint` : undefined;
 >
   <legend class="font-display text-sm font-medium text-kf-ink">
     {legend}
-    {
-      required ? (
-        <span class="text-kf-accent" aria-hidden="true">
-          {' '}
-          *
-        </span>
-      ) : (
-        <span class="text-xs font-normal text-kf-ink-muted"> (optional)</span>
-      )
-    }
+    {required ? (
+      <span class="text-kf-accent" aria-hidden="true">
+        {' '}
+        *
+      </span>
+    ) : (
+      <span class="text-xs font-normal text-kf-ink-muted"> (optional)</span>
+    )}
   </legend>
   <div class="flex flex-wrap gap-x-6">
-    {
-      options.map((option) => (
-        <label class="flex min-h-11 items-center gap-2 py-2 text-sm text-kf-ink">
-          <input
-            type="radio"
-            name={name}
-            value={option.value}
-            required={required}
-            class="h-4 w-4 border-kf-edge text-kf-accent focus:outline-none focus:ring-2 focus:ring-kf-accent/40"
-          />
-          {option.label}
-        </label>
-      ))
-    }
+    {options.map((option) => (
+      <label class="flex min-h-11 items-center gap-2 py-2 text-sm text-kf-ink">
+        <input
+          type="radio"
+          name={name}
+          value={option.value}
+          required={required}
+          class="h-4 w-4 border-kf-edge text-kf-accent focus:outline-none focus:ring-2 focus:ring-kf-accent/40"
+        />
+        {option.label}
+      </label>
+    ))}
   </div>
-  {hint && <p id={hintId} class="text-xs text-kf-ink-muted">{hint}</p>}
+  {hint && (
+    <p id={hintId} class="text-xs text-kf-ink-muted">
+      {hint}
+    </p>
+  )}
   <p id={`${id}-error`} data-field-error hidden class="text-sm text-red-700"></p>
 </fieldset>

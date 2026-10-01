@@ -1,0 +1,14 @@
+{
+  // Emits declaration files only. `apps/web` consumes the API's route types (`AppType`, `Client`)
+  // through these, so it never has to type-check the Worker's source. See docs/architecture.md.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    // The API imports the workspace packages by source, so their declarations are emitted too.
+    "rootDir": "../.."
+  },
+  "include": ["src/**/*", "worker-configuration.d.ts"]
+}

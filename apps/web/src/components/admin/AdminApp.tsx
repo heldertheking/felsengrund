@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { apiClient, clearAdminToken, getAdminToken, setAdminToken } from '../../lib/api';
+import { api, clearAdminToken, getAdminToken, setAdminToken, unwrap } from '../../lib/api';
 import Breadcrumbs from '../Breadcrumbs';
 import OffersManager from './OffersManager';
 import PodcastManager from './PodcastManager';
@@ -17,7 +17,7 @@ function LoginForm({ onLoggedIn }: { onLoggedIn: () => void }) {
     setError(null);
 
     try {
-      const token = await apiClient.admin.login(password);
+      const { token } = await unwrap(api.admin.login.$post({ form: { password } }));
       setAdminToken(token);
       onLoggedIn();
     } catch (err) {

@@ -29,17 +29,21 @@ import FormConditional from '../components/form/FormConditional.astro';
       </p>
 
       <BaseForm formId="prayer" submitLabel="Gebetsanliegen senden" class="mt-8">
-        <FormField name="topic" required autocomplete="off" label="Um welches Thema geht es?"/>
+        <FormField name="topic" required autocomplete="off" label="Um welches Thema geht es?" />
         <FormField name="description" required as="textarea" label="Erzähle uns mehr" />
         <FormRow>
-          <FormCheckbox id="pr-anonymous" name="anonymous" checked>Ich möchte anonym bleiben.</FormCheckbox>
-          <FormCheckbox id="pr-answer" name="answer">Ich möchte eine rückmeldung erhalten.</FormCheckbox>
+          <FormCheckbox id="pr-anonymous" name="anonymous" checked>
+            Ich möchte anonym bleiben.
+          </FormCheckbox>
+          <FormCheckbox id="pr-answer" name="answer">
+            Ich möchte eine rückmeldung erhalten.
+          </FormCheckbox>
         </FormRow>
         <FormConditional when="anonymous" is="!on">
           <FormField name="displayName" required autocomplete="name" label="Wie sollen wir dich nennen?" />
         </FormConditional>
         <FormConditional when="answer" is="on">
-          <FormField name="email" required autocomplete="email" label="E-mail Adresse"/>
+          <FormField name="email" required autocomplete="email" label="E-mail Adresse" />
         </FormConditional>
       </BaseForm>
     </div>

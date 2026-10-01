@@ -100,7 +100,10 @@ the `quality` job.
 **Pull requests** — every PR, regardless of its target branch, runs `quality` (typecheck, ESLint,
 and a non-blocking Prettier check), then build and test for both `apps/web` and `apps/api`, plus
 Gitleaks and CodeQL. Nothing deploys from a PR. The path filter only applies to pushes to
-`master`, where it decides what gets deployed (changes under `packages/**` count for both).
+`master`, where it decides what gets deployed (changes under `packages/**` count for both, and
+changes under `apps/api/**` also count for the web app, because its client is typed from the API).
+The web `typecheck` and `build` first emit the API's route declarations, so nothing has to be built
+before them.
 
 This replaced the Worker's Cloudflare **Workers Builds** dashboard integration (Workers &
 Pages → this Worker → Settings → Builds) — disable/disconnect that if it's still configured,

@@ -81,6 +81,41 @@ request support for podcast audio scrubbing: `parseRangeHeader()`/`toR2Range()` 
 `lib/media/index.ts`) parse the header, and the route returns `206 Partial Content` with
 `Content-Range`, falling back to the full object if R2 rejects the range.
 
+## Typed API client (Hono RPC)
+
+`apps/web` has no hand-written API clients. It calls `apps/api` through
+[Hono's RPC client](https://hono.dev/docs/guides/rpc) (`hc`), typed from the route definitions,
+so a route change that breaks the site fails the build instead of failing in production.
+
+```ts
+const offers = await unwrap(api.offers.$get()); // typed as the route's JSON
+const offer = await unwrapOrNull(api.offers[':slug'].$get({ param: { slug } })); // 404 -> null
+await unwrap(api.admin.offers.$post({ form: offerForm(input) })); // `form` is checked against the schema
+```
+
+`api`, `unwrap` and `unwrapOrNull` live in `apps/web/src/lib/api.ts`. That file also adds the admin
+bearer token to `/admin/*` requests and turns a `401` into `UnauthorizedError`.
+
+**Rules for routes in `apps/api/src/routes/`**
+
+- Keep one file per resource, but chain the handlers inside it:
+  `new Hono<{ Bindings: Env }>().get(...).post(...)`. Separate `route.get(...)` statements don't
+  add to the type, so the client would not see them.
+- Add the new route module to the chain in `apps/api/src/index.ts`. `AppType` comes from there.
+- Validate request input with `zValidator` (zod). That is what gives the client its input type.
+  Admin endpoints use `formInput(schema)` in `admin.ts`, which answers with the schema's message.
+- Return typed bodies: `c.json(data)` and `c.json(createApiError('…'), 404)`. Avoid helpers that
+  return a bare `Response`, because they hide the response type from the client.
+- Streaming routes (`/media/*`) stay out of `AppType` on purpose.
+
+**How the types reach the web app.** `apps/web` never type-checks the Worker's source. Instead
+`apps/api/tsconfig.build.json` emits declaration files into `apps/api/dist` (git-ignored), and
+the web app imports only types from `@felsengrund/api` (`import type { AppType, Client }`), which
+are erased at build time. Hono's docs recommend this approach for separate front and back ends.
+The web `typecheck` and `build` scripts run `build:api-types` first, so they work on a fresh
+checkout. `npm run dev` also runs `dev:types`, which re-emits the declarations on every change so
+the editor stays current.
+
 ## Public pages fetch from the API client-side
 
 `apps/web` is a fully static build — there is no per-request server rendering anymore.
@@ -131,7 +166,7 @@ All requiring a valid bearer token except login:
 
 | Route                  | Method | Purpose                                                                                                              |
 | ---------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
-| `/admin/login`         | POST   | Checks the submitted password against `KFA_ADMIN_PASSWORD` (constant-time); on success returns `{ token }`                           |
+| `/admin/login`         | POST   | Checks the submitted password against `KFA_ADMIN_PASSWORD` (constant-time); on success returns `{ token }`           |
 | `/admin/logout`        | POST   | Stateless no-op (kept for symmetry/future revocation) — the frontend just discards its stored token                  |
 | `/admin/offers`        | POST   | Creates or updates an offer (multipart form; handles the optional `cardImage` upload)                                |
 | `/admin/offers/import` | POST   | Imports an offer from an uploaded `.mdoc` file (frontmatter + body); 409 if the slug already exists                  |
@@ -191,12 +226,12 @@ is hardcoded in the route.
 ## Error responses
 
 Every route returns errors as `createApiError(message, meta?)` (`apps/api/src/types.ts`):
-`{ status: 'error' | 'fail', message, meta? }`. `packages/types`' `ErrorResponse` and the shared
-API client (`BaseClient`/`AdminClient`) read `message` and surface it in the UI. Form routes use
+`{ status: 'error' | 'fail', message, meta? }`. `unwrap` in `apps/web/src/lib/api.ts` reads `message`
+and throws it as an `ApiError`, which the UI shows. Form routes use
 `createFormError`, which adds `type` and `validationErrors`:
 
 - Validation failure: `400` with `{ status: 'error', type: 'validation', message: 'Missing fields',
-  validationErrors: { missing: [...] }, meta: { submittedAt } }`.
+validationErrors: { missing: [...] }, meta: { submittedAt } }`.
 - Email delivery failure: `502` with `{ status: 'fail', type: 'sending', message }` (logged server-side).
 - Unhandled errors: `500` via `onError`, with `meta.requestId` matching the log line.
 - Admin messages are German, since they're shown to the editor.

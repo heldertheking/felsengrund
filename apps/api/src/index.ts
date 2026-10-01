@@ -19,20 +19,27 @@ app.use('*', requestLogger);
 app.use('*', checkRequiredBindings);
 app.use('*', corsMiddleware);
 
-app.get('/', (c) =>
-  c.json({
-    name: 'Kirche Felsengrund API',
-    version: pkg.version,
-    repository: pkg.repository,
-    environment: c.env.ENVIRONMENT,
-  }),
-);
+// Chained so the route types accumulate: `AppType` below is what `apps/web`'s Hono client is
+// typed from (see `client.ts` and docs/architecture.md). Add new route modules to this chain.
+const routes = app
+  .get('/', (c) =>
+    c.json({
+      name: 'Kirche Felsengrund API',
+      version: pkg.version,
+      repository: pkg.repository,
+      environment: c.env.ENVIRONMENT,
+    }),
+  )
+  .route('/', formsRoute)
+  .route('/', offersRoute)
+  .route('/', podcastRoute)
+  .route('/', adminRoute);
 
-app.route('/', formsRoute);
-app.route('/', offersRoute);
-app.route('/', podcastRoute);
+// Streams raw R2 objects, which the typed client never calls - kept out of `AppType`.
 app.route('/', mediaRoute);
-app.route('/', adminRoute);
+
+export type AppType = typeof routes;
+export type { Client } from './client';
 
 // API only worker - no UI served; the admin UI lives in apps/web.
 app.notFound((c) => {
@@ -55,4 +62,5 @@ app.onError((error, c) => {
   return c.json(createApiError('Internal server error.', { requestId }), 500);
 });
 
-export default app;
+// `routes` is `app` itself (chaining returns the same instance); exporting it keeps the typed chain as the default export.
+export default routes;
