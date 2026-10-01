@@ -1,0 +1,112 @@
+name: Release
+
+on:
+  push:
+    branches: [master]
+  # Dry run only: any PR that touches the workflow or the changelog extracts and prints the
+  # notes but never tags, publishes or closes anything.
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - '.github/scripts/changelog-section.sh'
+      - 'CHANGELOG.md'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Only print the release notes, publish nothing'
+        type: boolean
+        default: true
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write # closing the milestone
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      # Publish only for pushes to master. Everything else (PRs, manual runs on other refs,
+      # manual runs with dry_run) only prints the notes.
+      DRY_RUN: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/master') && !(github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master' && !inputs.dry_run) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Read version
+        id: version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if ! echo "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::package.json version '$version' is not a valid semver version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Extract release notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if ! bash .github/scripts/changelog-section.sh "$VERSION" CHANGELOG.md > "$RUNNER_TEMP/notes.md"; then
+            echo "::error file=CHANGELOG.md::No non-empty '## [$VERSION]' section in CHANGELOG.md (version comes from package.json). Refusing to publish empty release notes."
+            exit 1
+          fi
+          {
+            echo "## Release notes for v$VERSION"
+            echo
+            echo "Mode: $([ "$DRY_RUN" = true ] && echo 'dry run (nothing is published)' || echo 'publish')"
+            echo
+            cat "$RUNNER_TEMP/notes.md"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Check for an existing tag
+        id: tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if [ -n "$(git ls-remote --tags origin "refs/tags/$TAG")" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Tag $TAG already exists on the remote, nothing to publish."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Dry run
+        if: env.DRY_RUN == 'true' && steps.tag.outputs.exists == 'false'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          echo "::notice::Dry run: would publish $TAG from $GITHUB_SHA with the notes above."
+
+      - name: Publish release
+        if: env.DRY_RUN != 'true' && steps.tag.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          flags=()
+          case "$VERSION" in *-*) flags+=(--prerelease) ;; esac
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "Release $VERSION" --notes-file "$RUNNER_TEMP/notes.md" "${flags[@]}"
+
+      - name: Close milestone
+        if: env.DRY_RUN != 'true' && steps.tag.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          number=$(gh api "repos/$GITHUB_REPOSITORY/milestones?state=open&per_page=100" --paginate \
+            --jq ".[] | select(.title == \"Release $VERSION\") | .number" | head -n 1) || true
+          if [ -z "$number" ]; then
+            echo "::notice::No open milestone 'Release $VERSION', nothing to close."
+            exit 0
+          fi
+          if gh api --method PATCH "repos/$GITHUB_REPOSITORY/milestones/$number" -f state=closed > /dev/null; then
+            echo "Closed milestone 'Release $VERSION'."
+          else
+            echo "::warning::Could not close milestone 'Release $VERSION'."
+          fi

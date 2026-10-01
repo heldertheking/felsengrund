@@ -55,6 +55,13 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 - The admin form builders (`offerForm`, `podcastForm`) moved to `apps/web/src/lib/admin-forms.ts`
   and are type-checked against the API's schemas.
 
+### Added
+
+- `.github/workflows/release.yml` publishes a GitHub Release from the matching `CHANGELOG.md`
+  section when a release lands on `master`, so people can follow releases via Watch -> Custom ->
+  Releases or `/releases.atom`. The version comes from the root `package.json`; PRs touching the
+  workflow or the changelog run it as a dry run that only prints the notes.
+
 ### Fixed
 
 - Podcast RSS feed no longer starts with whitespace before the XML declaration; descriptions and the self-link are escaped and CDATA is safe against `]]>`.
