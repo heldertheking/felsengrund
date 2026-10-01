@@ -6,14 +6,14 @@ labels: translation
 ---
 
 We're more than glad if you'd like to help translate the site into another
-language — thank you for offering!
+language, thank you for offering!
 
 **The best way to get started is to email us directly** at
 **kontakt@kirche-felsengrund.ch** with the subject line
 **"Translation assistance for `<language>`"** (replace `<language>` with the
 language you'd like to help with), and we'll get back to you with what's
 needed. You're also welcome to use this issue to start the conversation
-instead — whichever is easier for you.
+instead, whichever is easier for you.
 
 ---
 

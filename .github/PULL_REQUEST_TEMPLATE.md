@@ -1,5 +1,5 @@
 > This repository doesn't accept unsolicited pull requests from third
-> parties — see [`CONTRIBUTING.md`](../CONTRIBUTING.md). If you weren't asked
+> parties; see [`CONTRIBUTING.md`](../CONTRIBUTING.md). If you weren't asked
 > to open this (e.g. as an invited translator or maintainer), please open an
 > issue instead.
 

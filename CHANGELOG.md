@@ -7,10 +7,17 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 > **Note:** version tracking only started with the `1.0.0` release candidate in
 > September 2026. Entries before that are reconstructed from git history for
-> context, not from actual published version numbers — dates and grouping are
+> context, not from actual published version numbers; dates and grouping are
 > approximate.
 
 ## [Unreleased]
+
+## [1.1.1] - 2026-10-01
+
+### Changed
+
+- Added the `slop/no-em-dash` rule (`eslint-plugin-slop`) to the global ESLint config and removed every em dash
+  from code, comments, workflows and docs, rewording the affected sentences.
 
 ## [1.1.0] - 2026-10-01
 

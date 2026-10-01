@@ -8,7 +8,7 @@ interface HeroRevealProps {
 /**
  * Small framer-motion island used only for the hero's fade/slide-in reveal.
  * Everything inside is static markup passed in as slotted children from
- * index.astro — this component just animates it in once it enters view.
+ * index.astro; this component just animates it in once it enters view.
  */
 export default function HeroReveal({ children }: HeroRevealProps) {
   return (

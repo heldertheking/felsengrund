@@ -4,11 +4,18 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 import eslintPluginAstro from 'eslint-plugin-astro';
+import slop from 'eslint-plugin-slop';
 
 export default tseslint.config(
   // Global Ignores
   {
     ignores: ['**/dist/**', '**/.astro/**', '**/worker-configuration.d.ts', '**/.wrangler/**', '.claude/worktrees/**'],
+  },
+
+  // Global: no em dashes anywhere
+  {
+    plugins: { slop },
+    rules: { 'slop/no-em-dash': 'error' },
   },
 
   // Base TypeScript & JS Configuration
