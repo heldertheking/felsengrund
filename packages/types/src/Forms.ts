@@ -69,8 +69,18 @@ export type FormValidator = (payload: FormPayload) => string | null;
 
 const INVALID = 'Fehlende oder ungültige Angaben.';
 const MAX_LENGTH = 5000;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_EMAIL_LENGTH = 254;
 const CHECKED = ['on'];
+
+/** Plain string checks instead of a regex, so a crafted value can't cause catastrophic backtracking. */
+function isEmail(value: string): boolean {
+  if (value.length > MAX_EMAIL_LENGTH || /\s/.test(value)) return false;
+  const at = value.indexOf('@');
+  if (at < 1 || at !== value.lastIndexOf('@')) return false;
+  const domain = value.slice(at + 1);
+  const dot = domain.lastIndexOf('.');
+  return dot > 0 && dot < domain.length - 1;
+}
 
 /**
  * Checks that every `required` field is present as a string (the collector omits empty fields) and that `optional` fields, if present,
@@ -87,7 +97,7 @@ function checkFields(
   // Everything ends up in an email: cap lengths, and keep a malformed address out of `replyTo`.
   const tooLong = Object.values(payload).some((v) => [v].flat().some((t) => t.length > MAX_LENGTH));
   if (tooLong) return INVALID;
-  if (typeof payload.email === 'string' && !EMAIL_PATTERN.test(payload.email)) return INVALID;
+  if (typeof payload.email === 'string' && !isEmail(payload.email)) return INVALID;
   for (const [key, allowed] of Object.entries(oneOf)) {
     if (payload[key] !== undefined && !allowed.includes(payload[key] as string)) return INVALID;
   }
