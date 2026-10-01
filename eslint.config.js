@@ -55,6 +55,14 @@ export default tseslint.config(
     },
   },
 
+  // Node-run config files (astro.config.mjs etc.)
+  {
+    files: ['**/*.mjs', '**/*.config.{js,ts}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+
   // Overrides for Astro environment type declarations
   {
     files: ['**/src/env.d.ts'],

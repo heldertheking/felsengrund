@@ -3,10 +3,42 @@ name: Deployment
 on:
   push:
     branches: [master]
+  # Every PR, whatever its target branch (feature -> release/*, release -> master, ...), runs the
+  # pipeline up to and including the test stage. Only pushes to master continue on to deploy.
   pull_request:
-    branches: [master]
+
+concurrency:
+  group: deployment-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # Not blocking yet: master still has files that aren't Prettier-clean. Make this a hard
+      # failure (drop the `||` fallback) once `npm run format:write` has been run over the repo.
+      - name: Format check
+        run: npm run format:check || echo "::warning::Prettier found unformatted files (not blocking yet) - run 'npm run format:write'."
+
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -20,13 +52,22 @@ jobs:
           filters: |
             frontend:
                - 'apps/web/**'
+               - 'packages/**'
+               - 'package.json'
+               - 'package-lock.json'
+               - '.github/workflows/deployment.yml'
             backend:
                - 'apps/api/**'
+               - 'packages/**'
+               - 'package.json'
+               - 'package-lock.json'
+               - '.github/workflows/deployment.yml'
 
   build-web:
     name: Build Webpage
     needs: changes
-    if: ${{ needs.changes.outputs.frontend == 'true' }}
+    # PRs always build + test; the path filter only decides what gets deployed from master.
+    if: ${{ github.event_name == 'pull_request' || needs.changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -107,7 +148,7 @@ jobs:
 
   deploy-web:
     name: Deploy Webpage
-    needs: test-web
+    needs: [test-web, quality]
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
@@ -129,7 +170,7 @@ jobs:
   build-api:
     name: Build Worker
     needs: changes
-    if: ${{ needs.changes.outputs.backend == 'true' }}
+    if: ${{ github.event_name == 'pull_request' || needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -176,7 +217,7 @@ jobs:
 
   deploy-api:
     name: Deploy Worker
-    needs: test-api
+    needs: [test-api, quality]
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:

@@ -94,8 +94,13 @@ push to `master` that touches `apps/api/**`, it runs `wrangler deploy -e product
 (Settings → Secrets and variables → Actions → Secrets — needs Workers Scripts:Edit permission
 on the token). It's gated behind `build-api` (typechecks via
 `npm run typecheck -w @felsengrund/api`) and `test-api` (runs `npm run test -w @felsengrund/api`
-if that script exists yet — otherwise it just warns and passes), which also run on PRs touching
-`apps/api/**` as the correctness check.
+if that script exists yet — otherwise it just warns and passes). Deploy additionally waits for
+the `quality` job.
+
+**Pull requests** — every PR, regardless of its target branch, runs `quality` (typecheck, ESLint,
+and a non-blocking Prettier check), then build and test for both `apps/web` and `apps/api`, plus
+Gitleaks and CodeQL. Nothing deploys from a PR. The path filter only applies to pushes to
+`master`, where it decides what gets deployed (changes under `packages/**` count for both).
 
 This replaced the Worker's Cloudflare **Workers Builds** dashboard integration (Workers &
 Pages → this Worker → Settings → Builds) — disable/disconnect that if it's still configured,

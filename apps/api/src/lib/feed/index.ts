@@ -72,8 +72,6 @@ const parseAudioMetadata = async (path: string): Promise<{ size: number; type: s
   };
 };
 
-const XML_ENTITIES: Record<string, string> = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'" };
-
 /** Rendered HTML -> plain text, unescaped; callers must run it through `escapeXml` before embedding. */
 const stripToPlainText = async (html: string): Promise<string> => {
   let text = '';
