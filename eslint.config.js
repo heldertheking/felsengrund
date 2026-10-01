@@ -18,6 +18,16 @@ export default tseslint.config(
   // Astro Files Configuration
   ...eslintPluginAstro.configs.recommended,
 
+  // Config & Script Files (Node runtime)
+  {
+    files: ['**/*.config.{js,mjs,ts}', '**/*.config.*.{js,mjs,ts}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+
   // React / Frontend App Rules (Astro / UI)
   {
     files: ['apps/web/**/*.{ts,tsx}'], // Scope React rules specifically to your UI app

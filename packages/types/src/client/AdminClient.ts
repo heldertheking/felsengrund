@@ -11,11 +11,11 @@ export class AdminClient extends BaseClient {
     });
     const data = (await response.json().catch(() => null)) as {
       token?: string;
-      error?: string;
+      message?: string;
     } | null;
 
     if (!response.ok || !data?.token) {
-      throw new ApiError(response.status, data?.error ?? `Fehler ${response.status}`);
+      throw new ApiError(response.status, data?.message ?? `Fehler ${response.status}`);
     }
 
     return data.token;

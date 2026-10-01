@@ -12,6 +12,33 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-30
+
+### Changed
+
+- Refactored `apps/api`: `packages/api-core` was folded into `apps/api/src/lib/`, split into
+  `authentication`, `feed`, `media`, `storage` (`OffersRepository`/`PodcastRepository`) and
+  `notification` (mail + email templates) modules, exported through a single `lib` barrel.
+- Media URL rewriting and Range parsing moved to `lib/media`; the podcast RSS feed builder moved to `lib/feed`.
+- Form, media, offers and podcast routes now return structured errors (`createApiError`/`createFormError`).
+- `KFA_SESSION_TTL_MS` now controls the admin token lifetime.
+- All API errors now use one `{ status, message, meta? }` shape; the shared client in `packages/types` reads `message`.
+- Failed notification emails now return a `502` form error instead of an unhandled `500`.
+- Non-production notification recipient moved from source to the optional `KFA_DEV_NOTIFICATION_RECIPIENT` secret.
+- Podcast feed `Last-Modified` is now the newest episode's publish date.
+- Admin password check is now constant-time; noisy upload debug logging removed.
+
+### Fixed
+
+- Podcast RSS feed no longer starts with whitespace before the XML declaration; descriptions and the self-link are escaped and CDATA is safe against `]]>`.
+- `@markdoc/markdoc` and `yaml` are declared in `apps/api` (they were only declared by the removed `api-core`).
+- Deleting an offer/episode now removes its media from R2.
+
+### Removed
+
+- `packages/api-core` workspace package.
+- Unused `KFA_NOTIFICATION_WEBHOOK` variable (notifications go out through the email worker now).
+
 ## [1.0.1] - 2026-09-28
 
 ### Changed
@@ -25,8 +52,8 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 ## [1.0.0] - 2026-09-28
 
 First tracked release. The project had already been in active use before this
-point; this tag marks the switch to explicit version numbers and a CI/CD
-pipeline that bumps them automatically.
+point; this tag marks the switch to explicit version numbers (bumped manually
+in the `package.json` files) and a CI/CD deployment pipeline.
 
 ### Added
 
@@ -61,6 +88,7 @@ Before version numbers were tracked, the project went through:
 
 See the git history for full detail on this period.
 
-[Unreleased]: https://github.com/heldertheking/felsengrund/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/heldertheking/felsengrund/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/heldertheking/felsengrund/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/heldertheking/felsengrund/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/heldertheking/felsengrund/releases/tag/v1.0.0

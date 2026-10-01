@@ -2,7 +2,7 @@ name: Deployment
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   # Every PR, whatever its target branch (feature -> release/*, release -> master, ...), runs the
   # pipeline up to and including the test stage. Only pushes to master continue on to deploy.
   pull_request:

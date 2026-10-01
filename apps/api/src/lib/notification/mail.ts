@@ -1,6 +1,6 @@
 import { createLogger } from '@felsengrund/logger';
 import { LogLevel, WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
-import type { Env } from '../types';
+import type { Env } from '../../types';
 import { emailTheme } from './email/theme';
 import { escapeHtml } from './email/escape-html';
 import { renderNotificationEmail, type NotificationEmailContent } from './email/notification-email';
@@ -19,9 +19,6 @@ export interface SendOptions {
 
 // Dedicated sending mailbox, separate from the human-read info@ inbox.
 const MAIL_FROM_ADDRESS = 'noreply@kirche-felsengrund.ch';
-
-// Non-production environments redirect all notification mail here.
-const DEV_NOTIFICATION_RECIPIENT = 'jroliveirahelder+kf-test@gmail.com';
 
 export class NotificationService {
   private readonly logger = createLogger('NotificationService');
@@ -57,7 +54,17 @@ export class NotificationService {
 
     const isProduction = env.ENVIRONMENT === 'production';
     const originalRecipient = this.formsToEmail[form];
-    const to = isProduction ? originalRecipient : DEV_NOTIFICATION_RECIPIENT;
+    // Non-production environments redirect all notification mail to this test inbox.
+    const to = isProduction ? originalRecipient : env.KFA_DEV_NOTIFICATION_RECIPIENT;
+
+    if (!to) {
+      // Never fall back to the real mailboxes outside production.
+      this.logger.warn('KFA_DEV_NOTIFICATION_RECIPIENT is not set - skipping notification email', {
+        environment: env.ENVIRONMENT,
+        originalRecipient,
+      });
+      return;
+    }
 
     if (!isProduction) {
       this.logger.info('Non-production environment - redirecting notification email', {
