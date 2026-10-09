@@ -12,3 +12,6 @@ KFA_MAIL_PASSWORD=changeme
 # Inbox that receives form notification emails locally (non-production never mails the real church inboxes;
 # without this, notification emails are skipped).
 KFA_DEV_NOTIFICATION_RECIPIENT=you@example.com
+
+# Local worker origin so /media URLs resolve against the local R2 instead of the deployed worker.
+KFA_WORKER_ORIGIN=http://localhost:8787

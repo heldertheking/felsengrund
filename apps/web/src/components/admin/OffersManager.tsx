@@ -3,6 +3,7 @@ import { api, unwrap, UnauthorizedError } from '../../lib/api';
 import { offerForm } from '../../lib/admin-forms';
 import { CATEGORY_DETAILS, type Offer, type OfferFrontmatter, type OfferOrganizer } from '@felsengrund/types';
 import { downloadMdocExport } from '../../lib/export';
+import { ImageCropField } from './ImageCropField';
 import { filterMdocFiles } from '../../lib/mdoc';
 
 const CATEGORIES: { value: OfferFrontmatter['category']; label: string }[] = Object.entries(CATEGORY_DETAILS)
@@ -469,22 +470,13 @@ function OfferForm({
         </button>
       </div>
 
-      <div>
-        <label className={labelClass}>Kartenbild</label>
-        {offer?.data.cardImage && (
-          <img
-            src={offer.data.cardImage}
-            alt=""
-            className="mt-2 h-24 w-auto rounded-lg border border-kf-edge object-cover"
-          />
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setCardImage(e.target.files?.[0] ?? null)}
-          className="mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink file:mr-3 file:rounded-md file:border-0 file:bg-kf-accent file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
-        />
-      </div>
+      <ImageCropField
+        label="Kartenbild"
+        aspect={16 / 9}
+        maxOutputSize={1600}
+        currentUrl={offer?.data.cardImage}
+        onChange={setCardImage}
+      />
 
       <div>
         <label className={labelClass}>Inhalt (Markdoc)</label>

@@ -3,6 +3,7 @@ import { api, unwrap, UnauthorizedError } from '../../lib/api';
 import { podcastForm } from '../../lib/admin-forms';
 import type { Episode, PodcastSpeaker } from '@felsengrund/types';
 import { downloadMdocExport } from '../../lib/export';
+import { ImageCropField } from './ImageCropField';
 
 const inputClass =
   'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent';
@@ -434,22 +435,13 @@ function PodcastForm({
         </button>
       </div>
 
-      <div>
-        <label className={labelClass}>Cover-Bild</label>
-        {episode?.data.coverImage && (
-          <img
-            src={episode.data.coverImage}
-            alt=""
-            className="mt-2 h-24 w-24 rounded-lg border border-kf-edge object-cover"
-          />
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setCoverImage(e.target.files?.[0] ?? null)}
-          className={fileInputClass}
-        />
-      </div>
+      <ImageCropField
+        label="Cover-Bild"
+        aspect={1}
+        maxOutputSize={1400}
+        currentUrl={episode?.data.coverImage}
+        onChange={setCoverImage}
+      />
 
       <div>
         <label className={labelClass}>Shownotes (Markdoc)</label>
