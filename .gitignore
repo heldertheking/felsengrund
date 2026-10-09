@@ -7,3 +7,6 @@ dist
 *.tsbuildinfo
 /unused_assets
 .claude
+
+# Knowledge graph
+graphify-out/
