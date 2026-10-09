@@ -21,7 +21,7 @@
     "KFA_ALLOWED_ORIGINS": "http://localhost:4321,https://*.kirche-felsengrund.ch"
   },
   "secrets": {
-    "required": ["KFA_ADMIN_PASSWORD", "KFA_MAIL_PASSWORD"]
+    "required": ["KFA_ADMIN_PASSWORD", "KFA_MAIL_PASSWORD", "KFA_DEV_NOTIFICATION_RECIPIENT"]
   },
   "env": {
     // Variables and bindings are not inherit
@@ -54,7 +54,7 @@
         "KFA_ALLOWED_ORIGINS": "http://localhost:4321,https://*.kirche-felsengrund.ch"
       },
       "secrets": {
-        "required": ["KFA_ADMIN_PASSWORD", "KFA_MAIL_PASSWORD"]
+        "required": ["KFA_ADMIN_PASSWORD", "KFA_MAIL_PASSWORD", "KFA_DEV_NOTIFICATION_RECIPIENT"]
       },
       "r2_buckets": [
         {
