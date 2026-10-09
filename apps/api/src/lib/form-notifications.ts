@@ -1,6 +1,6 @@
 import type { FormId, FormInputs } from '@felsengrund/types';
-import { FORMS, type SendOptions } from './notification';
-import type { NotificationEmailContent } from './notification/email/notification-email';
+import { FORMS, type SendOptions } from './notification/types';
+import type { EmailContent } from './notification/template/base';
 
 /**
  * Translation layer: general form input -> notification email.
@@ -9,7 +9,7 @@ import type { NotificationEmailContent } from './notification/email/notification
  */
 export interface FormNotification {
   subject: string;
-  content: NotificationEmailContent;
+  content: EmailContent;
   mailbox: FORMS;
   options?: SendOptions;
 }
@@ -20,7 +20,7 @@ const CONTACT_METHOD_LABELS = { email: 'E-Mail', phone: 'Telefon' };
 const COUNSELOR_LABELS = { none: 'Keine Präferenz', female: 'Weiblich', male: 'Männlich' };
 
 const formNotifications: NotificationBuilders = {
-  contact: (input) => ({
+  contact: (input): FormNotification => ({
     subject: `Kontaktformular: ${input.subject}`,
     content: {
       heading: 'Neue Kontaktanfrage',
@@ -36,7 +36,7 @@ const formNotifications: NotificationBuilders = {
     options: { replyTo: { name: input.name, email: input.email } },
   }),
 
-  counseling: (input) => ({
+  counseling: (input): FormNotification => ({
     subject: `Lebensberatung: ${input.subject}`,
     content: {
       heading: 'Neue Anfrage für Lebensberatung',
@@ -58,7 +58,7 @@ const formNotifications: NotificationBuilders = {
     options: input.email ? { replyTo: { name: input.name, email: input.email } } : undefined,
   }),
 
-  feedback: (input) => ({
+  feedback: (input): FormNotification => ({
     subject: 'Feedback zur Website',
     content: {
       heading: 'Neues Feedback',
@@ -74,7 +74,7 @@ const formNotifications: NotificationBuilders = {
     options: input.email ? { replyTo: { name: input.displayName, email: input.email } } : undefined,
   }),
 
-  prayer: (input) => ({
+  prayer: (input): FormNotification => ({
     subject: `Gebetsanliegen: ${input.topic}`,
     content: {
       heading: 'Neues Gebetsanliegen',

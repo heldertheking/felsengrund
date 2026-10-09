@@ -45,9 +45,9 @@ export const formsRoute = new Hono<{ Bindings: Env }>().post(
     }
 
     // `formSchemas[id]` is a union over all forms, so TS can't correlate `id` with the parsed shape.
-    const { subject, content, mailbox, options } = buildFormNotification(id, parsed.data as FormInputs[typeof id]);
+    const notification = buildFormNotification(id, parsed.data as FormInputs[typeof id]);
     try {
-      await notificationService.send(subject, content, mailbox, c.env, options);
+      await notificationService.send(notification, c.env);
     } catch (sendError) {
       logger.error('failed to send notification email', { id, error: sendError });
       return c.json(createFormError('sending', 'Failed to send notification'), 502);

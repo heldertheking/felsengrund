@@ -1,5 +1,11 @@
 // Mirrors apps/web's --color-kf-* tokens and fonts, so emails match the site's branding.
-export const emailTheme = {
+export interface EmailTheme {
+  colors: Record<'accent' | 'accentSoft' | 'ink' | 'inkMuted' | 'surface' | 'surfaceSunken' | 'edge', string>;
+  fonts: { heading: string; body: string; googleFontsHref: string };
+  brand: { name: string; tagline: string; url: string };
+}
+
+export const emailTheme: EmailTheme = {
   colors: {
     accent: '#a31366',
     accentSoft: '#fda1d5',
@@ -20,4 +26,4 @@ export const emailTheme = {
     tagline: 'Kirche, die verändert',
     url: 'https://kirche-felsengrund.ch',
   },
-} as const;
+};
