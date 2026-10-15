@@ -14,10 +14,9 @@ beforeEach(async () => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-/** The admin forms use `<label>` without `for`, so find the control that shares the label's wrapper. */
+/** Finds a form control through its linked `<label for>`. Optional fields carry an "(optional)" tag in the label. */
 function control(label: string | RegExp): HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
-  const labelEl = screen.getByText(label, { selector: 'label, span' });
-  return labelEl.parentElement!.querySelector('input, textarea, select')!;
+  return screen.getByLabelText<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(label);
 }
 
 /** Sets a controlled input's value directly; typing character by character is not what these tests are about. */
@@ -224,9 +223,9 @@ describe('OffersManager', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Neues Angebot' }));
 
     expect(screen.getByRole('heading', { name: 'Neues Angebot' })).toBeInTheDocument();
-    fill(control('Titel'), 'Neu');
-    await userEvent.selectOptions(control('Kategorie'), 'Senioren');
-    fill(control('Ort'), 'Kirche');
+    fill(control('Titel *'), 'Neu');
+    await userEvent.selectOptions(control('Kategorie *'), 'Senioren');
+    fill(control(/^Ort/), 'Kirche');
     await userEvent.click(screen.getByRole('button', { name: 'Ansprechperson hinzufügen' }));
     await userEvent.click(screen.getByRole('button', { name: 'Ansprechperson hinzufügen' }));
     const [name1, , , name2] = screen.getAllByPlaceholderText(/^(Name|Rolle|Kontakt)$/);
@@ -259,7 +258,7 @@ describe('OffersManager', () => {
     await userEvent.click(within(row).getByRole('button', { name: 'Bearbeiten' }));
 
     expect(screen.getByRole('heading', { name: 'Angebot bearbeiten' })).toBeInTheDocument();
-    expect(control('Titel')).toHaveValue('Alpha');
+    expect(control('Titel *')).toHaveValue('Alpha');
     expect(screen.getByText('alpha', { selector: 'code' })).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Speichern' }));
@@ -282,7 +281,7 @@ describe('OffersManager', () => {
     mockApi({ 'GET /offers': () => jsonResponse([]), 'POST /admin/offers': () => jsonResponse({}, 401) });
     render(<OffersManager onUnauthorized={onUnauthorized} />);
     await userEvent.click(await screen.findByRole('button', { name: 'Neues Angebot' }));
-    fill(control('Titel'), 'X');
+    fill(control('Titel *'), 'X');
     await userEvent.click(screen.getByRole('button', { name: 'Speichern' }));
     await waitFor(() => expect(onUnauthorized).toHaveBeenCalled());
   });
@@ -301,21 +300,21 @@ describe('PodcastManager', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Neue Episode' }));
 
-    expect(control('Episodennummer')).toHaveValue(6);
+    expect(control(/^Episodennummer/)).toHaveValue(6);
   });
 
   it('requires an audio file for new episodes and not for edits', async () => {
     mockApi({ 'GET /podcast': () => jsonResponse(episodes) });
     render(<PodcastManager onUnauthorized={vi.fn()} />);
     await userEvent.click(await screen.findByRole('button', { name: 'Neue Episode' }));
-    expect(screen.getByText('Audiodatei (erforderlich)')).toBeInTheDocument();
-    expect(document.querySelector('input[type="file"][accept="audio/*"]')).toBeRequired();
+    expect(screen.getByLabelText('Audiodatei *')).toBeRequired();
+    expect(screen.getByLabelText('Audiodatei *')).toHaveAttribute('accept', 'audio/*');
 
     await userEvent.click(screen.getByRole('button', { name: 'Zurück zur Liste' }));
     const row = (await screen.findByText('Folge 1')).closest('li')!;
     await userEvent.click(within(row).getByRole('button', { name: 'Bearbeiten' }));
     expect(screen.getByText('Leer lassen, um die bestehende Datei zu behalten.')).toBeInTheDocument();
-    expect(document.querySelector('input[type="file"][accept="audio/*"]')).not.toBeRequired();
+    expect(screen.getByLabelText(/^Audiodatei/)).not.toBeRequired();
   });
 
   it('creates an episode with audio, speakers and a trimmed speaker list', async () => {
@@ -330,12 +329,9 @@ describe('PodcastManager', () => {
     render(<PodcastManager onUnauthorized={vi.fn()} />);
     await userEvent.click(await screen.findByRole('button', { name: 'Neue Episode' }));
 
-    fill(control('Titel'), 'Neue Folge');
-    fireEvent.change(control('Veröffentlichungsdatum'), { target: { value: '2026-05-01' } });
-    await userEvent.upload(
-      document.querySelector('input[type="file"][accept="audio/*"]')!,
-      new File(['a'], 'a.mp3', { type: 'audio/mpeg' }),
-    );
+    fill(control('Titel *'), 'Neue Folge');
+    fireEvent.change(control('Veröffentlichungsdatum *'), { target: { value: '2026-05-01' } });
+    await userEvent.upload(screen.getByLabelText('Audiodatei *'), new File(['a'], 'a.mp3', { type: 'audio/mpeg' }));
     await userEvent.click(screen.getByRole('button', { name: 'Sprecher hinzufügen' }));
     await userEvent.click(screen.getByRole('button', { name: 'Sprecher hinzufügen' }));
     const names = screen.getAllByPlaceholderText('Name');
@@ -343,7 +339,7 @@ describe('PodcastManager', () => {
     await userEvent.click(screen.getAllByLabelText('Hauptsprecher')[0]);
     // jsdom's constraint validation does not see files set by user-event, so submit past it (the browser
     // enforces `required`; the component's own "no audio" check is covered below).
-    fireEvent.submit(control('Titel').closest('form')!);
+    fireEvent.submit(control('Titel *').closest('form')!);
 
     expect(await screen.findByRole('heading', { name: 'Podcast' })).toBeInTheDocument();
     expect(body.get('title')).toBe('Neue Folge');
@@ -357,9 +353,9 @@ describe('PodcastManager', () => {
     const { calls } = mockApi({ 'GET /podcast': () => jsonResponse(episodes) });
     render(<PodcastManager onUnauthorized={vi.fn()} />);
     await userEvent.click(await screen.findByRole('button', { name: 'Neue Episode' }));
-    fill(control('Titel'), 'Ohne Audio');
+    fill(control('Titel *'), 'Ohne Audio');
 
-    fireEvent.submit(control('Titel').closest('form')!);
+    fireEvent.submit(control('Titel *').closest('form')!);
 
     expect(await screen.findByText('Bitte eine Audiodatei auswählen.')).toBeInTheDocument();
     expect(calls.some((c) => c.method === 'POST')).toBe(false);
@@ -386,10 +382,7 @@ describe('PodcastManager', () => {
     render(<PodcastManager onUnauthorized={vi.fn()} />);
     await userEvent.click(await screen.findByRole('button', { name: 'Neue Episode' }));
 
-    await userEvent.upload(
-      document.querySelector('input[type="file"][accept="audio/*"]')!,
-      new File(['a'], 'a.mp3', { type: 'audio/mpeg' }),
-    );
+    await userEvent.upload(screen.getByLabelText('Audiodatei *'), new File(['a'], 'a.mp3', { type: 'audio/mpeg' }));
     (probes[0] as unknown as { onloadedmetadata: () => void }).onloadedmetadata();
 
     await waitFor(() => expect(control(/Dauer/)).toHaveValue('2:05'));
