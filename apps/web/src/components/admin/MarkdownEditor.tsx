@@ -33,6 +33,7 @@ export function MarkdownEditor({ label, value, onChange, rows = 14 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [open, setOpen] = useState(readOpen);
   const panelId = useId();
+  const textareaId = useId();
 
   function toggle() {
     setOpen((current) => {
@@ -47,8 +48,8 @@ export function MarkdownEditor({ label, value, onChange, rows = 14 }: Props) {
     const edit = action.build(el.value, el.selectionStart, el.selectionEnd);
     el.focus();
     el.setSelectionRange(edit.from, edit.to);
-    // execCommand keeps the browser's native undo stack (Ctrl+Z) intact; setRangeText is the fallback.
-    const inserted = document.execCommand('insertText', false, edit.text);
+    // execCommand keeps the browser's native undo stack (Ctrl+Z) intact; setRangeText is the fallback (also when a browser drops the deprecated API).
+    const inserted = typeof document.execCommand === 'function' && document.execCommand('insertText', false, edit.text);
     if (!inserted) {
       el.setRangeText(edit.text, edit.from, edit.to, 'end');
       onChange(el.value);
@@ -67,7 +68,9 @@ export function MarkdownEditor({ label, value, onChange, rows = 14 }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <label className="text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">{label}</label>
+        <label htmlFor={textareaId} className="text-xs font-semibold uppercase tracking-wide text-kf-ink-muted">
+          {label}
+        </label>
         <button
           type="button"
           onClick={toggle}
@@ -81,6 +84,7 @@ export function MarkdownEditor({ label, value, onChange, rows = 14 }: Props) {
 
       <div className="mt-1 flex flex-col gap-3 lg:flex-row lg:items-start">
         <textarea
+          id={textareaId}
           ref={textareaRef}
           rows={rows}
           value={value}

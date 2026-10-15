@@ -5,5 +5,6 @@ import { afterEach, vi } from 'vitest';
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  window.history.replaceState({}, '', '/'); // admin views push real URLs; do not leak them into the next test
   vi.unstubAllGlobals();
 });
