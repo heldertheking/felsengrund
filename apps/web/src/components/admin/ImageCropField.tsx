@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { Optional } from './FieldHints';
+import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
 import Cropper, { type Area } from 'react-easy-crop';
 
 const labelClass = 'text-xs font-semibold uppercase tracking-wide text-kf-ink-muted';
@@ -26,6 +27,7 @@ interface ImageCropFieldProps {
 export function ImageCropField({ label, aspect, maxOutputSize, currentUrl, onChange }: ImageCropFieldProps) {
   const [source, setSource] = useState<{ url: string; name: string } | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const inputId = useId();
 
   // Object URLs are not garbage collected, so release them when replaced or unmounted.
   useEffect(() => () => void (preview && URL.revokeObjectURL(preview)), [preview]);
@@ -52,7 +54,10 @@ export function ImageCropField({ label, aspect, maxOutputSize, currentUrl, onCha
 
   return (
     <div>
-      <label className={labelClass}>{label}</label>
+      <label htmlFor={inputId} className={labelClass}>
+        {label}
+        <Optional />
+      </label>
       {shown && (
         <img
           src={shown}
@@ -61,7 +66,7 @@ export function ImageCropField({ label, aspect, maxOutputSize, currentUrl, onCha
           className="mt-2 h-24 w-auto rounded-lg border border-kf-edge object-cover"
         />
       )}
-      <input type="file" accept="image/*" onChange={handlePick} className={fileInputClass} />
+      <input id={inputId} type="file" accept="image/*" onChange={handlePick} className={fileInputClass} />
       {preview && (
         <button type="button" onClick={handleClear} className="mt-2 text-xs font-semibold text-kf-accent underline">
           Neues Bild verwerfen

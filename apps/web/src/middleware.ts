@@ -11,5 +11,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return context.rewrite('/podcast/detail');
   }
 
+  // Mirrors the .htaccess rule: every /admin/* path is the same client-side admin app.
+  if (/^\/admin\/.+/.test(pathname)) {
+    return context.rewrite('/admin');
+  }
+
   return next();
 });
