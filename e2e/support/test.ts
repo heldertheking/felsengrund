@@ -15,14 +15,3 @@ export async function waitForHydration(page: Page): Promise<void> {
 export function waitForFormRequest(page: Page): Promise<Request> {
   return page.waitForRequest((request) => request.url() === `${API_URL}/forms` && request.method() === 'POST');
 }
-
-/**
- * Exists only because the admin screens (apps/web/src/components/admin) render `<label>` without `for`/`id`, so
- * `getByLabel` cannot find those inputs. Once the labels are associated, replace this with `page.getByLabel(...)`
- * and delete it.
- */
-export function fieldByLabel(page: Page, label: string) {
-  return page.locator(
-    `xpath=//label[normalize-space()="${label}"]/following-sibling::*[self::input or self::textarea or self::select][1]`,
-  );
-}

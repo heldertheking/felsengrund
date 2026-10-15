@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import { ADMIN_PASSWORD, API_URL, WEB_URL } from '../env.mjs';
 import { audioFixturePath, deleteContent, imageFixturePath } from '../support/api';
-import { expect, fieldByLabel, test, waitForHydration } from '../support/test';
+import { expect, test, waitForHydration } from '../support/test';
 
 async function logIn(page: Page): Promise<void> {
   await page.goto('/admin');
@@ -12,8 +12,8 @@ async function logIn(page: Page): Promise<void> {
 }
 
 /** Picks an image in the crop field, confirms the crop and waits for the preview. */
-async function pickCroppedImage(page: Page, label: string): Promise<void> {
-  await fieldByLabel(page, label).setInputFiles(imageFixturePath);
+async function pickCroppedImage(page: Page, label: RegExp): Promise<void> {
+  await page.getByLabel(label).setInputFiles(imageFixturePath);
   const dialog = page.getByRole('dialog', { name: 'Bild zuschneiden' });
   await dialog.getByRole('button', { name: 'Zuschnitt übernehmen' }).click();
   await expect(dialog).toBeHidden();
@@ -74,15 +74,15 @@ test.describe('offers admin', () => {
       // Create
       await page.getByRole('button', { name: 'Neues Angebot' }).click();
       await expect(page.getByRole('heading', { level: 2, name: 'Neues Angebot' })).toBeVisible();
-      await fieldByLabel(page, 'Titel').fill(title);
-      await fieldByLabel(page, 'Intro').fill('Erste Fassung des Intros.');
-      await fieldByLabel(page, 'Kategorie').selectOption({ label: 'Senioren' });
-      await fieldByLabel(page, 'Zeiten').fill('Jeden Dienstag');
-      await fieldByLabel(page, 'Ort').fill('Gemeindesaal');
+      await page.getByLabel(/^Titel/).fill(title);
+      await page.getByLabel(/^Intro/).fill('Erste Fassung des Intros.');
+      await page.getByLabel(/^Kategorie/).selectOption({ label: 'Senioren' });
+      await page.getByLabel(/^Zeiten/).fill('Jeden Dienstag');
+      await page.getByLabel(/^Ort\b/).fill('Gemeindesaal');
       await page.getByRole('button', { name: 'Ansprechperson hinzufügen' }).click();
-      await page.getByPlaceholder('Name').fill('Hans Beispiel');
-      await pickCroppedImage(page, 'Kartenbild');
-      await fieldByLabel(page, 'Inhalt (Markdoc)').fill('Ein **wichtiger** Hinweis.');
+      await page.getByLabel('Ansprechperson 1: Name').fill('Hans Beispiel');
+      await pickCroppedImage(page, /^Kartenbild/);
+      await page.getByLabel(/^Inhalt \(Markdoc\)/).fill('Ein **wichtiger** Hinweis.');
 
       const created = page.waitForResponse(
         (response) => response.url() === `${API_URL}/admin/offers` && response.request().method() === 'POST',
@@ -109,9 +109,9 @@ test.describe('offers admin', () => {
       // Edit
       await row.getByRole('button', { name: 'Bearbeiten' }).click();
       await expect(page.getByRole('heading', { level: 2, name: 'Angebot bearbeiten' })).toBeVisible();
-      await expect(fieldByLabel(page, 'Titel')).toHaveValue(title);
-      await expect(fieldByLabel(page, 'Intro')).toHaveValue('Erste Fassung des Intros.');
-      await fieldByLabel(page, 'Intro').fill('Zweite Fassung des Intros.');
+      await expect(page.getByLabel(/^Titel/)).toHaveValue(title);
+      await expect(page.getByLabel(/^Intro/)).toHaveValue('Erste Fassung des Intros.');
+      await page.getByLabel(/^Intro/).fill('Zweite Fassung des Intros.');
       await page.getByRole('button', { name: 'Speichern' }).click();
       await expect(page.getByRole('heading', { level: 2, name: 'Angebote' })).toBeVisible();
 
@@ -145,7 +145,7 @@ test.describe('offers admin', () => {
     await page.getByRole('button', { name: 'Speichern' }).click();
 
     await expect
-      .poll(() => fieldByLabel(page, 'Titel').evaluate((el) => (el as HTMLInputElement).validity.valueMissing))
+      .poll(() => page.getByLabel(/^Titel/).evaluate((el) => (el as HTMLInputElement).validity.valueMissing))
       .toBe(true);
     expect(posts).toBe(0);
   });
@@ -164,15 +164,15 @@ test.describe('podcast admin', () => {
       // Create: the audio file is required.
       await page.getByRole('button', { name: 'Neue Episode' }).click();
       await expect(page.getByRole('heading', { level: 2, name: 'Neue Episode' })).toBeVisible();
-      await fieldByLabel(page, 'Titel').fill(title);
-      await fieldByLabel(page, 'Veröffentlichungsdatum').fill('2026-02-01');
-      await fieldByLabel(page, 'Audiodatei (erforderlich)').setInputFiles(audioFixturePath);
+      await page.getByLabel(/^Titel/).fill(title);
+      await page.getByLabel(/^Veröffentlichungsdatum/).fill('2026-02-01');
+      await page.getByLabel(/^Audiodatei/).setInputFiles(audioFixturePath);
       // Choosing the audio file reads its length from the file itself.
-      await expect(fieldByLabel(page, 'Dauer (z. B. 32:10)')).toHaveValue(/^\d+:\d{2}$/);
+      await expect(page.getByLabel(/^Dauer/)).toHaveValue(/^\d+:\d{2}$/);
       await page.getByRole('button', { name: 'Sprecher hinzufügen' }).click();
-      await page.getByPlaceholder('Name').fill('Paula Prediger');
-      await pickCroppedImage(page, 'Cover-Bild');
-      await fieldByLabel(page, 'Shownotes (Markdoc)').fill('Die **Shownotes** der Episode.');
+      await page.getByLabel('Sprecher 1: Name').fill('Paula Prediger');
+      await pickCroppedImage(page, /^Cover-Bild/);
+      await page.getByLabel(/^Shownotes \(Markdoc\)/).fill('Die **Shownotes** der Episode.');
 
       const created = page.waitForResponse(
         (response) => response.url() === `${API_URL}/admin/podcast` && response.request().method() === 'POST',
@@ -197,8 +197,8 @@ test.describe('podcast admin', () => {
       // Edit: keeps the audio file when none is chosen.
       await row.getByRole('button', { name: 'Bearbeiten' }).click();
       await expect(page.getByRole('heading', { level: 2, name: 'Episode bearbeiten' })).toBeVisible();
-      await expect(fieldByLabel(page, 'Titel')).toHaveValue(title);
-      await fieldByLabel(page, 'Shownotes (Markdoc)').fill('Überarbeitete Shownotes.');
+      await expect(page.getByLabel(/^Titel/)).toHaveValue(title);
+      await page.getByLabel(/^Shownotes \(Markdoc\)/).fill('Überarbeitete Shownotes.');
       await page.getByRole('button', { name: 'Speichern' }).click();
       await expect(page.getByRole('heading', { level: 2, name: 'Podcast' })).toBeVisible();
 
@@ -222,16 +222,12 @@ test.describe('podcast admin', () => {
     await logIn(page);
     await page.getByRole('button', { name: 'Podcast' }).click();
     await page.getByRole('button', { name: 'Neue Episode' }).click();
-    await fieldByLabel(page, 'Titel').fill('Ohne Audio');
-    await fieldByLabel(page, 'Veröffentlichungsdatum').fill('2026-02-01');
+    await page.getByLabel(/^Titel/).fill('Ohne Audio');
+    await page.getByLabel(/^Veröffentlichungsdatum/).fill('2026-02-01');
     await page.getByRole('button', { name: 'Speichern' }).click();
 
     await expect
-      .poll(() =>
-        fieldByLabel(page, 'Audiodatei (erforderlich)').evaluate(
-          (el) => (el as HTMLInputElement).validity.valueMissing,
-        ),
-      )
+      .poll(() => page.getByLabel(/^Audiodatei/).evaluate((el) => (el as HTMLInputElement).validity.valueMissing))
       .toBe(true);
   });
 });
