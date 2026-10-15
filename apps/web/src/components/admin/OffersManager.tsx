@@ -4,6 +4,8 @@ import { offerForm } from '../../lib/admin-forms';
 import { CATEGORY_DETAILS, type Offer, type OfferFrontmatter, type OfferOrganizer } from '@felsengrund/types';
 import { downloadMdocExport } from '../../lib/export';
 import { ImageCropField } from './ImageCropField';
+import { MarkdownEditor } from './MarkdownEditor';
+import { Optional, OptionalNote } from './FieldHints';
 import { filterMdocFiles } from '../../lib/mdoc';
 
 const CATEGORIES: { value: OfferFrontmatter['category']; label: string }[] = Object.entries(CATEGORY_DETAILS)
@@ -342,13 +344,25 @@ function OfferForm({
         <h2 className="font-display text-lg font-semibold text-kf-ink">
           {isEdit ? 'Angebot bearbeiten' : 'Neues Angebot'}
         </h2>
-        <button type="button" onClick={onDone} className="text-sm text-kf-ink-muted hover:text-kf-accent">
-          Zurück zur Liste
-        </button>
+        <div className="flex items-center gap-4 text-sm">
+          <a
+            href="/admin/anleitungen/angebote"
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold text-kf-accent underline underline-offset-2"
+          >
+            Anleitung ansehen
+          </a>
+          <button type="button" onClick={onDone} className="text-kf-ink-muted hover:text-kf-accent">
+            Zurück zur Liste
+          </button>
+        </div>
       </div>
 
+      <OptionalNote required="Titel und Kategorie" />
+
       <div>
-        <label className={labelClass}>Titel</label>
+        <label className={labelClass}>Titel *</label>
         <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} />
         {isEdit && (
           <p className="mt-1 text-xs text-kf-ink-muted">
@@ -358,12 +372,15 @@ function OfferForm({
       </div>
 
       <div>
-        <label className={labelClass}>Intro</label>
+        <label className={labelClass}>
+          Intro
+          <Optional />
+        </label>
         <textarea rows={2} value={intro} onChange={(e) => setIntro(e.target.value)} className={inputClass} />
       </div>
 
       <div>
-        <label className={labelClass}>Kategorie</label>
+        <label className={labelClass}>Kategorie *</label>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value as OfferFrontmatter['category'])}
@@ -378,7 +395,10 @@ function OfferForm({
       </div>
 
       <div>
-        <label className={labelClass}>Zielgruppe</label>
+        <label className={labelClass}>
+          Zielgruppe
+          <Optional />
+        </label>
         <input
           type="text"
           value={targetAudience}
@@ -388,22 +408,34 @@ function OfferForm({
       </div>
 
       <div>
-        <label className={labelClass}>Zeiten</label>
+        <label className={labelClass}>
+          Zeiten
+          <Optional />
+        </label>
         <input type="text" value={schedule} onChange={(e) => setSchedule(e.target.value)} className={inputClass} />
       </div>
 
       <div>
-        <label className={labelClass}>Ort</label>
+        <label className={labelClass}>
+          Ort
+          <Optional />
+        </label>
         <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} className={inputClass} />
       </div>
 
       <div>
-        <label className={labelClass}>Google Maps Link</label>
+        <label className={labelClass}>
+          Google Maps Link
+          <Optional />
+        </label>
         <input type="url" value={mapsLink} onChange={(e) => setMapsLink(e.target.value)} className={inputClass} />
       </div>
 
       <div>
-        <label className={labelClass}>Google Maps Iframe URL</label>
+        <label className={labelClass}>
+          Google Maps Iframe URL
+          <Optional />
+        </label>
         <input
           type="url"
           value={googleMapsIframeLink}
@@ -413,7 +445,10 @@ function OfferForm({
       </div>
 
       <div>
-        <label className={labelClass}>Anmeldung</label>
+        <label className={labelClass}>
+          Anmeldung
+          <Optional />
+        </label>
         <input
           type="text"
           value={registration}
@@ -423,7 +458,10 @@ function OfferForm({
       </div>
 
       <div>
-        <span className={labelClass}>Ansprechpersonen</span>
+        <span className={labelClass}>
+          Ansprechpersonen
+          <Optional />
+        </span>
         <div className="mt-2 flex flex-col gap-2">
           {organizers.map((organizer, index) => (
             <div
@@ -478,15 +516,7 @@ function OfferForm({
         onChange={setCardImage}
       />
 
-      <div>
-        <label className={labelClass}>Inhalt (Markdoc)</label>
-        <textarea
-          rows={14}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          className={`${inputClass} font-mono`}
-        />
-      </div>
+      <MarkdownEditor label="Inhalt (Markdoc)" value={body} onChange={setBody} />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <button

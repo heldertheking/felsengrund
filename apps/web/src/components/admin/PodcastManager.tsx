@@ -4,6 +4,8 @@ import { podcastForm } from '../../lib/admin-forms';
 import type { Episode, PodcastSpeaker } from '@felsengrund/types';
 import { downloadMdocExport } from '../../lib/export';
 import { ImageCropField } from './ImageCropField';
+import { MarkdownEditor } from './MarkdownEditor';
+import { Optional, OptionalNote } from './FieldHints';
 
 const inputClass =
   'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent';
@@ -323,13 +325,25 @@ function PodcastForm({
         <h2 className="font-display text-lg font-semibold text-kf-ink">
           {isEdit ? 'Episode bearbeiten' : 'Neue Episode'}
         </h2>
-        <button type="button" onClick={onDone} className="text-sm text-kf-ink-muted hover:text-kf-accent">
-          Zurück zur Liste
-        </button>
+        <div className="flex items-center gap-4 text-sm">
+          <a
+            href="/admin/anleitungen/podcast"
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold text-kf-accent underline underline-offset-2"
+          >
+            Anleitung ansehen
+          </a>
+          <button type="button" onClick={onDone} className="text-kf-ink-muted hover:text-kf-accent">
+            Zurück zur Liste
+          </button>
+        </div>
       </div>
 
+      <OptionalNote required="Titel, Veröffentlichungsdatum und (bei neuen Episoden) die Audiodatei" />
+
       <div>
-        <label className={labelClass}>Titel</label>
+        <label className={labelClass}>Titel *</label>
         <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} />
         {isEdit && (
           <p className="mt-1 text-xs text-kf-ink-muted">
@@ -340,7 +354,10 @@ function PodcastForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className={labelClass}>Episodennummer</label>
+          <label className={labelClass}>
+            Episodennummer
+            <Optional />
+          </label>
           <input
             type="number"
             min={1}
@@ -351,7 +368,7 @@ function PodcastForm({
           />
         </div>
         <div>
-          <label className={labelClass}>Veröffentlichungsdatum</label>
+          <label className={labelClass}>Veröffentlichungsdatum *</label>
           <input
             type="date"
             required
@@ -363,12 +380,15 @@ function PodcastForm({
       </div>
 
       <div>
-        <label className={labelClass}>Dauer (z. B. 32:10)</label>
+        <label className={labelClass}>
+          Dauer (z. B. 32:10)
+          <Optional />
+        </label>
         <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} className={inputClass} />
       </div>
 
       <div>
-        <label className={labelClass}>Audiodatei{!isEdit && ' (erforderlich)'}</label>
+        <label className={labelClass}>Audiodatei{isEdit ? <Optional /> : ' *'}</label>
         {episode?.data.audioUrl && (
           <p className="mt-1 text-xs text-kf-ink-muted">
             Aktuelle Datei:{' '}
@@ -393,7 +413,10 @@ function PodcastForm({
       </div>
 
       <div>
-        <span className={labelClass}>Sprecher</span>
+        <span className={labelClass}>
+          Sprecher
+          <Optional />
+        </span>
         <div className="mt-2 flex flex-col gap-2">
           {speakers.map((speaker, index) => (
             <div
@@ -443,15 +466,7 @@ function PodcastForm({
         onChange={setCoverImage}
       />
 
-      <div>
-        <label className={labelClass}>Shownotes (Markdoc)</label>
-        <textarea
-          rows={14}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          className={`${inputClass} font-mono`}
-        />
-      </div>
+      <MarkdownEditor label="Shownotes (Markdoc)" value={body} onChange={setBody} />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <button
