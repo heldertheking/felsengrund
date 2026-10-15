@@ -14,12 +14,12 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Admin "Anleitungen" section (`/admin/anleitungen`): narrated, captioned walkthrough videos for adding a podcast
+- Admin "Anleitungen" section (`/admin/anleitungen`): walkthrough videos (no voice-over: highlights, on-screen captions and music) for adding a podcast
   episode and editing an offer, with the written steps below the video and clickable timestamps. Videos, posters and
   captions ship as static files in `apps/web/public/guides/` (about 2.8 MB each, served by the web host, not R2).
 - Markdown help sidebar on the offer and podcast content editors: click-to-insert formatting at the cursor and
   Ctrl/Cmd+B (bold), I (italic), E (code), K (link) shortcuts; native undo keeps working.
-- Training presentation `docs/presentations/admin-anleitung.pptx` (speaker notes contain the narration).
+- Training presentation `docs/presentations/admin-anleitung.pptx` (speaker notes contain the step captions).
 
 ### Changed
 

@@ -6,64 +6,61 @@
     "video": {
       "src": "/guides/podcast-episode-hinzufuegen.mp4",
       "poster": "/guides/podcast-episode-hinzufuegen.jpg",
-      "captions": "/guides/podcast-episode-hinzufuegen.vtt",
-      "duration": 132.6
+      "duration": 112.8
     },
-    "intro": "Neue Podcast-Episode hinzufügen. In wenigen Schritten ist eine Predigt online: Audiodatei hochladen, Titel und Datum eintragen, den Rest ergänzt du nach Bedarf.",
-    "outro": "Geschafft! Pflicht sind nur Titel, Datum und die Audiodatei. Sprecher, Cover und Shownotes sind optional. Was du leer lässt, erscheint nicht auf der Webseite.",
     "steps": [
       {
         "title": "Im Admin anmelden",
         "text": "Öffne die Admin-Seite und gib das Admin-Passwort ein. Danach klickst du oben auf «Podcast».",
-        "narration": "Öffne die Admin-Seite und melde dich mit dem Passwort an. Dann wechselst du oben auf Podcast.",
-        "start": 15.3
+        "start": 9.4,
+        "caption": "Melde dich im Admin an. Wechsle zu Podcast."
       },
       {
         "title": "Neue Episode starten",
         "text": "In der Liste siehst du alle bisherigen Episoden. Klicke oben rechts auf «Neue Episode».",
-        "narration": "Hier siehst du alle bisherigen Episoden. Mit einem Klick auf Neue Episode öffnet sich das Formular.",
-        "start": 24.2
+        "start": 16.5,
+        "caption": "Hier siehst du alle Episoden. Klicke auf Neue Episode."
       },
       {
         "title": "Titel und Datum eintragen",
         "text": "Titel und Veröffentlichungsdatum sind Pflicht und mit einem Stern markiert. Die Episodennummer wird automatisch vorgeschlagen, du kannst sie aber ändern.",
-        "narration": "Pflichtfelder sind mit einem Stern markiert. Trage den Titel und das Veröffentlichungsdatum ein. Die Episodennummer wird automatisch vorgeschlagen.",
         "required": "pflicht",
-        "start": 33.6
+        "start": 23.5,
+        "caption": "Pflichtfelder haben einen Stern. Trage Titel und Datum ein. Die Nummer wird automatisch vorgeschlagen."
       },
       {
         "title": "Audiodatei auswählen",
         "text": "Wähle die Audiodatei aus (zum Beispiel MP3). Die Dauer liest die Seite selbst aus der Datei aus. Bei einer neuen Episode ist die Audiodatei Pflicht.",
-        "narration": "Wähle jetzt die Audiodatei aus. Die Dauer wird automatisch aus der Datei übernommen, du musst sie nicht abtippen.",
         "required": "pflicht",
-        "start": 49.2
+        "start": 37.7,
+        "caption": "Wähle die Audiodatei aus. Die Dauer wird automatisch erkannt."
       },
       {
         "title": "Sprecher hinzufügen",
         "text": "Klicke auf «Sprecher hinzufügen» und trage den Namen ein. Mit «Hauptsprecher» hebst du die wichtigste Person hervor. Du kannst mehrere Sprecher erfassen oder das Feld ganz leer lassen.",
-        "narration": "Optional kannst du Sprecher hinzufügen. Setze den Haken bei Hauptsprecher, wenn die Person die Predigt hält. Auch das darfst du leer lassen.",
         "required": "optional",
-        "start": 59.4
+        "start": 45.2,
+        "caption": "Sprecher sind optional. Markiere den Hauptsprecher. Oder lass das Feld einfach leer."
       },
       {
         "title": "Cover-Bild zuschneiden",
         "text": "Wähle ein Bild aus. Es öffnet sich ein Fenster zum Zuschneiden: Bild verschieben, mit dem Regler zoomen und «Zuschnitt übernehmen» klicken. Ohne Cover wird das Standardbild verwendet.",
-        "narration": "Ein Cover-Bild ist optional. Nach der Auswahl schneidest du es zu: Bild verschieben, zoomen, und Zuschnitt übernehmen.",
         "required": "optional",
-        "start": 72.6
+        "start": 56.6,
+        "caption": "Auch das Cover ist optional. Schneide das Bild zu und übernimm es."
       },
       {
         "title": "Shownotes mit der Markdown-Hilfe schreiben",
         "text": "Öffne die «Markdown-Hilfe» rechts neben dem Textfeld. Ein Klick auf ein Element fügt es an der Cursorposition ein oder formatiert den markierten Text. Tastenkürzel: Strg+B fett, Strg+I kursiv, Strg+E Code, Strg+K Link.",
-        "narration": "Für die Shownotes öffnest du die Markdown-Hilfe. Ein Klick fügt Formatierungen ein. Markierten Text machst du mit Strg und B fett, und mit Strg und I kursiv.",
         "required": "optional",
-        "start": 86.5
+        "start": 71.4,
+        "caption": "Öffne die Markdown-Hilfe. Ein Klick fügt Formatierungen ein. Mit Strg und B wird Text fett, mit Strg und I kursiv."
       },
       {
         "title": "Speichern und prüfen",
         "text": "Klicke auf «Speichern». Die Episode erscheint in der Liste und auf der öffentlichen Podcast-Seite.",
-        "narration": "Zum Schluss klickst du auf Speichern. Die neue Episode erscheint sofort in der Liste und auf der öffentlichen Podcast-Seite.",
-        "start": 105.8
+        "start": 89.5,
+        "caption": "Klicke auf Speichern. Die Episode erscheint sofort auf der Webseite."
       }
     ]
   },
@@ -74,58 +71,55 @@
     "video": {
       "src": "/guides/angebot-bearbeiten.mp4",
       "poster": "/guides/angebot-bearbeiten.jpg",
-      "captions": "/guides/angebot-bearbeiten.vtt",
-      "duration": 124.7
+      "duration": 107.9
     },
-    "intro": "Ein Angebot bearbeiten. Wir zeigen dir, wie du Zeiten, Ort, Ansprechpersonen, Bild und Beschreibung änderst, und warum du fast alles leer lassen darfst.",
-    "outro": "Das war's! Pflicht sind nur Titel und Kategorie. Alles andere ist optional und erscheint nur auf der Webseite, wenn du es ausfüllst.",
     "steps": [
       {
         "title": "Angebot öffnen",
         "text": "Melde dich im Admin an. Unter «Angebote» findest du alle Angebote. Klicke beim gewünschten Angebot auf «Bearbeiten».",
-        "narration": "Melde dich im Admin an. Unter Angebote findest du die Liste. Klicke beim gewünschten Angebot auf Bearbeiten.",
-        "start": 14.6
+        "start": 9.4,
+        "caption": "Melde dich im Admin an. Hier sind alle Angebote. Klicke auf Bearbeiten."
       },
       {
         "title": "Pflicht und optional unterscheiden",
         "text": "Nur Titel und Kategorie sind Pflicht (mit Stern markiert). Alle anderen Felder tragen den Hinweis «optional». Was leer bleibt, wird auf der Webseite nicht angezeigt.",
-        "narration": "Wichtig: Nur Titel und Kategorie sind Pflicht. Alle anderen Felder sind optional. Was du leer lässt, wird auf der Webseite einfach nicht angezeigt.",
         "required": "pflicht",
-        "start": 27.2
+        "start": 20.0,
+        "caption": "Nur Titel und Kategorie sind Pflicht. Alles andere ist optional. Leere Felder erscheinen nicht auf der Webseite."
       },
       {
         "title": "Intro, Zeiten und Ort anpassen",
         "text": "Ändere die Texte direkt im Feld. Zum Beispiel die Zeiten oder den Ort. Die Webadresse (Slug) bleibt beim Bearbeiten unverändert.",
-        "narration": "Ändere nun, was sich geändert hat, zum Beispiel die Zeiten und den Ort. Die Webadresse des Angebots bleibt dabei gleich.",
         "required": "optional",
-        "start": 41.8
+        "start": 32.3,
+        "caption": "Ändere Zeiten und Ort. Die Webadresse bleibt gleich."
       },
       {
         "title": "Ansprechperson hinzufügen",
         "text": "Klicke auf «Ansprechperson hinzufügen» und trage Name, Rolle und Kontakt ein. Es genügt der Name. Mit «Entfernen» löschst du eine Zeile wieder.",
-        "narration": "Eine Ansprechperson ergänzt du mit einem Klick. Name, Rolle und Kontakt sind alle optional, nur der Name ist nötig, damit die Zeile gespeichert wird.",
         "required": "optional",
-        "start": 54.3
+        "start": 44.1,
+        "caption": "Füge eine Ansprechperson hinzu. Nur der Name ist nötig."
       },
       {
         "title": "Kartenbild ersetzen",
         "text": "Wähle ein neues Bild und schneide es im 16:9-Format zu. Das bisherige Bild bleibt, solange du kein neues auswählst.",
-        "narration": "Willst du das Kartenbild ersetzen, wähle ein neues Bild und schneide es zu. Wählst du keins, bleibt das bisherige Bild bestehen.",
         "required": "optional",
-        "start": 68.1
+        "start": 57.1,
+        "caption": "Wähle ein neues Kartenbild und schneide es zu. Ohne neues Bild bleibt das alte."
       },
       {
         "title": "Beschreibung mit der Markdown-Hilfe",
         "text": "Öffne die «Markdown-Hilfe» und klicke auf Überschrift, Aufzählung oder Link. Markierten Text formatierst du auch mit Strg+B und Strg+I.",
-        "narration": "Die Beschreibung formatierst du mit der Markdown-Hilfe. Ein Klick auf Überschrift oder Aufzählung genügt. Fett geht auch mit Strg und B.",
         "required": "optional",
-        "start": 80.1
+        "start": 66.9,
+        "caption": "Öffne die Markdown-Hilfe. Ein Klick auf Überschrift oder Aufzählung genügt. Fett geht auch mit Strg und B."
       },
       {
         "title": "Speichern und prüfen",
         "text": "Klicke auf «Speichern» und öffne das Angebot auf der Webseite. Felder, die du leer gelassen hast, erscheinen dort nicht.",
-        "narration": "Zum Schluss auf Speichern klicken. Auf der Webseite siehst du das Ergebnis, und leere Felder tauchen dort gar nicht erst auf.",
-        "start": 100.6
+        "start": 85.5,
+        "caption": "Klicke auf Speichern. Leere Felder fehlen auf der Webseite."
       }
     ]
   }

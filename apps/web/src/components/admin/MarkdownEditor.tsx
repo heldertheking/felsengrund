@@ -75,7 +75,7 @@ export function MarkdownEditor({ label, value, onChange, rows = 14 }: Props) {
           aria-controls={panelId}
           className="rounded-lg border border-kf-edge px-3 py-1 text-xs font-semibold text-kf-ink transition hover:border-kf-accent hover:text-kf-accent"
         >
-          {open ? 'Markdown-Hilfe schliessen' : 'Markdown-Hilfe'}
+          {open ? 'Markdown-Hilfe schließen' : 'Markdown-Hilfe'}
         </button>
       </div>
 

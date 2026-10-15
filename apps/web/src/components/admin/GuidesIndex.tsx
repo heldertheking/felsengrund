@@ -5,8 +5,8 @@ export default function GuidesIndex({ onOpen }: { onOpen: (id: GuideId) => void 
     <div>
       <h2 className="font-display text-lg font-semibold text-kf-ink">Anleitungen</h2>
       <p className="mt-1 text-sm text-kf-ink-muted">
-        Kurze Videos mit Ton, dazu die Schritte zum Nachlesen. Fast alle Angaben in den Formularen sind optional: nur
-        Pflichtfelder (mit * markiert) müssen ausgefüllt sein.
+        Kurze Videos mit Musik und Einblendungen, dazu die Schritte zum Nachlesen. Fast alle Angaben in den Formularen
+        sind optional: nur Pflichtfelder (mit * markiert) müssen ausgefüllt sein.
       </p>
       <ul className="mt-6 grid gap-5 sm:grid-cols-2">
         {GUIDE_ORDER.map((id) => {

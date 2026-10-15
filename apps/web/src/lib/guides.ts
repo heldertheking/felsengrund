@@ -5,7 +5,8 @@ export type GuideId = 'podcast' | 'offers';
 export interface GuideStep {
   title: string;
   text: string;
-  narration: string;
+  /** Short on-screen caption shown in the video while this step plays. */
+  caption: string;
   required?: 'pflicht' | 'optional';
   /** Where this step starts in the video, in seconds. */
   start?: number;
@@ -15,7 +16,7 @@ export interface Guide {
   id: GuideId;
   title: string;
   summary: string;
-  video: { src: string; poster: string; captions: string; duration?: number };
+  video: { src: string; poster: string; duration?: number };
   steps: GuideStep[];
 }
 

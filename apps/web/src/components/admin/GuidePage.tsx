@@ -85,13 +85,13 @@ export default function GuidePage({ guide }: { guide: Guide }) {
           className="aspect-video w-full"
         >
           <source src={guide.video.src} type="video/mp4" />
-          <track kind="captions" src={guide.video.captions} srcLang="de" label="Deutsch" />
           Dein Browser kann dieses Video nicht abspielen.
         </video>
       </div>
       <p className="mt-2 text-xs text-kf-ink-muted">
         {guide.video.duration ? `Dauer ${formatTime(guide.video.duration)} Min. · ` : ''}
-        Mit Ton und Untertiteln (Knopf «CC» im Player). Ein Klick auf eine Zeitmarke unten springt zur Stelle im Video.
+        Ohne Sprache: Markierungen und Einblendungen erklären jeden Schritt. Ein Klick auf eine Zeitmarke unten springt
+        zur Stelle im Video.
       </p>
 
       <h3 className="mt-8 font-display text-base font-semibold text-kf-ink">Schritt für Schritt</h3>
