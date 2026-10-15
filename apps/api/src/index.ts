@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { createLogger } from '@felsengrund/logger';
 import { createApiError, type Env } from './types';
 import { corsMiddleware } from './middleware/cors.middleware';
@@ -49,6 +50,13 @@ app.notFound((c) => {
 
 // Logs full context + a requestId so a 500 can be diagnosed from Workers Logs alone.
 app.onError((error, c) => {
+  // 4xx HTTPExceptions keep their status instead of becoming a 500. Only Hono's own malformed-body text is echoed;
+  // any other message may carry internal detail, so clients get a generic one.
+  if (error instanceof HTTPException && error.status < 500) {
+    const message = error.message === 'Malformed JSON in request body' ? error.message : 'Bad request.';
+    return c.json(createApiError(message), error.status);
+  }
+
   const requestId = crypto.randomUUID();
   logger.error('unhandled request error', {
     requestId,
