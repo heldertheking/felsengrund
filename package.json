@@ -39,7 +39,7 @@
     "typescript-eslint": "^8.70.0"
   },
   "allowScripts": {
-    "workerd@1.20260926.1": true,
+    "workerd@1.20261012.1": true,
     "esbuild@0.28.1": true,
     "esbuild@0.28.2": true
   }

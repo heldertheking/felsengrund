@@ -141,12 +141,7 @@ jobs:
         run: npm ci
 
       - name: Test
-        run: |
-          if node -e "process.exit(require('./apps/web/package.json').scripts?.test ? 0 : 1)"; then
-            npm run test -w @felsengrund/web
-          else
-            echo "::warning::No test script defined for @felsengrund/web yet, skipping."
-          fi
+        run: npm run test -w @felsengrund/web
 
   # The built site against the real Worker (wrangler dev) in a browser, with mail neutralised (see
   # e2e/playwright.config.ts). Runs on every PR and gates both deploys.
@@ -250,12 +245,7 @@ jobs:
         run: npm ci
 
       - name: Test
-        run: |
-          if node -e "process.exit(require('./apps/api/package.json').scripts?.test ? 0 : 1)"; then
-            npm run test -w @felsengrund/api
-          else
-            echo "::warning::No test script defined for @felsengrund/api yet, skipping."
-          fi
+        run: npm run test -w @felsengrund/api
 
   deploy-api:
     name: Deploy Worker

@@ -74,7 +74,7 @@ export default function PodcastList() {
                 </p>
                 <p className="mt-1 text-sm text-kf-ink-muted">
                   {new Date(episode.data.publishDate).toLocaleDateString('de-CH')}
-                  {` • ${episode.data.duration} - ${speakers(episode.data.speakers!)}`}
+                  {` • ${episode.data.duration} - ${speakers(episode.data.speakers ?? [])}`}
                 </p>
               </div>
             </div>
