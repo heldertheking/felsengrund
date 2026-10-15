@@ -1,61 +1,44 @@
 version: 2
 updates:
-  # Root dependencies (root-level devDependencies, configs, build tools)
-  - package-ecosystem: "npm"
-    directory: "/"
+  # One configuration for the whole npm workspace (one root lockfile). Every minor and patch update lands in a
+  # single PR, so a week produces at most one PR here instead of one per package and per workspace.
+  #
+  # Security updates are separate: Dependabot opens them as soon as an advisory exists, regardless of the grouping
+  # and the ignore rule below.
+  - package-ecosystem: 'npm'
+    directories:
+      - '/'
+      - '/apps/*'
+      - '/packages/*'
+      - '/e2e'
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
+      interval: 'weekly'
+      day: 'monday'
+    open-pull-requests-limit: 2
+    labels:
+      - 'dependencies'
     groups:
-      dev-dependencies:
-        dependency-type: "development"
-      minor-and-patch:
+      npm-minor-and-patch:
         update-types:
-          - "patch"
-          - "minor"
+          - 'minor'
+          - 'patch'
+    ignore:
+      # Major versions are migrations (React 19 stack, TypeScript 7, Vitest 5, ...). They are reviewed together in
+      # one ticket a few times a year instead of arriving as a PR per package and workspace; see issue #84 and
+      # docs/dependencies.md.
+      - dependency-name: '*'
+        update-types:
+          - 'version-update:semver-major'
 
-  # App: Astro Frontend
-  - package-ecosystem: "npm"
-    directory: "/apps/web"
+  # GitHub Actions used by the workflows: one PR a month for all of them.
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
+      interval: 'monthly'
+    open-pull-requests-limit: 1
+    labels:
+      - 'dependencies'
     groups:
-      astro-ecosystem:
+      github-actions:
         patterns:
-          - "astro*"
-          - "@astrojs/*"
-      minor-and-patch:
-        update-types:
-          - "patch"
-          - "minor"
-
-  # App: Cloudflare Worker
-  - package-ecosystem: "npm"
-    directory: "/apps/api"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    groups:
-      cloudflare:
-        patterns:
-          - "wrangler"
-          - "@cloudflare/*"
-      minor-and-patch:
-        update-types:
-          - "patch"
-          - "minor"
-
-  # Package: Shared Types
-  - package-ecosystem: "npm"
-    directory: "/packages/types"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-
-  # Package: Shared Logger
-  - package-ecosystem: "npm"
-    directory: "/packages/logger"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
+          - '*'

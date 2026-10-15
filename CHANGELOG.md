@@ -12,6 +12,31 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-10-15
+
+### Security
+
+- Cleared all open dependency alerts (11 Dependabot alerts, one of them critical) and brought `npm audit` to zero
+  without `--force`: `shell-quote` 1.12, `devalue` 5.9.4, `source-map-js` 1.2.2, `smol-toml` 1.9.1,
+  `http-cache-semantics` 4.3.0 and `concurrently` 10.0.6 through updates, `braces` by moving to `eslint-plugin-astro`
+  3 (a development-only lint chain), and `postcss-selector-parser` through an `overrides` entry for
+  `@tailwindcss/typography`, which pins a vulnerable version. The production CSS is byte-identical before and after.
+  Code scanning and secret scanning have no open alerts.
+
+### Changed
+
+- Updated dependencies: `hono` 4.13.13, `eslint` 10.12, `prettier` 3.9.10, `typescript-eslint` 8.71, `jsdom`, `yaml`,
+  `@types/node` and others, plus `eslint-plugin-astro` 3.2 (needs Node 22.22.3 or 24.16 and newer). `astro`,
+  `@astrojs/react` and `zod` follow through Dependabot's weekly PR.
+- Dependabot configuration: one npm entry for the whole workspace with all minor and patch updates in a single weekly
+  PR, major versions ignored (they are reviewed together, see #84), and a monthly grouped PR for GitHub Actions.
+  Before, five separate npm entries produced a PR per package and workspace (19 open at once).
+
+### Added
+
+- `docs/dependencies.md`: how updates arrive, how to handle alerts without `npm audit fix --force`, and the
+  constraints that are easy to break (the lockfile must work with npm 10, the Vitest layout, the `overrides` entry).
+
 ## [1.2.1] - 2026-10-15
 
 ### Security
