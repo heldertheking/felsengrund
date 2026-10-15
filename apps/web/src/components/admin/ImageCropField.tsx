@@ -1,3 +1,4 @@
+import { Optional } from './FieldHints';
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import Cropper, { type Area } from 'react-easy-crop';
 
@@ -52,7 +53,10 @@ export function ImageCropField({ label, aspect, maxOutputSize, currentUrl, onCha
 
   return (
     <div>
-      <label className={labelClass}>{label}</label>
+      <label className={labelClass}>
+        {label}
+        <Optional />
+      </label>
       {shown && (
         <img
           src={shown}

@@ -12,6 +12,22 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Admin "Anleitungen" section (`/admin/anleitungen`): narrated, captioned walkthrough videos for adding a podcast
+  episode and editing an offer, with the written steps below the video and clickable timestamps. Videos, posters and
+  captions ship as static files in `apps/web/public/guides/` (about 2.8 MB each, served by the web host, not R2).
+- Markdown help sidebar on the offer and podcast content editors: click-to-insert formatting at the cursor and
+  Ctrl/Cmd+B (bold), I (italic), E (code), K (link) shortcuts; native undo keeps working.
+- Training presentation `docs/presentations/admin-anleitung.pptx` (speaker notes contain the narration).
+
+### Changed
+
+- Offer and podcast forms now mark required fields with `*` and optional ones with "(optional)", with a note that empty
+  optional fields are not shown on the website.
+- Every `/admin/*` path is now served by the admin app in the dev server too (as `.htaccess` already did in production),
+  so admin views have real URLs.
+
 ## [1.1.1] - 2026-10-01
 
 ### Changed
