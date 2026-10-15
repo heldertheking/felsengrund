@@ -12,5 +12,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src/**/*", "worker-configuration.d.ts"]
+  "include": ["src/**/*", "test/**/*", "vitest.config.ts", "worker-configuration.d.ts"]
 }
