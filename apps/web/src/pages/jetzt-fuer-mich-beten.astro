@@ -43,7 +43,7 @@ import FormConditional from '../components/form/FormConditional.astro';
           <FormField name="displayName" required autocomplete="name" label="Wie sollen wir dich nennen?" />
         </FormConditional>
         <FormConditional when="answer" is="on">
-          <FormField name="email" required autocomplete="email" label="E-mail Adresse" />
+          <FormField name="email" type="email" required autocomplete="email" label="E-mail Adresse" />
         </FormConditional>
       </BaseForm>
     </div>

@@ -4,6 +4,7 @@ import type { Env } from '../../types';
 import type { FormNotification } from '../form-notifications';
 import { EmailBase } from './template/base';
 import { renderDevBanner } from './template/dev-banner';
+import { sanitizeHeaderText, sanitizeReplyTo } from './headers';
 import { FORMS } from './types';
 
 export { FORMS } from './types';
@@ -55,6 +56,10 @@ export class NotificationService {
       return;
     }
 
+    const safeSubject = sanitizeHeaderText(subject);
+    const replyTo = sanitizeReplyTo(options?.replyTo);
+    if (options?.replyTo && !replyTo) this.logger.warn('Dropping an unusable Reply-To address', { mailbox });
+
     const builder = EmailBase.newBuilder().setContent(content);
     if (!isProduction) {
       this.logger.info('Non-production environment - redirecting notification email', {
@@ -70,9 +75,9 @@ export class NotificationService {
       {
         from: { name: 'Kirche Felsengrund', email: MAIL_FROM_ADDRESS },
         to,
-        subject: isProduction ? subject : `[${env.ENVIRONMENT}] ${subject}`,
+        subject: isProduction ? safeSubject : `[${env.ENVIRONMENT}] ${safeSubject}`,
         html: builder.build(),
-        reply: options?.replyTo,
+        reply: replyTo,
       },
     );
   }

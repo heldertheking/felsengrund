@@ -12,6 +12,25 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-10-15
+
+### Security
+
+- The public forms (`POST /forms`) could be used to put extra mail headers into the notification emails: line
+  breaks in a single-line field (name, subject, topic) went into the `Subject` / `Reply-To` header unchanged. Those
+  fields now refuse line breaks and control characters, have a length limit, and the header values are sanitised
+  again where they enter the mailer.
+- The endpoint now bounds what it accepts: at most 30 fields (names up to 64 characters), 20 items per repeated
+  field and a 32 KB request body (`413`).
+- `POST /forms` is rate limited per client (5 requests per 60 seconds, Workers Rate Limiting binding
+  `FORMS_RATE_LIMITER`) on deployed environments, so the mailboxes and the SMTP account cannot be flooded. Local
+  development, the tests and the E2E suite are not limited.
+
+### Changed
+
+- The email inputs of the contact, prayer and feedback forms use `type="email"`, so browsers check the address before
+  sending.
+
 ## [1.2.0] - 2026-10-15
 
 ### Added
