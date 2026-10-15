@@ -6,8 +6,8 @@ How dependencies are kept up to date, and the constraints that are easy to break
 
 `.github/dependabot.yml` has two entries:
 
-- **npm** (the whole workspace, one root lockfile): at most one PR a week with **all minor and patch updates
-  grouped**. Major versions are ignored on purpose (see below). Dependabot's _security_ updates are separate: they
+- **npm** (the whole workspace, one root lockfile; only the root directory is configured, because Dependabot
+  updates every workspace from there): at most one PR a week with **all minor and patch updates grouped**. Major versions are ignored on purpose (see below). Dependabot's _security_ updates are separate: they
   open as soon as an advisory exists, whatever the grouping or ignore rules say.
 - **GitHub Actions**: at most one PR a month for all workflow actions.
 
