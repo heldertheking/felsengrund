@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { extractInlineScript } from '../extract-script';
 
 const read = (name: string) =>
   readFileSync(resolve(import.meta.dirname, `../../src/components/form/${name}.astro`), 'utf-8');
@@ -17,7 +18,7 @@ const sources = {
   FormConditional: read('FormConditional'),
 };
 
-const script = /<script>([\s\S]*?)<\/script>/.exec(sources.BaseForm)![1];
+const script = extractInlineScript(sources.BaseForm, 'BaseForm.astro');
 
 // [hook the script uses, component that must render it]
 const hooks: [string, keyof typeof sources][] = [
