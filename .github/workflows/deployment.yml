@@ -148,9 +148,49 @@ jobs:
             echo "::warning::No test script defined for @felsengrund/web yet, skipping."
           fi
 
+  # The built site against the real Worker (wrangler dev) in a browser, with mail neutralised (see
+  # e2e/playwright.config.ts). Runs on every PR and gates both deploys.
+  # Intentionally has no path filter: it must run whatever changed, and both deploy jobs depend on it.
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: e2e
+
+      # Needs no repo variables or secrets: the site is built against a local Worker with fake credentials, and
+      # that Worker is configured so it cannot send mail.
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+            e2e/.logs/
+          retention-days: 7
+
   deploy-web:
     name: Deploy Webpage
-    needs: [test-web, quality]
+    needs: [test-web, e2e, quality]
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
@@ -219,7 +259,7 @@ jobs:
 
   deploy-api:
     name: Deploy Worker
-    needs: [test-api, quality]
+    needs: [test-api, e2e, quality]
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:

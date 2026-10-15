@@ -1,0 +1,17 @@
+{
+  "name": "@felsengrund/e2e",
+  "private": true,
+  "version": "1.1.1",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.3",
+    "typescript": "~5.6.2"
+  }
+}

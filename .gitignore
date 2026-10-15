@@ -10,3 +10,9 @@ dist
 
 # Knowledge graph
 graphify-out/
+
+# E2E (Playwright) artifacts
+e2e/.state
+e2e/.logs
+test-results
+playwright-report
