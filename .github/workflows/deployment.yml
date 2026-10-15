@@ -141,12 +141,7 @@ jobs:
         run: npm ci
 
       - name: Test
-        run: |
-          if node -e "process.exit(require('./apps/web/package.json').scripts?.test ? 0 : 1)"; then
-            npm run test -w @felsengrund/web
-          else
-            echo "::warning::No test script defined for @felsengrund/web yet, skipping."
-          fi
+        run: npm run test -w @felsengrund/web
 
   deploy-web:
     name: Deploy Webpage
