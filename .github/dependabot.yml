@@ -3,14 +3,14 @@ updates:
   # One configuration for the whole npm workspace (one root lockfile). Every minor and patch update lands in a
   # single PR, so a week produces at most one PR here instead of one per package and per workspace.
   #
+  # Only the root directory is listed on purpose: Dependabot updates the manifest of every workspace from there (one
+  # PR touches apps/*, packages/* and e2e together). Listing the workspaces as extra directories made it open the same
+  # update once per workspace.
+  #
   # Security updates are separate: Dependabot opens them as soon as an advisory exists, regardless of the grouping
   # and the ignore rule below.
   - package-ecosystem: 'npm'
-    directories:
-      - '/'
-      - '/apps/*'
-      - '/packages/*'
-      - '/e2e'
+    directory: '/'
     schedule:
       interval: 'weekly'
       day: 'monday'

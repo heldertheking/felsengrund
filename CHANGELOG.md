@@ -12,6 +12,11 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Dependabot opened the same update once per workspace because the workspaces were listed as extra directories;
+  only the root directory is configured now, which updates every workspace in one grouped PR.
+
 ## [1.2.2] - 2026-10-15
 
 ### Security
