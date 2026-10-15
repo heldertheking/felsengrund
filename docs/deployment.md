@@ -31,6 +31,17 @@ binding is only reachable from within the Worker; `apps/api`'s `GET /media/*` ro
 only thing that ever serves those bytes over HTTP, streaming straight off the binding with
 `Range` support for podcast audio scrubbing.
 
+### The forms rate limiter
+
+`POST /forms` is limited per client by a Workers Rate Limiting binding, `FORMS_RATE_LIMITER`
+(5 requests per 60 seconds), declared under `ratelimits` in `apps/api/wrangler.jsonc`. Unlike the R2 bucket
+it needs no setup: it is created when the Worker is deployed. Each environment uses its own
+`namespace_id` (production `1001`, development `1002`, the unnamed default `1003`), so traffic to one
+cannot count against another; keep them distinct when adding environments. To change the limit, edit
+`limit` / `period` there (the period may only be 10 or 60 seconds). The limiter is enforced on deployed
+environments only (`ENVIRONMENT` other than `local`). See "Limits and header safety" in
+[`docs/architecture.md`](./architecture.md).
+
 ### Secrets
 
 `apps/api/wrangler.jsonc` declares `production` and `development` named environments plus an

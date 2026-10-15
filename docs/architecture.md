@@ -243,17 +243,41 @@ endpoint, `POST /forms` in `apps/api/src/routes/forms.ts`, with the body
 `{ id, payload }`. `payload` is the raw field values collected by `BaseForm.astro`
 (`FormPayload`, keyed by each field's `name`). The route:
 
-1. rejects unknown form ids (`400`),
-2. validates the payload with the form's zod schema (`400` form error on failure),
-3. translates the payload into a notification (`lib/form-notifications.ts`) and sends it,
-4. returns `{ ok: true }`.
+1. rate limits the client (`429`, see below),
+2. rejects a body above 32 KB (`413`) and unknown form ids (`400`),
+3. validates the payload with the form's zod schema (`400` form error on failure),
+4. translates the payload into a notification (`lib/form-notifications.ts`) and sends it,
+5. returns `{ ok: true }`.
+
+### Limits and header safety
+
+The endpoint is public and every accepted submission sends an email, so it is bounded on purpose:
+
+- **Rate limit:** `middleware/rate-limit.middleware.ts` uses the Workers Rate Limiting binding
+  `FORMS_RATE_LIMITER` (5 requests per 60 seconds per `CF-Connecting-IP`, configured under `ratelimits` in
+  `wrangler.jsonc`, one namespace per environment). It is enforced on deployed environments only
+  (`ENVIRONMENT` other than `local`), so local development, the unit tests and the E2E suite are not limited. A
+  deployed environment without the binding lets requests through and logs an error.
+- **Payload shape** (`formSchema` in `Forms.ts`): at most 30 fields, field names up to 64 characters, at most 20
+  items in a repeated field, every value up to 5000 characters.
+- **Single-line fields** (names, subjects, topics, email, phone) use `singleLine(max)`: bounded length and no
+  control characters or line breaks. Free text uses `multiLine`, which allows newlines but no other control
+  characters. Their values end up in mail headers (`Subject`, `Reply-To`), and the mail library only encodes
+  non-ASCII header values, so a line break in plain ASCII text would otherwise start a new header.
+- **Mail headers** are sanitised once more where they enter the mailer (`lib/notification/headers.ts`: one-line
+  subject, a display name without quotes or angle brackets, an address that cannot break a header, otherwise no
+  `Reply-To`), so a caller that forgets the schema checks cannot reintroduce the problem.
+
+The honeypot field in `BaseForm` is a browser-side trap only: the field is never sent to the API, so it cannot
+protect the endpoint against a script that posts directly. Rate limiting is what does that.
 
 ### Adding a form
 
 1. **`packages/types/src/Forms.ts`**: add a zod schema to `formSchemas` (the key is the form
    id, the field names are the `name` attributes in the Astro form). Build it with
-   `formSchema({ ... })`, which adds the shared checks (5000 character cap, email check); put
-   conditional rules in `.superRefine(...)`. `FormId` and `FormInputs` are inferred from the
+   `formSchema({ ... })`, which adds the shared checks (payload shape limits, 5000 character cap,
+   email check); declare each field with `singleLine(max)` or `multiLine` rather than a bare
+   `z.string()` (see "Limits and header safety"); put conditional rules in `.superRefine(...)`. `FormId` and `FormInputs` are inferred from the
    schemas, so there is no separate type to maintain. The schemas are runtime code and are only
    exported from the subpath `@felsengrund/types/forms` (used by `apps/api`); the
    `@felsengrund/types` barrel re-exports the types only, which keeps zod out of the web bundle.

@@ -105,7 +105,7 @@ import FormRow from '../components/form/FormRow.astro';
             <FormField name="displayName" required autocomplete="name" label="Wie sollen wir dich nennen?" />
           </FormConditional>
           <FormConditional when="answer" is="on">
-            <FormField name="email" required autocomplete="email" label="E-mail Adresse" />
+            <FormField name="email" type="email" required autocomplete="email" label="E-mail Adresse" />
           </FormConditional>
         </BaseForm>
       </div>
@@ -144,7 +144,7 @@ import FormRow from '../components/form/FormRow.astro';
                   autocomplete="name"
                   label="Wie sollen wir dich nennen?"
                 />
-                <FormField id="fb-email" name="email" required autocomplete="email" label="E-mail Adresse" />
+                <FormField id="fb-email" name="email" type="email" required autocomplete="email" label="E-mail Adresse" />
               </FormRow>
             </FormConditional>
           </BaseForm>

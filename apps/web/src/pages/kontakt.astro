@@ -20,7 +20,7 @@ import FormField from '../components/form/FormField.astro';
 
         <BaseForm formId="contact" label="contact form" class="mt-8">
           <FormField name="name" required autocomplete="name" label="Name" />
-          <FormField name="email" required autocomplete="email" label="Email" />
+          <FormField name="email" type="email" required autocomplete="email" label="Email" />
           <FormField name="subject" required autocomplete="off" label="Betreff" />
           <FormField name="message" required autocomplete="off" label="Nachricht" as="textarea" />
         </BaseForm>

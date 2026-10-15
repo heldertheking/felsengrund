@@ -13,8 +13,10 @@
  *  2. Add the matching entry to `formNotifications` in `apps/api/src/lib/form-notifications.ts`
  *     (the compiler points you there).
  *
- * Every payload additionally gets the shared checks of `formSchema`: values capped at
- * `MAX_LENGTH` characters and any `email` value must be a valid address.
+ * Every payload additionally gets the shared checks of `formSchema`: a bounded shape (field count, name and array
+ * sizes), values capped at `MAX_LENGTH` characters and any `email` value must be a valid address. Single-line
+ * fields (`singleLine`) cannot contain line breaks or control characters, because their values end up in mail
+ * headers; free text (`multiLine`) may contain newlines but no other control characters.
  */
 import { z } from 'zod';
 
@@ -26,6 +28,44 @@ export const FORM_INVALID_MESSAGE = 'Fehlende oder ungültige Angaben.';
 
 const MAX_LENGTH = 5000;
 const MAX_EMAIL_LENGTH = 254;
+const MAX_NAME_LENGTH = 100;
+const MAX_SUBJECT_LENGTH = 200;
+const MAX_PHONE_LENGTH = 50;
+/** Real forms have a handful of fields; anything far above that is not a form submission. */
+const MAX_FIELDS = 30;
+const MAX_FIELD_NAME_LENGTH = 64;
+const MAX_ARRAY_ITEMS = 20;
+
+/** Control characters and the Unicode line breaks (NEL, LS, PS): none may appear in a single-line value. */
+function hasLineBreakOrControl(value: string): boolean {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code < 0x20 || code === 0x7f || code === 0x85 || code === 0x2028 || code === 0x2029) return true;
+  }
+  return false;
+}
+
+/** Control characters other than tab, line feed and carriage return (free text may contain those). */
+function hasForbiddenControl(value: string): boolean {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if ((code < 0x20 && code !== 0x09 && code !== 0x0a && code !== 0x0d) || code === 0x7f) return true;
+  }
+  return false;
+}
+
+/** A value that ends up in a mail header or a single table cell: bounded, no line breaks or control characters. */
+const singleLine = (max: number) =>
+  z
+    .string()
+    .max(max)
+    .refine((value) => !hasLineBreakOrControl(value), 'Line breaks and control characters are not allowed');
+
+/** Free text (messages): newlines are fine, other control characters are not. */
+const multiLine = z
+  .string()
+  .max(MAX_LENGTH)
+  .refine((value) => !hasForbiddenControl(value), 'Control characters are not allowed');
 
 /** Plain string checks instead of a regex, so a crafted value can't cause catastrophic backtracking. */
 function isEmail(value: string): boolean {
@@ -39,11 +79,15 @@ function isEmail(value: string): boolean {
 
 /**
  * Checks shared by every form, applied to the raw payload before the per-form shape: everything
- * ends up in an email, so cap every value's length (array items included) and keep a malformed
- * address out of `replyTo`.
+ * ends up in an email, so bound the payload's shape, cap every value's length (array items included)
+ * and keep a malformed address out of `replyTo`.
  */
 const payloadSchema = z
-  .record(z.string(), z.union([z.string().max(MAX_LENGTH), z.array(z.string().max(MAX_LENGTH))]))
+  .record(
+    z.string().max(MAX_FIELD_NAME_LENGTH),
+    z.union([z.string().max(MAX_LENGTH), z.array(z.string().max(MAX_LENGTH)).max(MAX_ARRAY_ITEMS)]),
+  )
+  .refine((payload) => Object.keys(payload).length <= MAX_FIELDS)
   .refine((payload) => typeof payload.email !== 'string' || isEmail(payload.email));
 
 /** A form schema: the shared payload checks, then the form's own fields (unknown fields are dropped). */
@@ -63,43 +107,43 @@ function requireFields(data: Record<string, unknown>, fields: string[], ctx: z.R
 const checked = z.literal('on').optional();
 
 const contact = formSchema({
-  name: z.string(),
-  email: z.string(),
-  subject: z.string(),
-  message: z.string(),
+  name: singleLine(MAX_NAME_LENGTH),
+  email: singleLine(MAX_EMAIL_LENGTH),
+  subject: singleLine(MAX_SUBJECT_LENGTH),
+  message: multiLine,
 });
 
 const counseling = formSchema({
-  name: z.string(),
-  subject: z.string(),
-  message: z.string(),
+  name: singleLine(MAX_NAME_LENGTH),
+  subject: singleLine(MAX_SUBJECT_LENGTH),
+  message: multiLine,
   contactPreference: z.enum(['email', 'phone']),
   /** Present when `contactPreference` is `email`. */
-  email: z.string().optional(),
+  email: singleLine(MAX_EMAIL_LENGTH).optional(),
   /** Present when `contactPreference` is `phone`. */
-  phone: z.string().optional(),
+  phone: singleLine(MAX_PHONE_LENGTH).optional(),
   counselorPreference: z.enum(['none', 'female', 'male']).optional(),
 }).superRefine((data, ctx) => requireFields(data, [data.contactPreference === 'phone' ? 'phone' : 'email'], ctx));
 
 const feedback = formSchema({
-  message: z.string(),
+  message: multiLine,
   anonymous: checked,
   /** Present unless `anonymous`. */
-  displayName: z.string().optional(),
-  email: z.string().optional(),
+  displayName: singleLine(MAX_NAME_LENGTH).optional(),
+  email: singleLine(MAX_EMAIL_LENGTH).optional(),
 }).superRefine((data, ctx) => {
   if (!data.anonymous) requireFields(data, ['displayName', 'email'], ctx);
 });
 
 const prayer = formSchema({
-  topic: z.string(),
-  description: z.string(),
+  topic: singleLine(MAX_SUBJECT_LENGTH),
+  description: multiLine,
   anonymous: checked,
   answer: checked,
   /** Present unless `anonymous`. */
-  displayName: z.string().optional(),
+  displayName: singleLine(MAX_NAME_LENGTH).optional(),
   /** Present when `answer` is checked. */
-  email: z.string().optional(),
+  email: singleLine(MAX_EMAIL_LENGTH).optional(),
 }).superRefine((data, ctx) => {
   if (!data.anonymous) requireFields(data, ['displayName'], ctx);
   if (data.answer) requireFields(data, ['email'], ctx);

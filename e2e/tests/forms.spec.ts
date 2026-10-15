@@ -53,6 +53,26 @@ test.describe('contact form', () => {
     await expect(form.getByRole('textbox', { name: 'Name' })).toHaveValue('');
   });
 
+  test('checks the e-mail address in the browser and sends nothing for an invalid one', async ({ page }) => {
+    let posts = 0;
+    await page.route(`${API_URL}/forms`, (route) => {
+      if (route.request().method() === 'POST') posts++;
+      return route.fallback();
+    });
+    await page.goto('/kontakt');
+    const form = page.getByRole('form', { name: 'contact form' });
+    await form.getByRole('textbox', { name: 'Name' }).fill('Erika Muster');
+    await form.getByRole('textbox', { name: 'Email' }).fill('not-an-email-address');
+    await form.getByRole('textbox', { name: 'Betreff' }).fill('Eine Frage');
+    await form.getByRole('textbox', { name: 'Nachricht' }).fill('Hallo');
+
+    await form.getByRole('button', { name: submitLabel }).click();
+
+    await expect(form.getByRole('alert')).toHaveText(INVALID_FIELDS);
+    await expect(form.getByRole('textbox', { name: 'Email' })).toHaveAttribute('aria-invalid', 'true');
+    expect(posts).toBe(0);
+  });
+
   test('flags every empty required field and sends nothing', async ({ page }) => {
     let posts = 0;
     await page.route(`${API_URL}/forms`, (route) => {
@@ -89,8 +109,8 @@ test.describe('contact form', () => {
     await page.goto('/kontakt');
     const form = page.getByRole('form', { name: 'contact form' });
     await form.getByRole('textbox', { name: 'Name' }).fill('Erika Muster');
-    // Passes the browser's checks (the field is a plain text input) but not the Worker's address check.
-    await form.getByRole('textbox', { name: 'Email' }).fill('not-an-email-address');
+    // Passes the browser's address check (type="email" accepts a host without a dot) but not the Worker's.
+    await form.getByRole('textbox', { name: 'Email' }).fill('erika@localhost');
     await form.getByRole('textbox', { name: 'Betreff' }).fill('Eine Frage');
     await form.getByRole('textbox', { name: 'Nachricht' }).fill('Hallo');
 

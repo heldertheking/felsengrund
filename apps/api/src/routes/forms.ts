@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
+import { bodyLimit } from 'hono/body-limit';
 import { z } from 'zod';
 import type { FormInputs, OkResponse } from '@felsengrund/types';
 import { FORM_IDS, FORM_INVALID_MESSAGE, formSchemas } from '@felsengrund/types/forms';
@@ -7,6 +8,7 @@ import { createLogger } from '@felsengrund/logger';
 import { createFormError, type Env } from '../types';
 import { NotificationService } from '../lib';
 import { buildFormNotification } from '../lib/form-notifications';
+import { formsRateLimit } from '../middleware/rate-limit.middleware';
 
 // === Setup ===
 const logger = createLogger('Forms Route');
@@ -18,6 +20,9 @@ const submissionSchema = z.object({
   payload: z.record(z.string(), z.union([z.string(), z.array(z.string())])),
 });
 
+/** A real submission is a few kilobytes of text; anything much bigger is not a form. */
+const MAX_BODY_BYTES = 32 * 1024;
+
 // === Routes ===
 
 /**
@@ -26,6 +31,11 @@ const submissionSchema = z.object({
  */
 export const formsRoute = new Hono<{ Bindings: Env }>().post(
   '/forms',
+  formsRateLimit,
+  bodyLimit({
+    maxSize: MAX_BODY_BYTES,
+    onError: (c) => c.json(createFormError('unknown', 'Die Anfrage ist zu gross.'), 413),
+  }),
   zValidator('json', submissionSchema, (result, c) => {
     if (!result.success) {
       logger.warn('Malformed form submission', { issues: result.error.issues });

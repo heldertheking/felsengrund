@@ -9,6 +9,8 @@ export interface Env {
   KFA_DEV_NOTIFICATION_RECIPIENT?: string;
   KFA_SESSION_TTL_MS?: string;
   STORAGE: R2Bucket;
+  /** Per-client limiter for `POST /forms` (Workers Rate Limiting binding, see `wrangler.jsonc`); not bound locally. */
+  FORMS_RATE_LIMITER?: RateLimit;
 }
 
 /** Shape of every error body the API returns; `unwrap` in `apps/web/src/lib/api.ts` reads `message`. */
