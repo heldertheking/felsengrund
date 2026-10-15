@@ -1,0 +1,126 @@
+{
+  "podcast": {
+    "id": "podcast",
+    "title": "Podcast-Episode hinzufügen",
+    "summary": "So lädst du eine neue Episode mit Audiodatei, Cover und Shownotes hoch und prüfst sie auf der Webseite.",
+    "video": {
+      "src": "/guides/podcast-episode-hinzufuegen.mp4",
+      "poster": "/guides/podcast-episode-hinzufuegen.jpg",
+      "duration": 112.8
+    },
+    "steps": [
+      {
+        "title": "Im Admin anmelden",
+        "text": "Öffne die Admin-Seite und gib das Admin-Passwort ein. Danach klickst du oben auf «Podcast».",
+        "start": 9.4,
+        "caption": "Melde dich im Admin an. Wechsle zu Podcast."
+      },
+      {
+        "title": "Neue Episode starten",
+        "text": "In der Liste siehst du alle bisherigen Episoden. Klicke oben rechts auf «Neue Episode».",
+        "start": 16.5,
+        "caption": "Hier siehst du alle Episoden. Klicke auf Neue Episode."
+      },
+      {
+        "title": "Titel und Datum eintragen",
+        "text": "Titel und Veröffentlichungsdatum sind Pflicht und mit einem Stern markiert. Die Episodennummer wird automatisch vorgeschlagen, du kannst sie aber ändern.",
+        "required": "pflicht",
+        "start": 23.5,
+        "caption": "Pflichtfelder haben einen Stern. Trage Titel und Datum ein. Die Nummer wird automatisch vorgeschlagen."
+      },
+      {
+        "title": "Audiodatei auswählen",
+        "text": "Wähle die Audiodatei aus (zum Beispiel MP3). Die Dauer liest die Seite selbst aus der Datei aus. Bei einer neuen Episode ist die Audiodatei Pflicht.",
+        "required": "pflicht",
+        "start": 37.7,
+        "caption": "Wähle die Audiodatei aus. Die Dauer wird automatisch erkannt."
+      },
+      {
+        "title": "Sprecher hinzufügen",
+        "text": "Klicke auf «Sprecher hinzufügen» und trage den Namen ein. Mit «Hauptsprecher» hebst du die wichtigste Person hervor. Du kannst mehrere Sprecher erfassen oder das Feld ganz leer lassen.",
+        "required": "optional",
+        "start": 45.2,
+        "caption": "Sprecher sind optional. Markiere den Hauptsprecher. Oder lass das Feld einfach leer."
+      },
+      {
+        "title": "Cover-Bild zuschneiden",
+        "text": "Wähle ein Bild aus. Es öffnet sich ein Fenster zum Zuschneiden: Bild verschieben, mit dem Regler zoomen und «Zuschnitt übernehmen» klicken. Ohne Cover wird das Standardbild verwendet.",
+        "required": "optional",
+        "start": 56.6,
+        "caption": "Auch das Cover ist optional. Schneide das Bild zu und übernimm es."
+      },
+      {
+        "title": "Shownotes mit der Markdown-Hilfe schreiben",
+        "text": "Öffne die «Markdown-Hilfe» rechts neben dem Textfeld. Ein Klick auf ein Element fügt es an der Cursorposition ein oder formatiert den markierten Text. Tastenkürzel: Strg+B fett, Strg+I kursiv, Strg+E Code, Strg+K Link.",
+        "required": "optional",
+        "start": 71.4,
+        "caption": "Öffne die Markdown-Hilfe. Ein Klick fügt Formatierungen ein. Mit Strg und B wird Text fett, mit Strg und I kursiv."
+      },
+      {
+        "title": "Speichern und prüfen",
+        "text": "Klicke auf «Speichern». Die Episode erscheint in der Liste und auf der öffentlichen Podcast-Seite.",
+        "start": 89.5,
+        "caption": "Klicke auf Speichern. Die Episode erscheint sofort auf der Webseite."
+      }
+    ]
+  },
+  "offers": {
+    "id": "offers",
+    "title": "Angebot bearbeiten",
+    "summary": "So änderst du ein bestehendes Angebot: Texte, Ansprechpersonen, Bild und Beschreibung. Fast alle Angaben sind optional.",
+    "video": {
+      "src": "/guides/angebot-bearbeiten.mp4",
+      "poster": "/guides/angebot-bearbeiten.jpg",
+      "duration": 107.9
+    },
+    "steps": [
+      {
+        "title": "Angebot öffnen",
+        "text": "Melde dich im Admin an. Unter «Angebote» findest du alle Angebote. Klicke beim gewünschten Angebot auf «Bearbeiten».",
+        "start": 9.4,
+        "caption": "Melde dich im Admin an. Hier sind alle Angebote. Klicke auf Bearbeiten."
+      },
+      {
+        "title": "Pflicht und optional unterscheiden",
+        "text": "Nur Titel und Kategorie sind Pflicht (mit Stern markiert). Alle anderen Felder tragen den Hinweis «optional». Was leer bleibt, wird auf der Webseite nicht angezeigt.",
+        "required": "pflicht",
+        "start": 20.0,
+        "caption": "Nur Titel und Kategorie sind Pflicht. Alles andere ist optional. Leere Felder erscheinen nicht auf der Webseite."
+      },
+      {
+        "title": "Intro, Zeiten und Ort anpassen",
+        "text": "Ändere die Texte direkt im Feld. Zum Beispiel die Zeiten oder den Ort. Die Webadresse (Slug) bleibt beim Bearbeiten unverändert.",
+        "required": "optional",
+        "start": 32.3,
+        "caption": "Ändere Zeiten und Ort. Die Webadresse bleibt gleich."
+      },
+      {
+        "title": "Ansprechperson hinzufügen",
+        "text": "Klicke auf «Ansprechperson hinzufügen» und trage Name, Rolle und Kontakt ein. Es genügt der Name. Mit «Entfernen» löschst du eine Zeile wieder.",
+        "required": "optional",
+        "start": 44.1,
+        "caption": "Füge eine Ansprechperson hinzu. Nur der Name ist nötig."
+      },
+      {
+        "title": "Kartenbild ersetzen",
+        "text": "Wähle ein neues Bild und schneide es im 16:9-Format zu. Das bisherige Bild bleibt, solange du kein neues auswählst.",
+        "required": "optional",
+        "start": 57.1,
+        "caption": "Wähle ein neues Kartenbild und schneide es zu. Ohne neues Bild bleibt das alte."
+      },
+      {
+        "title": "Beschreibung mit der Markdown-Hilfe",
+        "text": "Öffne die «Markdown-Hilfe» und klicke auf Überschrift, Aufzählung oder Link. Markierten Text formatierst du auch mit Strg+B und Strg+I.",
+        "required": "optional",
+        "start": 66.9,
+        "caption": "Öffne die Markdown-Hilfe. Ein Klick auf Überschrift oder Aufzählung genügt. Fett geht auch mit Strg und B."
+      },
+      {
+        "title": "Speichern und prüfen",
+        "text": "Klicke auf «Speichern» und öffne das Angebot auf der Webseite. Felder, die du leer gelassen hast, erscheinen dort nicht.",
+        "start": 85.5,
+        "caption": "Klicke auf Speichern. Leere Felder fehlen auf der Webseite."
+      }
+    ]
+  }
+}

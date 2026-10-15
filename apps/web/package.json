@@ -1,14 +1,16 @@
 {
   "name": "@felsengrund/web",
   "private": true,
-  "version": "1.1.1",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "astro dev",
     "build:api-types": "tsc -p ../api/tsconfig.build.json",
     "build": "npm run build:api-types && astro check && astro build",
     "preview": "astro preview",
-    "typecheck": "npm run build:api-types && astro check"
+    "typecheck": "npm run build:api-types && astro check",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.5",
@@ -27,9 +29,14 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@felsengrund/api": "*",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "jsdom": "^30.1.2",
     "tailwindcss": "^4.3.3",
-    "typescript": "~5.6.2"
+    "typescript": "~5.6.2",
+    "vitest": "^5.0.4"
   }
 }

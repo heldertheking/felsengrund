@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { api, unwrap, UnauthorizedError } from '../../lib/api';
 import { offerForm } from '../../lib/admin-forms';
 import { CATEGORY_DETAILS, type Offer, type OfferFrontmatter, type OfferOrganizer } from '@felsengrund/types';
 import { downloadMdocExport } from '../../lib/export';
 import { ImageCropField } from './ImageCropField';
+import { MarkdownEditor } from './MarkdownEditor';
+import { Optional, OptionalNote } from './FieldHints';
 import { filterMdocFiles } from '../../lib/mdoc';
 
 const CATEGORIES: { value: OfferFrontmatter['category']; label: string }[] = Object.entries(CATEGORY_DETAILS)
@@ -283,6 +285,8 @@ function OfferForm({
   onUnauthorized: () => void;
 }) {
   const isEdit = offer !== null;
+  const uid = useId();
+  const fid = (name: string) => `${uid}-${name}`;
   const [title, setTitle] = useState(offer?.data.title ?? '');
   const [intro, setIntro] = useState(offer?.data.intro ?? '');
   const [category, setCategory] = useState<OfferFrontmatter['category']>(offer?.data.category ?? 'gottesdienst');
@@ -342,14 +346,35 @@ function OfferForm({
         <h2 className="font-display text-lg font-semibold text-kf-ink">
           {isEdit ? 'Angebot bearbeiten' : 'Neues Angebot'}
         </h2>
-        <button type="button" onClick={onDone} className="text-sm text-kf-ink-muted hover:text-kf-accent">
-          Zurück zur Liste
-        </button>
+        <div className="flex items-center gap-4 text-sm">
+          <a
+            href="/admin/anleitungen/angebote"
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold text-kf-accent underline underline-offset-2"
+          >
+            Anleitung ansehen
+          </a>
+          <button type="button" onClick={onDone} className="text-kf-ink-muted hover:text-kf-accent">
+            Zurück zur Liste
+          </button>
+        </div>
       </div>
 
+      <OptionalNote required="Titel und Kategorie" />
+
       <div>
-        <label className={labelClass}>Titel</label>
-        <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} />
+        <label htmlFor={fid('title')} className={labelClass}>
+          Titel *
+        </label>
+        <input
+          id={fid('title')}
+          type="text"
+          required
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className={inputClass}
+        />
         {isEdit && (
           <p className="mt-1 text-xs text-kf-ink-muted">
             Slug: <code>{offer.slug}</code>
@@ -358,13 +383,25 @@ function OfferForm({
       </div>
 
       <div>
-        <label className={labelClass}>Intro</label>
-        <textarea rows={2} value={intro} onChange={(e) => setIntro(e.target.value)} className={inputClass} />
+        <label htmlFor={fid('intro')} className={labelClass}>
+          Intro
+          <Optional />
+        </label>
+        <textarea
+          id={fid('intro')}
+          rows={2}
+          value={intro}
+          onChange={(e) => setIntro(e.target.value)}
+          className={inputClass}
+        />
       </div>
 
       <div>
-        <label className={labelClass}>Kategorie</label>
+        <label htmlFor={fid('category')} className={labelClass}>
+          Kategorie *
+        </label>
         <select
+          id={fid('category')}
           value={category}
           onChange={(e) => setCategory(e.target.value as OfferFrontmatter['category'])}
           className={inputClass}
@@ -378,8 +415,12 @@ function OfferForm({
       </div>
 
       <div>
-        <label className={labelClass}>Zielgruppe</label>
+        <label htmlFor={fid('audience')} className={labelClass}>
+          Zielgruppe
+          <Optional />
+        </label>
         <input
+          id={fid('audience')}
           type="text"
           value={targetAudience}
           onChange={(e) => setTargetAudience(e.target.value)}
@@ -388,23 +429,54 @@ function OfferForm({
       </div>
 
       <div>
-        <label className={labelClass}>Zeiten</label>
-        <input type="text" value={schedule} onChange={(e) => setSchedule(e.target.value)} className={inputClass} />
-      </div>
-
-      <div>
-        <label className={labelClass}>Ort</label>
-        <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} className={inputClass} />
-      </div>
-
-      <div>
-        <label className={labelClass}>Google Maps Link</label>
-        <input type="url" value={mapsLink} onChange={(e) => setMapsLink(e.target.value)} className={inputClass} />
-      </div>
-
-      <div>
-        <label className={labelClass}>Google Maps Iframe URL</label>
+        <label htmlFor={fid('schedule')} className={labelClass}>
+          Zeiten
+          <Optional />
+        </label>
         <input
+          id={fid('schedule')}
+          type="text"
+          value={schedule}
+          onChange={(e) => setSchedule(e.target.value)}
+          className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label htmlFor={fid('location')} className={labelClass}>
+          Ort
+          <Optional />
+        </label>
+        <input
+          id={fid('location')}
+          type="text"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label htmlFor={fid('maps')} className={labelClass}>
+          Google Maps Link
+          <Optional />
+        </label>
+        <input
+          id={fid('maps')}
+          type="url"
+          value={mapsLink}
+          onChange={(e) => setMapsLink(e.target.value)}
+          className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label htmlFor={fid('iframe')} className={labelClass}>
+          Google Maps Iframe URL
+          <Optional />
+        </label>
+        <input
+          id={fid('iframe')}
           type="url"
           value={googleMapsIframeLink}
           onChange={(e) => setGoogleMapsIframeLink(e.target.value)}
@@ -413,8 +485,12 @@ function OfferForm({
       </div>
 
       <div>
-        <label className={labelClass}>Anmeldung</label>
+        <label htmlFor={fid('registration')} className={labelClass}>
+          Anmeldung
+          <Optional />
+        </label>
         <input
+          id={fid('registration')}
           type="text"
           value={registration}
           onChange={(e) => setRegistration(e.target.value)}
@@ -422,8 +498,11 @@ function OfferForm({
         />
       </div>
 
-      <div>
-        <span className={labelClass}>Ansprechpersonen</span>
+      <div role="group" aria-labelledby={fid('organizers')}>
+        <span id={fid('organizers')} className={labelClass}>
+          Ansprechpersonen
+          <Optional />
+        </span>
         <div className="mt-2 flex flex-col gap-2">
           {organizers.map((organizer, index) => (
             <div
@@ -433,6 +512,7 @@ function OfferForm({
               <input
                 type="text"
                 placeholder="Name"
+                aria-label={`Ansprechperson ${index + 1}: Name`}
                 value={organizer.name}
                 onChange={(e) => updateOrganizer(index, 'name', e.target.value)}
                 className={inputClass}
@@ -440,6 +520,7 @@ function OfferForm({
               <input
                 type="text"
                 placeholder="Rolle"
+                aria-label={`Ansprechperson ${index + 1}: Rolle`}
                 value={organizer.role ?? ''}
                 onChange={(e) => updateOrganizer(index, 'role', e.target.value)}
                 className={inputClass}
@@ -447,6 +528,7 @@ function OfferForm({
               <input
                 type="text"
                 placeholder="Kontakt"
+                aria-label={`Ansprechperson ${index + 1}: Kontakt`}
                 value={organizer.contact ?? ''}
                 onChange={(e) => updateOrganizer(index, 'contact', e.target.value)}
                 className={inputClass}
@@ -454,6 +536,7 @@ function OfferForm({
               <button
                 type="button"
                 onClick={() => setOrganizers((rows) => rows.filter((_, i) => i !== index))}
+                aria-label={`Ansprechperson ${index + 1} entfernen`}
                 className="justify-self-start rounded-lg border border-kf-edge px-3 py-2 text-xs font-semibold text-kf-ink-muted transition hover:border-red-600 hover:text-red-600 sm:justify-self-center"
               >
                 Entfernen
@@ -478,15 +561,7 @@ function OfferForm({
         onChange={setCardImage}
       />
 
-      <div>
-        <label className={labelClass}>Inhalt (Markdoc)</label>
-        <textarea
-          rows={14}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          className={`${inputClass} font-mono`}
-        />
-      </div>
+      <MarkdownEditor label="Inhalt (Markdoc)" value={body} onChange={setBody} />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <button

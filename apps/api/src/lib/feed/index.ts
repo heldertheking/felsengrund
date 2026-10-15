@@ -90,8 +90,20 @@ const stripToPlainText = async (html: string): Promise<string> => {
   const transformed = rewriter.transform(res);
   await transformed.text();
 
-  return text.trim();
+  return decodeEntities(text).trim();
 };
+
+const NAMED_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+
+/** HTMLRewriter hands out text chunks still HTML-escaped; decode once (single pass) so `escapeXml` doesn't escape them twice. */
+const decodeEntities = (text: string): string =>
+  text.replace(/&(?:#(\d+)|#[xX]([0-9a-fA-F]+)|([a-zA-Z]+));/g, (entity, dec?: string, hex?: string, name?: string) => {
+    if (name) return NAMED_ENTITIES[name] ?? entity;
+    const codePoint = dec ? Number(dec) : parseInt(hex ?? '', 16);
+    // Leave invalid code points (out of range, surrogates, NUL) untouched.
+    const invalid = codePoint < 1 || codePoint > 0x10ffff || (codePoint >= 0xd800 && codePoint <= 0xdfff);
+    return Number.isInteger(codePoint) && !invalid ? String.fromCodePoint(codePoint) : entity;
+  });
 
 /** A literal `]]>` would terminate the CDATA section early. */
 const toCdata = (value: string): string => `<![CDATA[${value.replaceAll(']]>', ']]]]><![CDATA[>')}]]>`;
@@ -186,4 +198,4 @@ function buildPodcastFeedXml(feed: PodcastFeedData): string {
   </rss>`;
 }
 
-export { generateETag, episodeToXmlItem, buildPodcastFeedXml };
+export { decodeEntities, generateETag, episodeToXmlItem, buildPodcastFeedXml };

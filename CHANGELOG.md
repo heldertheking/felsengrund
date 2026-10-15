@@ -12,6 +12,43 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-15
+
+### Added
+
+- Admin "Anleitungen" section (`/admin/anleitungen`): walkthrough videos for adding a podcast episode and editing an
+  offer (no voice-over: highlights, on-screen captions and music), with the written steps below the video, clickable
+  timestamps and a Markdown cheat sheet. Videos and posters ship as static files in `apps/web/public/guides/` (about
+  2.8 MB each, served by the web host, not R2).
+- Markdown help sidebar on the offer and podcast content editors: click-to-insert formatting at the cursor and
+  Ctrl/Cmd+B (bold), I (italic), E (code), K (link) shortcuts; native undo keeps working.
+- Training presentation `docs/presentations/admin-anleitung.pptx` (speaker notes contain the step captions).
+- Automated tests for the web app (Vitest and Testing Library: lib, React islands, admin forms incl. the Markdown
+  editor and guide pages, `BaseForm`) and for the API (Vitest in the Workers runtime: forms, auth, admin routes, feed,
+  email escaping). The `test-web` and `test-api` CI jobs now fail a PR when a test fails.
+- End-to-end tests (Playwright, `npm run test:e2e`) for all public forms, the public pages and the admin offer and
+  episode flows. They run on their own ports with fake credentials and mail disabled, and the new `e2e` CI job must
+  pass before either deploy.
+
+### Changed
+
+- Offer and podcast forms now mark required fields with `*` and optional ones with "(optional)", with a note that empty
+  optional fields are not shown on the website.
+- Admin form controls are linked to their labels (`for`/`id`), which helps screen readers and clicking a label.
+- Every `/admin/*` path is now served by the admin app in the dev server too (as `.htaccess` already did in production),
+  so admin views have real URLs.
+- Development dependencies: `wrangler` 4.151 and `workerd` 1.20261012.1 (pulled in by the Workers test plugin).
+
+### Fixed
+
+- The podcast list crashed for an episode without speakers.
+- A malformed JSON body on `POST /forms` returned a 500 instead of a 400.
+- The podcast feed description was HTML-escaped twice (`&amp;amp;`).
+- The prayer and feedback forms on the home page shared field ids, which left the feedback fields without an
+  accessible label.
+- The backend tests picked up a developer's local `apps/api/.dev.vars` (real passwords and origins) instead of their
+  own fake values and failed on such machines; they now set every value explicitly.
+
 ## [1.1.1] - 2026-10-01
 
 ### Changed

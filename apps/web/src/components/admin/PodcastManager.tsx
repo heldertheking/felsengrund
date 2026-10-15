@@ -1,9 +1,11 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useId, useState, type ChangeEvent, type FormEvent } from 'react';
 import { api, unwrap, UnauthorizedError } from '../../lib/api';
 import { podcastForm } from '../../lib/admin-forms';
 import type { Episode, PodcastSpeaker } from '@felsengrund/types';
 import { downloadMdocExport } from '../../lib/export';
 import { ImageCropField } from './ImageCropField';
+import { MarkdownEditor } from './MarkdownEditor';
+import { Optional, OptionalNote } from './FieldHints';
 
 const inputClass =
   'mt-1 w-full rounded-lg border border-kf-edge bg-kf-surface px-3 py-2 text-sm text-kf-ink focus:border-kf-accent focus:outline-none focus:ring-1 focus:ring-kf-accent';
@@ -242,6 +244,8 @@ function PodcastForm({
   onUnauthorized: () => void;
 }) {
   const isEdit = episode !== null;
+  const uid = useId();
+  const fid = (name: string) => `${uid}-${name}`;
   const [title, setTitle] = useState(episode?.data.title ?? '');
   const [episodeNumber, setEpisodeNumber] = useState(
     episode?.data.episodeNumber?.toString() ?? nextEpisodeNumber(episodes),
@@ -323,14 +327,35 @@ function PodcastForm({
         <h2 className="font-display text-lg font-semibold text-kf-ink">
           {isEdit ? 'Episode bearbeiten' : 'Neue Episode'}
         </h2>
-        <button type="button" onClick={onDone} className="text-sm text-kf-ink-muted hover:text-kf-accent">
-          Zurück zur Liste
-        </button>
+        <div className="flex items-center gap-4 text-sm">
+          <a
+            href="/admin/anleitungen/podcast"
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold text-kf-accent underline underline-offset-2"
+          >
+            Anleitung ansehen
+          </a>
+          <button type="button" onClick={onDone} className="text-kf-ink-muted hover:text-kf-accent">
+            Zurück zur Liste
+          </button>
+        </div>
       </div>
 
+      <OptionalNote required="Titel, Veröffentlichungsdatum und (bei neuen Episoden) die Audiodatei" />
+
       <div>
-        <label className={labelClass}>Titel</label>
-        <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} />
+        <label htmlFor={fid('title')} className={labelClass}>
+          Titel *
+        </label>
+        <input
+          id={fid('title')}
+          type="text"
+          required
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className={inputClass}
+        />
         {isEdit && (
           <p className="mt-1 text-xs text-kf-ink-muted">
             Slug: <code>{episode.slug}</code>
@@ -340,8 +365,12 @@ function PodcastForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className={labelClass}>Episodennummer</label>
+          <label htmlFor={fid('number')} className={labelClass}>
+            Episodennummer
+            <Optional />
+          </label>
           <input
+            id={fid('number')}
             type="number"
             min={1}
             step={1}
@@ -351,8 +380,11 @@ function PodcastForm({
           />
         </div>
         <div>
-          <label className={labelClass}>Veröffentlichungsdatum</label>
+          <label htmlFor={fid('date')} className={labelClass}>
+            Veröffentlichungsdatum *
+          </label>
           <input
+            id={fid('date')}
             type="date"
             required
             value={publishDate}
@@ -363,12 +395,23 @@ function PodcastForm({
       </div>
 
       <div>
-        <label className={labelClass}>Dauer (z. B. 32:10)</label>
-        <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} className={inputClass} />
+        <label htmlFor={fid('duration')} className={labelClass}>
+          Dauer (z. B. 32:10)
+          <Optional />
+        </label>
+        <input
+          id={fid('duration')}
+          type="text"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          className={inputClass}
+        />
       </div>
 
       <div>
-        <label className={labelClass}>Audiodatei{!isEdit && ' (erforderlich)'}</label>
+        <label htmlFor={fid('audio')} className={labelClass}>
+          Audiodatei{isEdit ? <Optional /> : ' *'}
+        </label>
         {episode?.data.audioUrl && (
           <p className="mt-1 text-xs text-kf-ink-muted">
             Aktuelle Datei:{' '}
@@ -383,6 +426,7 @@ function PodcastForm({
           </p>
         )}
         <input
+          id={fid('audio')}
           type="file"
           accept="audio/*"
           required={!isEdit}
@@ -392,8 +436,11 @@ function PodcastForm({
         {isEdit && <p className="mt-1 text-xs text-kf-ink-muted">Leer lassen, um die bestehende Datei zu behalten.</p>}
       </div>
 
-      <div>
-        <span className={labelClass}>Sprecher</span>
+      <div role="group" aria-labelledby={fid('speakers')}>
+        <span id={fid('speakers')} className={labelClass}>
+          Sprecher
+          <Optional />
+        </span>
         <div className="mt-2 flex flex-col gap-2">
           {speakers.map((speaker, index) => (
             <div
@@ -403,6 +450,7 @@ function PodcastForm({
               <input
                 type="text"
                 placeholder="Name"
+                aria-label={`Sprecher ${index + 1}: Name`}
                 value={speaker.name}
                 onChange={(e) => updateSpeaker(index, 'name', e.target.value)}
                 className={inputClass}
@@ -419,6 +467,7 @@ function PodcastForm({
               <button
                 type="button"
                 onClick={() => setSpeakers((rows) => rows.filter((_, i) => i !== index))}
+                aria-label={`Sprecher ${index + 1} entfernen`}
                 className="justify-self-start rounded-lg border border-kf-edge px-3 py-2 text-xs font-semibold text-kf-ink-muted transition hover:border-red-600 hover:text-red-600 sm:justify-self-center"
               >
                 Entfernen
@@ -443,15 +492,7 @@ function PodcastForm({
         onChange={setCoverImage}
       />
 
-      <div>
-        <label className={labelClass}>Shownotes (Markdoc)</label>
-        <textarea
-          rows={14}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          className={`${inputClass} font-mono`}
-        />
-      </div>
+      <MarkdownEditor label="Shownotes (Markdoc)" value={body} onChange={setBody} />
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <button
