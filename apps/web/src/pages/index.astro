@@ -137,8 +137,14 @@ import FormRow from '../components/form/FormRow.astro';
             </FormCheckbox>
             <FormConditional when="anonymous" is="!on">
               <FormRow>
-                <FormField name="displayName" required autocomplete="name" label="Wie sollen wir dich nennen?" />
-                <FormField name="email" required autocomplete="email" label="E-mail Adresse" />
+                <FormField
+                  id="fb-displayName"
+                  name="displayName"
+                  required
+                  autocomplete="name"
+                  label="Wie sollen wir dich nennen?"
+                />
+                <FormField id="fb-email" name="email" required autocomplete="email" label="E-mail Adresse" />
               </FormRow>
             </FormConditional>
           </BaseForm>
