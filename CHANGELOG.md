@@ -46,6 +46,8 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 - The podcast feed description was HTML-escaped twice (`&amp;amp;`).
 - The prayer and feedback forms on the home page shared field ids, which left the feedback fields without an
   accessible label.
+- The backend tests picked up a developer's local `apps/api/.dev.vars` (real passwords and origins) instead of their
+  own fake values and failed on such machines; they now set every value explicitly.
 
 ## [1.1.1] - 2026-10-01
 
