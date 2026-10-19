@@ -12,6 +12,19 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-10-19
+
+### Changed
+
+- Grammar and wording pass over the German copy on the home, Über uns and Podcast pages (capitalisation, commas,
+  "Die Kirche Felsengrund"), including the "Rückmeldung" checkbox label and the leadership team details.
+- Home page: the Über uns teaser now comes before the Gebetsanliegen section, the hero's second button links to
+  Über uns instead of Kontakt, and the Gebetsanliegen and Parkplatz section backgrounds are swapped.
+
+### Added
+
+- A note under the Angebote teaser that events usually take place at Felsengrundstrasse 1, 8618 Oetwil am See.
+
 ### Fixed
 
 - Dependabot opened the same update once per workspace because the workspaces were listed as extra directories;
