@@ -12,6 +12,12 @@ and version numbers loosely follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.4] - 2026-10-19
+
+### Changed
+
+- Updated the repository variables to show navigation controls in the google calendar iframe
+
 ## [1.2.3] - 2026-10-19
 
 ### Changed

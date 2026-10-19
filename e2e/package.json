@@ -1,7 +1,7 @@
 {
   "name": "@felsengrund/e2e",
   "private": true,
-  "version": "1.2.3",
+  "version": "1.2.4",
   "type": "module",
   "scripts": {
     "test": "playwright test",
