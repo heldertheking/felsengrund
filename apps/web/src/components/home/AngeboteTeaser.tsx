@@ -81,6 +81,10 @@ export default function AngeboteTeaser() {
           ))}
         </div>
       )}
+      <p className="mt-4 text-sm text-kf-ink-muted">
+        Alle Angebote und Veranstaltungen der Kirche Felsengrund finden in der Regel an der{' '}
+        <strong>Felsengrundstrasse 1 in 8618 Oetwil am See</strong> statt.
+      </p>
     </section>
   );
 }
