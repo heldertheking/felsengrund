@@ -13,21 +13,21 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@astrojs/react": "^6.0.5",
+    "@astrojs/react": "^6.0.6",
     "@felsengrund/types": "*",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
-    "astro": "^7.3.1",
+    "astro": "^7.4.4",
     "fflate": "^0.8.2",
     "framer-motion": "^11.11.17",
-    "hono": "^4.6.14",
+    "hono": "^4.13.14",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-easy-crop": "^6.2.4",
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.10",
+    "@astrojs/check": "^0.9.12",
     "@felsengrund/api": "*",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -36,7 +36,7 @@
     "@types/react-dom": "^18.3.1",
     "jsdom": "^30.1.2",
     "tailwindcss": "^4.3.3",
-    "typescript": "~5.6.2",
-    "vitest": "^5.0.4"
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.12"
   }
 }
